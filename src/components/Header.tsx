@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Calendar, BookOpen, UserCheck, Flame, Zap, LogOut, CheckCircle2, Home, Baby, GraduationCap, Lock } from 'lucide-react';
+import { Sparkles, Calendar, BookOpen, UserCheck, Flame, Zap, LogOut, CheckCircle2, Home, Baby, GraduationCap, Lock, KeyRound } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AudienceTheme, Student } from '../types';
 
@@ -13,6 +13,7 @@ interface HeaderProps {
   onLogout: () => void;
   isLoggingIn: boolean;
   onOpenOptimizer: () => void;
+  onOpenCouponModal: () => void;
   currentStudentXp: number;
   currentStudentStreak: number;
   currentStudent: Student | null;
@@ -32,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   isLoggingIn,
   onOpenOptimizer,
+  onOpenCouponModal,
   currentStudentXp,
   currentStudentStreak,
   currentStudent,
@@ -48,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-3">
           
-          {/* Logo & Teacher Cokito Branding */}
+          {/* Logo & Teacher Cokitö Branding */}
           <button
             onClick={() => onTabChange('landing')}
             className="flex items-center gap-2.5 text-left focus:outline-hidden"
@@ -63,17 +65,17 @@ export const Header: React.FC<HeaderProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-slate-900 tracking-tight text-base sm:text-lg">
-                  La Teacher Cokito
+                  La Teacher Cokitö
                 </span>
                 <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
                   isKids
                     ? 'bg-yellow-100 text-yellow-900 border-yellow-300'
                     : 'bg-blue-50 text-blue-800 border-blue-200'
                 }`}>
-                  {isKids ? 'Kids & Teens' : 'Academia'}
+                  {isKids ? 'Kids & Teens' : 'Academia Cokitö'}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">English Learning • Sin Miedo & a Tu Ritmo</p>
+              <p className="text-[11px] text-slate-400 hidden sm:block">Aprende Inglés Sin Miedo & a Tu Ritmo</p>
             </div>
           </button>
 
@@ -120,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Zap className="w-3.5 h-3.5 text-emerald-500" />
-              Retos
+              Retos Cokitö
             </button>
 
             {/* AULA VIRTUAL & RUTA */}
@@ -155,6 +157,16 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Cluster */}
           <div className="flex items-center gap-2">
             
+            {/* Coupon / Beca button */}
+            <button
+              onClick={onOpenCouponModal}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all shadow-2xs"
+              title="Canjear código de cortesía o beca"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">Código</span>
+            </button>
+
             {/* Quick Switch for testing: Alumno / Aspirante / Teacher */}
             {activeRole === 'student' && (
               <select
@@ -202,18 +214,18 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Gamification badge */}
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded-xl text-xs">
-              <div className="flex items-center gap-0.5 text-orange-600 font-bold" title="Racha de días activos">
+              <div className="flex items-center gap-0.5 text-orange-600 font-bold" title="Racha activa de días">
                 <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
                 <span>{currentStudentStreak}</span>
               </div>
               <span className="text-slate-300">|</span>
-              <div className="flex items-center gap-0.5 text-emerald-600 font-bold" title="Puntos XP acumulados">
+              <div className="flex items-center gap-0.5 text-emerald-600 font-bold" title="Puntos XP Cokitö">
                 <Zap className="w-3 h-3 fill-emerald-500 text-emerald-500" />
                 <span>{currentStudentXp}</span>
               </div>
             </div>
 
-            {/* Role Switcher Pill (Alumno vs Teacher Cokito) */}
+            {/* Role Switcher Pill (Alumno vs Teacher Cokitö) */}
             <div className="bg-slate-100 p-0.5 rounded-xl flex items-center text-xs font-semibold">
               <button
                 onClick={() => onRoleChange('student')}
@@ -298,7 +310,7 @@ export const Header: React.FC<HeaderProps> = ({
               activeTab === 'duolingo' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-600'
             }`}
           >
-            Retos
+            Retos Cokitö
           </button>
           <button
             onClick={() => onTabChange('pathway')}

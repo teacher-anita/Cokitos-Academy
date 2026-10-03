@@ -14,6 +14,7 @@ import { LearningPathway } from './components/LearningPathway';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { ScheduleOptimizerModal } from './components/ScheduleOptimizerModal';
 import { PlacementQuizModal } from './components/PlacementQuizModal';
+import { CouponModal } from './components/CouponModal';
 import { Student, ScheduleSlot, AudienceTheme } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
 import { initAuth, googleSignIn, logout } from './services/firebaseAuth';
@@ -27,6 +28,7 @@ export default function App() {
   const [audienceTheme, setAudienceTheme] = useState<AudienceTheme>('adults');
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
   const [isPlacementQuizOpen, setIsPlacementQuizOpen] = useState(false);
+  const [isCouponOpen, setIsCouponOpen] = useState(false);
 
   // Auth State
   const [user, setUser] = useState<User | null>(null);
@@ -116,6 +118,12 @@ export default function App() {
     }
   };
 
+  const handleApplyCoupon = async (redeemedStudent: Student) => {
+    await saveStudent(redeemedStudent);
+    setCurrentStudentId(redeemedStudent.id);
+    setActiveTab('pathway');
+  };
+
   const handleFreeSlot = async (slotId: string) => {
     const updatedSlots = slots.map(slot => {
       if (slot.id === slotId) {
@@ -190,6 +198,7 @@ export default function App() {
         onLogout={handleLogout}
         isLoggingIn={isLoggingIn}
         onOpenOptimizer={() => setIsOptimizerOpen(true)}
+        onOpenCouponModal={() => setIsCouponOpen(true)}
         currentStudentXp={currentStudent?.xp || 0}
         currentStudentStreak={currentStudent?.streak || 0}
         currentStudent={currentStudent}
@@ -236,7 +245,7 @@ export default function App() {
           />
         )}
 
-        {/* TAB 4: DUOLINGO GAMIFICATION & LEADERBOARD */}
+        {/* TAB 4: RETOS COKITÖ & TABLA DE LIGA */}
         {activeTab === 'duolingo' && (
           <GamificationHub
             currentStudent={currentStudent}
@@ -247,7 +256,7 @@ export default function App() {
           />
         )}
 
-        {/* TAB 5: AULA VIRTUAL & RUTA DE APRENDIZAJE (MCGRAW-HILL) */}
+        {/* TAB 5: AULA VIRTUAL & RUTA DE APRENDIZAJE */}
         {activeTab === 'pathway' && (
           <LearningPathway
             currentStudent={currentStudent}
@@ -255,11 +264,12 @@ export default function App() {
             audienceTheme={audienceTheme}
             onOpenRegister={() => setActiveTab('register')}
             onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
+            onOpenCouponModal={() => setIsCouponOpen(true)}
             onAwardXp={handleAwardXp}
           />
         )}
 
-        {/* TAB 6: TEACHER COKITO DASHBOARD (Placement Evaluator & Student Progress) */}
+        {/* TAB 6: TEACHER COKITÖ DASHBOARD */}
         {activeTab === 'teacher' && (
           <TeacherDashboard
             students={students}
@@ -269,6 +279,13 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Coupon / Beca Modal */}
+      <CouponModal
+        isOpen={isCouponOpen}
+        onClose={() => setIsCouponOpen(false)}
+        onApplyCoupon={handleApplyCoupon}
+      />
 
       {/* Standalone Placement Quiz Modal */}
       <PlacementQuizModal
@@ -290,7 +307,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 text-center">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 La Teacher Cokito • Programa Académico Oficial McGraw-Hill</p>
+          <p>© 2026 La Teacher Cokitö • Programa Curricular Alineado al estándar SuperGoal & MegaGoal</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-emerald-600 font-semibold">
               <ShieldCheck className="w-4 h-4" />
