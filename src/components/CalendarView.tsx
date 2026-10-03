@@ -131,6 +131,38 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
       )}
 
+      {/* Priority Legend for CSB & Groups */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 shrink-0"></span>
+          <div>
+            <strong className="block text-slate-800 font-bold">15:00 - 17:00 (3 a 5 pm)</strong>
+            <span className="text-[11px] text-slate-500">Prioridad Alumnos CSB</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-purple-600 shrink-0"></span>
+          <div>
+            <strong className="block text-slate-800 font-bold">17:00 - 19:00 (5 a 7 pm)</strong>
+            <span className="text-[11px] text-slate-500">Prioridad Teachers CSB</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+          <div>
+            <strong className="block text-slate-800 font-bold">06:00 - 08:00 (Mañana)</strong>
+            <span className="text-[11px] text-slate-500">Exclusivo Grupos</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+          <div>
+            <strong className="block text-slate-800 font-bold">20:00 - 22:00 (Noche)</strong>
+            <span className="text-[11px] text-slate-500">Exclusivo Grupos</span>
+          </div>
+        </div>
+      </div>
+
       {/* Legend */}
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 bg-slate-50 border border-slate-200 p-4 rounded-2xl">
         <div className="flex items-center gap-4 flex-wrap">
@@ -318,7 +350,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                             <Clock className="w-3.5 h-3.5 text-emerald-600" />
                             <span>{slot.startTime} - {slot.endTime}</span>
                           </div>
-                          <span className="text-[11px] text-emerald-700 font-medium">Disponible</span>
+                          <span className="text-[11px] text-emerald-700 font-medium">
+                            {slot.teacherName || 'Teacher Cokitö'} • Disponible
+                          </span>
                         </div>
                         <button
                           onClick={onOpenRegister}

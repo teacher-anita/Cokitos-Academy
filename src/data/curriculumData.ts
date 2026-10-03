@@ -479,39 +479,121 @@ export const INITIAL_STUDENTS: Student[] = [
   }
 ];
 
+const WEEKDAYS: ('Lunes' | 'Martes' | 'Miércoles' | 'Jueves' | 'Viernes')[] = [
+  'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'
+];
+
+const DAILY_HOURS = [
+  { start: '06:00', end: '07:00' },
+  { start: '07:00', end: '08:00' },
+  { start: '08:00', end: '09:00' },
+  { start: '09:00', end: '10:00' },
+  { start: '10:00', end: '11:00' },
+  { start: '11:00', end: '12:00' },
+  // 12:00 - 13:00 Receso / Almuerzo
+  { start: '13:00', end: '14:00' },
+  { start: '14:00', end: '15:00' },
+  { start: '15:00', end: '16:00' }, // Prioridad Alumnos CSB
+  { start: '16:00', end: '17:00' }, // Prioridad Alumnos CSB
+  { start: '17:00', end: '18:00' }, // Prioridad Teachers CSB
+  { start: '18:00', end: '19:00' }, // Prioridad Teachers CSB
+  { start: '19:00', end: '20:00' },
+  { start: '20:00', end: '21:00' }, // Grupal Nocturno
+  { start: '21:00', end: '22:00' }  // Grupal Nocturno
+];
+
 export const INITIAL_SCHEDULE_SLOTS: ScheduleSlot[] = [
-  // Lunes
-  { id: 'lun_09', day: 'Lunes', startTime: '09:00', endTime: '10:00', status: 'available' },
-  { id: 'lun_10', day: 'Lunes', startTime: '10:00', endTime: '11:00', status: 'available' },
-  { id: 'lun_16', day: 'Lunes', startTime: '16:00', endTime: '17:00', status: 'available' },
-  { id: 'lun_18', day: 'Lunes', startTime: '18:00', endTime: '19:00', studentId: 'student_maria_guadalupe', studentName: 'Maria Guadalupe Peña Montilla', levelId: 'level_3', status: 'booked', meetLink: 'https://meet.google.com/eng-malu-cokito' },
+  ...WEEKDAYS.flatMap(day => {
+    const prefix = day === 'Lunes' ? 'lun' : day === 'Martes' ? 'mar' : day === 'Miércoles' ? 'mie' : day === 'Jueves' ? 'jue' : 'vie';
+    return DAILY_HOURS.map(({ start, end }) => {
+      const hourNum = start.split(':')[0];
+      const slotId = `${prefix}_${hourNum}`;
 
-  // Martes
-  { id: 'mar_09', day: 'Martes', startTime: '09:00', endTime: '10:00', status: 'available' },
-  { id: 'mar_11', day: 'Martes', startTime: '11:00', endTime: '12:00', status: 'available' },
-  { id: 'mar_16', day: 'Martes', startTime: '16:00', endTime: '17:30', studentId: 'student_mariana', studentName: 'Mariana Márquez', levelId: 'level_4', status: 'booked', meetLink: 'https://meet.google.com/eng-mariana-cokito' },
-  { id: 'mar_18', day: 'Martes', startTime: '18:00', endTime: '19:30', status: 'available' },
+      const isGroup = hourNum === '06' || hourNum === '07' || hourNum === '20' || hourNum === '21';
+      const isCSB = hourNum === '15' || hourNum === '16' || hourNum === '17' || hourNum === '18';
+      const slotType: 'individual' | 'group' | 'institutional_csb' = isGroup ? 'group' : isCSB ? 'institutional_csb' : 'individual';
+      const maxCapacity = isGroup ? 4 : isCSB ? 4 : 1;
 
-  // Miércoles
-  { id: 'mie_09', day: 'Miércoles', startTime: '09:00', endTime: '10:00', status: 'available' },
-  { id: 'mie_10', day: 'Miércoles', startTime: '10:00', endTime: '11:00', status: 'available' },
-  { id: 'mie_16', day: 'Miércoles', startTime: '16:00', endTime: '17:00', status: 'available' },
-  { id: 'mie_18', day: 'Miércoles', startTime: '18:00', endTime: '19:00', studentId: 'student_maria_guadalupe', studentName: 'Maria Guadalupe Peña Montilla', levelId: 'level_3', status: 'booked', meetLink: 'https://meet.google.com/eng-malu-cokito' },
+      const classroomTitle = 
+        hourNum === '06' ? 'Grupo Madrugador 1 (6:00 am)' :
+        hourNum === '07' ? 'Grupo Madrugador 2 (7:00 am)' :
+        hourNum === '15' ? 'Aula Prioridad Alumnos CSB (3:00 pm)' :
+        hourNum === '16' ? 'Aula Prioridad Alumnos CSB (4:00 pm)' :
+        hourNum === '17' ? 'Aula Prioridad Teachers CSB (5:00 pm)' :
+        hourNum === '18' ? 'Aula Prioridad Teachers CSB (6:00 pm)' :
+        hourNum === '20' ? 'Grupo Nocturno 1 (8:00 pm)' :
+        hourNum === '21' ? 'Grupo Nocturno 2 (9:00 pm)' :
+        `Aula Individual (${start} - ${end})`;
 
-  // Jueves
-  { id: 'jue_09', day: 'Jueves', startTime: '09:00', endTime: '10:00', status: 'available' },
-  { id: 'jue_11', day: 'Jueves', startTime: '11:00', endTime: '12:00', status: 'available' },
-  { id: 'jue_16', day: 'Jueves', startTime: '16:00', endTime: '17:30', studentId: 'student_mariana', studentName: 'Mariana Márquez', levelId: 'level_4', status: 'booked', meetLink: 'https://meet.google.com/eng-mariana-cokito' },
-  { id: 'jue_18', day: 'Jueves', startTime: '18:00', endTime: '19:30', status: 'available' },
+      // Check booked students
+      if (slotId === 'lun_18' || slotId === 'mie_18') {
+        return {
+          id: slotId,
+          day,
+          startTime: start,
+          endTime: end,
+          slotType,
+          maxCapacity,
+          classroomTitle: 'Aula Teachers CSB (Preescolar & Primaria)',
+          enrolledStudents: [{
+            studentId: 'student_maria_guadalupe',
+            studentName: 'Maria Guadalupe Peña Montilla',
+            levelId: 'level_3'
+          }],
+          teacherName: 'Teacher Cokitö',
+          studentId: 'student_maria_guadalupe',
+          studentName: 'Maria Guadalupe Peña Montilla',
+          levelId: 'level_3',
+          status: 'booked' as const,
+          meetLink: 'https://meet.google.com/eng-malu-cokito'
+        };
+      }
 
-  // Viernes
-  { id: 'vie_09', day: 'Viernes', startTime: '09:00', endTime: '10:00', status: 'available' },
-  { id: 'vie_16', day: 'Viernes', startTime: '16:00', endTime: '17:30', status: 'available' },
-  { id: 'vie_18', day: 'Viernes', startTime: '18:00', endTime: '19:30', status: 'available' },
+      if (slotId === 'mar_16' || slotId === 'jue_16') {
+        return {
+          id: slotId,
+          day,
+          startTime: start,
+          endTime: end,
+          slotType,
+          maxCapacity,
+          classroomTitle: 'Aula Alumnos CSB (7mo Grado)',
+          enrolledStudents: [{
+            studentId: 'student_mariana',
+            studentName: 'Mariana Márquez',
+            levelId: 'level_4'
+          }],
+          teacherName: 'Teacher Cokitö',
+          studentId: 'student_mariana',
+          studentName: 'Mariana Márquez',
+          levelId: 'level_4',
+          status: 'booked' as const,
+          meetLink: 'https://meet.google.com/eng-mariana-cokito'
+        };
+      }
 
-  // Sábado
-  { id: 'sab_09', day: 'Sábado', startTime: '09:30', endTime: '11:30', status: 'available' },
-  { id: 'sab_11', day: 'Sábado', startTime: '11:30', endTime: '13:00', status: 'available' }
+      return {
+        id: slotId,
+        day,
+        startTime: start,
+        endTime: end,
+        slotType,
+        maxCapacity,
+        classroomTitle,
+        enrolledStudents: [],
+        teacherName: 'Teacher Cokitö',
+        status: 'available' as const
+      };
+    });
+  }),
+
+  // Sábado (Bloques matutinos)
+  { id: 'sab_08', day: 'Sábado', startTime: '08:00', endTime: '09:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 8am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_09', day: 'Sábado', startTime: '09:00', endTime: '10:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 9am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_10', day: 'Sábado', startTime: '10:00', endTime: '11:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 10am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_11', day: 'Sábado', startTime: '11:00', endTime: '12:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 11am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_13', day: 'Sábado', startTime: '13:00', endTime: '14:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 1pm', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_14', day: 'Sábado', startTime: '14:00', endTime: '15:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 2pm', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' }
 ];
 
 export const DAILY_CHALLENGES: DailyChallenge[] = [

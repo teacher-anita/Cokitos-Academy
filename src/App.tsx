@@ -156,6 +156,11 @@ export default function App() {
     }
   };
 
+  const handleUpdateSlots = async (updatedSlots: ScheduleSlot[]) => {
+    setSlots(updatedSlots);
+    await saveSlots(updatedSlots);
+  };
+
   const handleApplyCoupon = async (redeemedStudent: Student) => {
     await saveStudent(redeemedStudent);
     setCurrentStudentId(redeemedStudent.id);
@@ -366,7 +371,9 @@ export default function App() {
           isTeacherAuthenticated ? (
             <TeacherDashboard
               students={students}
+              slots={slots}
               onUpdateStudent={handleUpdateStudent}
+              onUpdateSlots={handleUpdateSlots}
               onOpenOptimizer={() => setIsOptimizerOpen(true)}
               onLogoutTeacher={() => {
                 setIsTeacherAuthenticated(false);

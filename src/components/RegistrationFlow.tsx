@@ -300,6 +300,20 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         discountPercent: 100
       });
       try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch {}
+    } else if (clean.includes('ALUMNO') || clean.includes('STUDENT') || clean.includes('ESTUDIANTE')) {
+      setAppliedCoupon({
+        code: clean,
+        label: 'Pase Alumno Colegio Simón Bolívar (Prioridad 3:00 - 5:00 pm)',
+        discountPercent: 100
+      });
+      try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch {}
+    } else if (clean.includes('TEACHER') || clean.includes('DOCENTE') || clean === 'PRE-CSB' || clean === 'CSB-PRE') {
+      setAppliedCoupon({
+        code: clean,
+        label: 'Pase Docente CSB (Prioridad 5:00 - 7:00 pm)',
+        discountPercent: 100
+      });
+      try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch {}
     } else if (clean === 'FRIENDS2026') {
       setAppliedCoupon({
         code: clean,
@@ -319,11 +333,123 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
     }
   };
 
+  // Check student and teacher priority roles
+  const isCSBStudent = Boolean(
+    appliedCoupon?.code?.includes('ALUMNO') ||
+    appliedCoupon?.code?.includes('STUDENT') ||
+    appliedCoupon?.code?.includes('ESTUDIANTE') ||
+    (isKid && (
+      schoolOrProfession.toLowerCase().includes('simón bolívar') ||
+      schoolOrProfession.toLowerCase().includes('simon bolivar') ||
+      schoolOrProfession.toLowerCase().includes('csb')
+    ))
+  );
+
+  const isCSBTeacher = Boolean(
+    appliedCoupon?.code?.includes('TEACHER') ||
+    appliedCoupon?.code?.includes('DOCENTE') ||
+    appliedCoupon?.code === 'PRE-CSB' ||
+    appliedCoupon?.code === 'CSB-PRE' ||
+    appliedCoupon?.code === 'CSB2026' ||
+    schoolOrProfession.toLowerCase().includes('docente') ||
+    schoolOrProfession.toLowerCase().includes('teacher') ||
+    schoolOrProfession.toLowerCase().includes('auxiliar') ||
+    schoolOrProfession.toLowerCase().includes('pre csb')
+  );
+
+  const isCSBMember = isCSBStudent || isCSBTeacher || Boolean(appliedCoupon?.code?.toUpperCase().includes('CSB'));
+
+  // Maximum allowed hours for the chosen plan
+  const maxHoursForPlan = 
+    selectedPlanId === 'digital_5' ? 0 :
+    selectedPlanId === 'basic_2' ? 2 :
+    selectedPlanId === 'regular_3' ? 3 :
+    selectedPlanId === 'intensive_4' ? 4 : 6;
+
+  // Allowed days according to plan rules
+  const getAllowedDaysForPlan = (planId: RegistrationPlanType): string[] => {
+    switch (planId) {
+      case 'basic_2': return ['Martes', 'Jueves'];
+      case 'regular_3': return ['Lunes', 'Miércoles', 'Viernes'];
+      case 'express_6': return ['Lunes', 'Miércoles', 'Viernes'];
+      case 'intensive_4': return ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+      default: return ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    }
+  };
+
+  const allowedDays = getAllowedDaysForPlan(selectedPlanId);
+
+  // Helper to determine slot restriction
+  const getSlotRestriction = (slot: ScheduleSlot): { isBlocked: boolean; reason: string } => {
+    if (slot.status === 'booked') {
+      return { isBlocked: true, reason: 'Reservado por otro alumno' };
+    }
+
+    // 1. Day restriction according to plan
+    if (!allowedDays.includes(slot.day)) {
+      return { 
+        isBlocked: true, 
+        reason: `Día no habilitado para tu plan (${allowedDays.join(', ')})` 
+      };
+    }
+
+    // 2. Alumnos CSB Priority (3:00 pm - 5:00 pm = 15:00, 16:00)
+    const isCSBStudentHours = slot.startTime === '15:00' || slot.startTime === '16:00';
+    if (isCSBStudentHours && !isCSBStudent && !isCSBTeacher) {
+      return { 
+        isBlocked: true, 
+        reason: 'Bloque reservado con prioridad para Alumnos del Colegio Simón Bolívar (3:00 a 5:00 pm)' 
+      };
+    }
+
+    // 3. Teachers CSB Priority (5:00 pm - 7:00 pm = 17:00, 18:00)
+    const isCSBTeacherHours = slot.startTime === '17:00' || slot.startTime === '18:00';
+    if (isCSBTeacherHours && !isCSBTeacher) {
+      return { 
+        isBlocked: true, 
+        reason: 'Bloque reservado con prioridad para Teachers del Colegio Simón Bolívar (5:00 a 7:00 pm)' 
+      };
+    }
+
+    // 4. Morning group restriction (6:00 am - 8:00 am = 06:00, 07:00)
+    const isMorningHours = slot.startTime === '06:00' || slot.startTime === '07:00';
+    if (isMorningHours && selectedGroupSize === 'individual') {
+      return { 
+        isBlocked: true, 
+        reason: 'Bloque matutino exclusivo para grupos (no disponible para 1 a 1)' 
+      };
+    }
+
+    // 5. Night group restriction (8:00 pm - 10:00 pm = 20:00, 21:00)
+    const isNightHours = slot.startTime === '20:00' || slot.startTime === '21:00';
+    if (isNightHours && selectedGroupSize === 'individual') {
+      return { 
+        isBlocked: true, 
+        reason: 'Bloque nocturno exclusivo para grupos (no disponible para 1 a 1)' 
+      };
+    }
+
+    return { isBlocked: false, reason: '' };
+  };
+
+  const [scheduleNotice, setScheduleNotice] = useState<string | null>(null);
+
   const handleToggleSlot = (slot: ScheduleSlot) => {
-    if (slot.status === 'booked') return;
+    const restriction = getSlotRestriction(slot);
+    if (restriction.isBlocked) {
+      setScheduleNotice(`⚠️ Horario no disponible: ${restriction.reason}`);
+      return;
+    }
+
+    setScheduleNotice(null);
+
     if (selectedSlotIds.includes(slot.id)) {
       setSelectedSlotIds(prev => prev.filter(id => id !== slot.id));
     } else {
+      if (selectedSlotIds.length >= maxHoursForPlan) {
+        setScheduleNotice(`Tu plan (${currentPlan.title}) incluye ${maxHoursForPlan} horas semanales. Desmarca un bloque anterior para cambiar.`);
+        return;
+      }
       setSelectedSlotIds(prev => [...prev, slot.id]);
     }
   };
@@ -333,12 +459,11 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       alert('Por favor completa tu nombre y correo electrónico.');
       return;
     }
-    if (!placementResult) {
-      alert('Por favor realiza la prueba diagnóstica de nivel antes de finalizar.');
-      return;
-    }
 
     setIsSubmitting(true);
+
+    const defaultLevelId = isKid ? 'level_1' : 'level_7';
+    const defaultLevelName = isKid ? 'Super Goal 1 (Kids & Jóvenes A1)' : 'Mega Goal 1 (Adultos A1/A2)';
 
     const newStudentId = `student_${Date.now()}`;
     const newStudent: Student = {
@@ -359,10 +484,12 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       groupSize: selectedPlanId === 'digital_5' ? 'individual' : selectedGroupSize,
       preferredTimeSlot,
       status: appliedCoupon ? 'enrolled' : 'pending_evaluation',
-      levelId: placementResult.suggestedLevelId || 'level_1',
-      placementTestScore: placementResult.score,
-      placementTestDiagnosis: `Puntaje: ${placementResult.score}/${placementResult.total}. Sugerencia: ${placementResult.suggestedLevelName}. ${placementResult.diagnosisText}`,
-      placementTestDate: new Date().toISOString().split('T')[0],
+      levelId: placementResult?.suggestedLevelId || defaultLevelId,
+      placementTestScore: placementResult?.score,
+      placementTestDiagnosis: placementResult 
+        ? `Puntaje: ${placementResult.score}/${placementResult.total}. Sugerencia: ${placementResult.suggestedLevelName}. ${placementResult.diagnosisText}`
+        : 'Prueba diagnóstica pendiente por realizar a tu propio ritmo desde tu perfil de alumno.',
+      placementTestDate: placementResult ? new Date().toISOString().split('T')[0] : undefined,
       registeredAt: new Date().toISOString().split('T')[0],
       currentUnit: 1,
       completedHours: 0,
@@ -370,7 +497,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       streak: 1,
       league: 'Bronce',
       rating: { fluency: 3, grammar: 3, vocabulary: 3, pronunciation: 3 },
-      notes: `Plan: ${currentPlan.title}. Cupón: ${appliedCoupon ? appliedCoupon.code : 'Sin cupón'}. Diagnóstico: ${placementResult.suggestedLevelName}.`,
+      notes: `Plan: ${currentPlan.title}. Horas elegidas: ${selectedSlotIds.length}/${maxHoursForPlan}. ${isCSBMember ? 'Docente/Personal CSB.' : ''} ${appliedCoupon ? `Cupón: ${appliedCoupon.code}` : 'Sin cupón'}. Diagnóstico: ${placementResult ? placementResult.suggestedLevelName : 'Inicial por defecto (Prueba pendiente)'}.`,
       assignedSlots: selectedSlotIds
     };
 
@@ -378,7 +505,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
     await sendGmailEmail({
       to: email,
       subject: `¡Inscripción recibida en la academia de La Teacher Cokitö!`,
-      bodyText: `Hola ${name},\n\n¡Bienvenido(a) a la academia de La Teacher Cokitö!\n\nHemos recibido tu registro y el resultado de tu prueba diagnóstica (${placementResult.score}/${placementResult.total} puntos).\n\nDetalles:\n- Plan elegido: ${currentPlan.title}\n- Nivel sugerido: ${placementResult.suggestedLevelName}\n- Horario / Modalidad: ${currentPlan.isSelfPaced ? 'Autónomo Asincrónico' : selectedSlotIds.join(', ') || preferredTimeSlot}\n\n¡Nos alegra mucho acompañarte en tu meta de hablar inglés con confianza!`
+      bodyText: `Hola ${name},\n\n¡Bienvenido(a) a la academia de La Teacher Cokitö!\n\nHemos recibido tu registro${placementResult ? ` y el resultado de tu prueba diagnóstica (${placementResult.score}/${placementResult.total} puntos)` : ' para comenzar tu aprendizaje'}.\n\nDetalles:\n- Plan elegido: ${currentPlan.title}\n- Nivel: ${placementResult ? placementResult.suggestedLevelName : 'Inicial (A1) por defecto'}\n- Horario / Modalidad: ${currentPlan.isSelfPaced ? 'Autónomo Asincrónico' : selectedSlotIds.join(', ') || preferredTimeSlot}\n\n¡Nos alegra mucho acompañarte en tu meta de hablar inglés con confianza!`
     }).catch(() => null);
 
     try {
@@ -790,51 +917,97 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           {/* Schedule Picker (Only if LIVE classes plan is chosen) */}
           {!currentPlan.isSelfPaced && (
             <div className="space-y-3">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-2 text-xs text-emerald-950 font-medium">
-                <Shield className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  <strong>Confidencialidad:</strong> Los horarios marcados como "🔒 Reservado" pertenecen a otros alumnos y sus identidades están protegidas.
-                </span>
+              {/* Plan Rules & Limits Banner */}
+              <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-2xl p-4 space-y-2 shadow-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-amber-300" />
+                    <span className="text-xs font-bold">
+                      Frecuencia Oficial: <span className="text-amber-300">{allowedDays.join(' - ')}</span>
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-black bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30">
+                    {selectedSlotIds.length} / {maxHoursForPlan} horas elegidas
+                  </span>
+                </div>
+                <p className="text-[11px] text-blue-200">
+                  {selectedPlanId === 'regular_3' && '📌 El Plan Regular de 3h/sem se organiza los Lunes, Miércoles y Viernes.'}
+                  {selectedPlanId === 'basic_2' && '📌 El Plan Súper Básico de 2h/sem se organiza los Martes y Jueves.'}
+                  {selectedPlanId === 'express_6' && '📌 El Plan Express de 6h/sem se organiza los Lunes, Miércoles y Viernes.'}
+                  {selectedPlanId === 'intensive_4' && '📌 El Plan Intensivo de 4h/sem se organiza de Lunes a Jueves.'}
+                </p>
+              </div>
+
+              {/* Notice Banner */}
+              {scheduleNotice && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 font-semibold flex items-center justify-between">
+                  <span>{scheduleNotice}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setScheduleNotice(null)}
+                    className="text-amber-700 hover:text-amber-950 font-bold ml-2 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Schedule Rules Legend */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div>🎒 <strong>15:00 - 17:00:</strong> Alumnos CSB</div>
+                <div>🏫 <strong>17:00 - 19:00:</strong> Teachers CSB</div>
+                <div>🌅 <strong>06:00 - 08:00:</strong> Solo Grupos</div>
+                <div>🌙 <strong>20:00 - 22:00:</strong> Solo Grupos</div>
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <label className="font-bold text-slate-800">
-                    Selecciona tu turno en vivo preferido:
-                  </label>
-                  <span className="text-blue-700 font-semibold">{selectedSlotIds.length} bloque(s) elegidos</span>
-                </div>
-
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                   {days.map(day => {
                     const daySlots = slots.filter(s => s.day === day);
+                    const isAllowedDay = allowedDays.includes(day);
+
                     return (
-                      <div key={day} className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center">
-                        <span className="text-[11px] font-bold text-slate-700 block pb-1 border-b border-slate-200 uppercase">
+                      <div 
+                        key={day} 
+                        className={`rounded-xl p-2 border text-center transition-all ${
+                          isAllowedDay
+                            ? 'bg-slate-50 border-slate-200'
+                            : 'bg-slate-100/60 border-slate-200/50 opacity-50'
+                        }`}
+                      >
+                        <span className={`text-[11px] font-bold block pb-1 border-b uppercase ${
+                          isAllowedDay ? 'text-slate-800 border-slate-200' : 'text-slate-400 border-slate-200/50'
+                        }`}>
                           {day}
                         </span>
+                        
                         <div className="mt-1.5 space-y-1">
                           {daySlots.map(slot => {
                             const isBooked = slot.status === 'booked';
                             const isSelected = selectedSlotIds.includes(slot.id);
+                            const restriction = getSlotRestriction(slot);
+                            const isBlocked = restriction.isBlocked;
 
                             return (
                               <button
                                 key={slot.id}
                                 type="button"
-                                disabled={isBooked}
+                                disabled={isBooked || (isBlocked && !isSelected)}
                                 onClick={() => handleToggleSlot(slot)}
+                                title={restriction.reason || `Turno ${slot.startTime} a ${slot.endTime}`}
                                 className={`w-full p-1.5 rounded-lg text-[10px] font-medium transition-all ${
                                   isBooked
                                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                     : isSelected
                                     ? 'bg-blue-600 text-white font-bold shadow-2xs'
-                                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-300'
+                                    : isBlocked
+                                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50/50'
                                 }`}
                               >
-                                <span>{slot.startTime}</span>
-                                <span className="block opacity-80 text-[9px]">
-                                  {isBooked ? '🔒 Reserv.' : isSelected ? 'Elegido' : 'Libre'}
+                                <span>{slot.startTime} - {slot.endTime}</span>
+                                <span className="block opacity-80 text-[8px] truncate">
+                                  {isBooked ? '🔒 Reserv.' : isSelected ? '✓ Elegido' : isBlocked ? 'No disp.' : 'Libre'}
                                 </span>
                               </button>
                             );
@@ -859,7 +1032,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             </div>
           )}
 
-          {/* COUPON / BECA CODE INPUT */}
+          {/* COUPON / BECA CODE INPUT (WITHOUT LEAKING ANY CODES!) */}
           <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
             <div className="flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-amber-600" />
@@ -891,7 +1064,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   type="text"
                   value={couponCode}
                   onChange={e => setCouponCode(e.target.value)}
-                  placeholder="Ej. CSB2026 o FRIENDS2026"
+                  placeholder="Ingresa tu código promocional o beca..."
                   className="flex-1 p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase tracking-wider focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <button
@@ -908,31 +1081,33 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             )}
           </div>
 
-          {/* PLACEMENT TEST REQUIREMENT */}
+          {/* PLACEMENT TEST REQUIREMENT (NOW OPTIONAL) */}
           <div className="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-3xl p-5 sm:p-6 text-white space-y-4 shadow-md">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-950 px-2.5 py-0.5 rounded-full inline-block mb-1">
-                  Requisito Indispensable
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                  Recomendado • Opcional
                 </span>
                 <h3 className="text-base sm:text-lg font-black tracking-tight">
                   Prueba Diagnóstica de Nivel (25 Preguntas)
                 </h3>
                 <p className="text-xs text-blue-200 max-w-md mt-0.5 leading-relaxed">
-                  Toma solo de 5 a 10 minutos. Evalúa gramática básica, vocabulario y comprensión lectora para que conozcas tu nivel exacto.
+                  Puedes realizarla ahora para ubicarte en tu libro ideal, o puedes continuar e iniciar en el Nivel Inicial (A1) y hacer la prueba más adelante desde tu perfil.
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsQuizModalOpen(true)}
-                className="w-full sm:w-auto px-6 py-3 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-colors whitespace-nowrap"
-              >
-                {placementResult ? '✓ Repetir Prueba' : 'Comenzar Prueba de Nivel'}
-              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsQuizModalOpen(true)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-md transition-colors whitespace-nowrap"
+                >
+                  {placementResult ? '✓ Repetir Prueba' : '📝 Hacer Prueba Ahora'}
+                </button>
+              </div>
             </div>
 
-            {placementResult && (
+            {placementResult ? (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 flex items-center justify-between text-xs animate-fadeIn">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -944,8 +1119,13 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   </div>
                 </div>
                 <span className="text-[11px] bg-emerald-500/30 text-emerald-200 px-2.5 py-1 rounded-full font-bold border border-emerald-400/30">
-                  Listo para Enviar
+                  Nivel Asignado
                 </span>
+              </div>
+            ) : (
+              <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-[11px] text-blue-200 flex items-center justify-between">
+                <span>¿Deseas omitir la prueba por ahora? Comenzarás en el Nivel Inicial (A1).</span>
+                <span className="text-amber-300 font-bold ml-2">Nivel Inicial por defecto</span>
               </div>
             )}
           </div>

@@ -79,11 +79,28 @@ export interface Student {
   assignedSlots: string[]; // e.g. ['Lunes-16:00', 'Miercoles-16:00']
 }
 
+export type SlotType = 'individual' | 'group' | 'institutional_csb';
+
+export interface EnrolledStudentInSlot {
+  studentId: string;
+  studentName: string;
+  levelId: string;
+  avatar?: string;
+  email?: string;
+}
+
 export interface ScheduleSlot {
   id: string;
   day: 'Lunes' | 'Martes' | 'Miércoles' | 'Jueves' | 'Viernes' | 'Sábado';
   startTime: string; // e.g. "09:00"
   endTime: string;   // e.g. "10:00"
+  slotType?: SlotType; // 'individual' | 'group' | 'institutional_csb'
+  maxCapacity?: number; // 1 for individual, 3-4 for group
+  enrolledStudents?: EnrolledStudentInSlot[]; // Students inside this classroom
+  classroomTitle?: string; // e.g. "Aula CSB Teachers - Super Goal 3"
+  teacherName?: string; // e.g. "Teacher Cokitö"
+  academicMinutes?: number; // 45 min
+  bufferMinutes?: number; // 15 min (10 min break + 5 min gracia)
   studentId?: string;
   studentName?: string;
   levelId?: string;

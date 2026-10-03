@@ -1,22 +1,40 @@
 import React, { useState } from 'react';
-import { UserCheck, Clock, Award, Mail, Send, CheckCircle2, Star, Edit3, Plus, TrendingUp, BookOpen, AlertCircle, FileText, Check, Phone } from 'lucide-react';
-import { Student, PlanIntensity } from '../types';
+import { 
+  UserCheck, Clock, Award, Mail, Send, CheckCircle2, Star, Edit3, Plus, 
+  TrendingUp, BookOpen, AlertCircle, FileText, Check, Phone, Video, Copy,
+  Users, UserPlus, Trash2, Calendar, Shield, ExternalLink, Sparkles, Filter
+} from 'lucide-react';
+import { Student, PlanIntensity, ScheduleSlot } from '../types';
 import { ENGLISH_LEVELS, INTENSITY_PLANS } from '../data/curriculumData';
 import { generateEmailTemplate, sendGmailEmail } from '../services/gmailNotifier';
 
 interface TeacherDashboardProps {
   students: Student[];
+  slots?: ScheduleSlot[];
   onUpdateStudent: (updatedStudent: Student) => void;
+  onUpdateSlots?: (updatedSlots: ScheduleSlot[]) => void;
   onOpenOptimizer: () => void;
   onLogoutTeacher?: () => void;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   students,
+  slots = [],
   onUpdateStudent,
+  onUpdateSlots,
   onOpenOptimizer,
   onLogoutTeacher
 }) => {
+  // Navigation tab
+  const [activeDashboardTab, setActiveDashboardTab] = useState<'classrooms' | 'applicants' | 'students'>('classrooms');
+
+  // Classroom Roster Filter State
+  const [classroomFilter, setClassroomFilter] = useState<'all' | 'assigned' | 'csb' | 'groups' | 'available'>('assigned');
+  const [classroomSearch, setClassroomSearch] = useState('');
+  const [selectedSlotForAssignment, setSelectedSlotForAssignment] = useState<ScheduleSlot | null>(null);
+  const [studentToAssignId, setStudentToAssignId] = useState('');
+  const [copiedMeetSlotId, setCopiedMeetSlotId] = useState<string | null>(null);
+
   // Pending students evaluation modal
   const [evaluatingStudent, setEvaluatingStudent] = useState<Student | null>(null);
   const [assignedLevelId, setAssignedLevelId] = useState('level_1');
@@ -42,6 +60,87 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     const plan = INTENSITY_PLANS[s.plan];
     return acc + (plan?.hoursPerWeek || 0);
   }, 0);
+
+  // Copy Meet Link Helper
+  const handleCopyMeet = (link: string, slotId: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedMeetSlotId(slotId);
+    setTimeout(() => setCopiedMeetSlotId(null), 2500);
+  };
+
+  // Classroom Management Actions
+  const handleAssignStudentToSlot = (slot: ScheduleSlot, studentId: string) => {
+    if (!onUpdateSlots) return;
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const currentEnrolled = slot.enrolledStudents || [];
+    if (currentEnrolled.some(e => e.studentId === student.id)) return;
+
+    const newEnrolled = [
+      ...currentEnrolled,
+      {
+        studentId: student.id,
+        studentName: `${student.name} ${student.lastName || ''}`.trim(),
+        levelId: student.levelId,
+        avatar: student.avatar,
+        email: student.email
+      }
+    ];
+
+    const maxCap = slot.maxCapacity || 1;
+    const isNowBooked = newEnrolled.length >= maxCap;
+
+    const updatedSlot: ScheduleSlot = {
+      ...slot,
+      status: isNowBooked ? 'booked' : 'available',
+      studentId: student.id,
+      studentName: `${student.name} ${student.lastName || ''}`.trim(),
+      levelId: student.levelId,
+      meetLink: slot.meetLink || `https://meet.google.com/eng-${slot.id}-${Date.now().toString().slice(-4)}`,
+      enrolledStudents: newEnrolled
+    };
+
+    const updatedSlots = slots.map(s => s.id === slot.id ? updatedSlot : s);
+    onUpdateSlots(updatedSlots);
+
+    // Update student's assignedSlots
+    const updatedStudent: Student = {
+      ...student,
+      status: 'enrolled',
+      assignedSlots: Array.from(new Set([...student.assignedSlots, slot.id]))
+    };
+    onUpdateStudent(updatedStudent);
+    setSelectedSlotForAssignment(null);
+    setStudentToAssignId('');
+  };
+
+  const handleRemoveStudentFromSlot = (slot: ScheduleSlot, studentId: string) => {
+    if (!onUpdateSlots) return;
+    const currentEnrolled = slot.enrolledStudents || [];
+    const newEnrolled = currentEnrolled.filter(e => e.studentId !== studentId);
+
+    const updatedSlot: ScheduleSlot = {
+      ...slot,
+      status: newEnrolled.length === 0 ? 'available' : slot.status,
+      studentId: newEnrolled.length > 0 ? newEnrolled[0].studentId : undefined,
+      studentName: newEnrolled.length > 0 ? newEnrolled[0].studentName : undefined,
+      levelId: newEnrolled.length > 0 ? newEnrolled[0].levelId : undefined,
+      enrolledStudents: newEnrolled
+    };
+
+    const updatedSlots = slots.map(s => s.id === slot.id ? updatedSlot : s);
+    onUpdateSlots(updatedSlots);
+
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      const updatedStudent: Student = {
+        ...student,
+        assignedSlots: student.assignedSlots.filter(id => id !== slot.id)
+      };
+      onUpdateStudent(updatedStudent);
+    }
+  };
 
   // Open evaluation modal
   const handleOpenEvaluation = (student: Student) => {
