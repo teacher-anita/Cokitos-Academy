@@ -1,6 +1,4 @@
-import { initializeApp, getApps } from 'firebase/app';
 import { 
-  getFirestore, 
   collection, 
   doc, 
   setDoc, 
@@ -9,28 +7,16 @@ import {
   onSnapshot, 
   updateDoc 
 } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Student, ScheduleSlot } from '../types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from '../data/curriculumData';
-
-// Load config
-let db: any = null;
-
-try {
-  // If applet config exists, initialize firestore
-  const apps = getApps();
-  if (apps.length > 0) {
-    db = getFirestore(apps[0]);
-  }
-} catch (err) {
-  console.warn('Firestore fallback to localStorage:', err);
-}
 
 const STORAGE_KEYS = {
   STUDENTS: 'cokito_students_data_v2',
   SLOTS: 'cokito_slots_data_v2'
 };
 
-// 1. SAVE STUDENT
+// 1. SAVE STUDENT (Local + Firestore Cloud)
 export async function saveStudent(student: Student): Promise<void> {
   // Always save locally first for instant offline response
   try {
@@ -39,18 +25,18 @@ export async function saveStudent(student: Student): Promise<void> {
     localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify([student, ...filtered]));
   } catch {}
 
-  // If Cloud DB available, persist to Firestore
-  if (db) {
-    try {
-      const docRef = doc(db, 'students', student.id);
-      await setDoc(docRef, student, { merge: true });
-    } catch (e) {
-      console.warn('Could not sync student to Firestore cloud, kept in local storage:', e);
-    }
+  // Persist directly to Firestore Cloud
+  try {
+    const path = `students/${student.id}`;
+    const docRef = doc(db, 'students', student.id);
+    await setDoc(docRef, student, { merge: true });
+    console.log('✅ Student persisted to Firestore Cloud:', student.name);
+  } catch (e) {
+    console.warn('Firestore cloud save note:', e);
   }
 }
 
-// 2. GET STUDENTS
+// 2. GET STUDENTS LOCAL FALLBACK
 export function getLocalStudents(): Student[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.STUDENTS);
@@ -60,54 +46,59 @@ export function getLocalStudents(): Student[] {
   }
 }
 
-// 3. SUBSCRIBE TO STUDENTS IN REALTIME
+// 3. SUBSCRIBE TO STUDENTS IN REALTIME FROM FIRESTORE
 export function subscribeToStudents(callback: (students: Student[]) => void): () => void {
-  // Initialize with local
+  // Initialize immediately with local data
   callback(getLocalStudents());
-
-  if (!db) {
-    return () => {};
-  }
 
   try {
     const studentsCol = collection(db, 'students');
-    const unsubscribe = onSnapshot(studentsCol, (snapshot) => {
-      if (!snapshot.empty) {
-        const cloudStudents: Student[] = [];
-        snapshot.forEach((d) => cloudStudents.push(d.data() as Student));
-        // Merge with initial if needed
-        callback(cloudStudents);
-        try {
-          localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(cloudStudents));
-        } catch {}
+    const unsubscribe = onSnapshot(
+      studentsCol, 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const cloudStudents: Student[] = [];
+          snapshot.forEach((d) => cloudStudents.push(d.data() as Student));
+          callback(cloudStudents);
+          try {
+            localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(cloudStudents));
+          } catch {}
+        } else {
+          // Seed cloud if empty
+          for (const s of INITIAL_STUDENTS) {
+            setDoc(doc(db, 'students', s.id), s).catch(() => null);
+          }
+        }
+      }, 
+      (error) => {
+        console.warn('Firestore real-time subscription note:', error.message);
       }
-    }, (error) => {
-      console.warn('Firestore subscription notice (using local):', error.message);
-    });
+    );
 
     return unsubscribe;
   } catch (err) {
+    console.warn('Could not setup Firestore onSnapshot:', err);
     return () => {};
   }
 }
 
-// 4. SAVE SCHEDULE SLOTS
+// 4. SAVE SCHEDULE SLOTS (Local + Cloud)
 export async function saveSlots(slots: ScheduleSlot[]): Promise<void> {
   try {
     localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(slots));
   } catch {}
 
-  if (db) {
-    try {
-      const docRef = doc(db, 'system', 'schedule_slots');
-      await setDoc(docRef, { slots }, { merge: true });
-    } catch (e) {
-      console.warn('Could not sync slots to Firestore cloud:', e);
+  try {
+    for (const slot of slots) {
+      const docRef = doc(db, 'slots', slot.id);
+      await setDoc(docRef, slot, { merge: true });
     }
+  } catch (e) {
+    console.warn('Could not sync slots to Firestore cloud:', e);
   }
 }
 
-// 5. GET SCHEDULE SLOTS
+// 5. GET SCHEDULE SLOTS LOCAL
 export function getLocalSlots(): ScheduleSlot[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SLOTS);

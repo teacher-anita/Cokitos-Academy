@@ -1,9 +1,11 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
-
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  onAuthStateChanged, 
+  User, 
+  signOut 
+} from 'firebase/auth';
+import { auth, googleProvider } from '../firebase';
 
 export const SCOPES = [
   'https://www.googleapis.com/auth/calendar.events',
@@ -12,8 +14,7 @@ export const SCOPES = [
   'https://www.googleapis.com/auth/gmail.send'
 ];
 
-const provider = new GoogleAuthProvider();
-SCOPES.forEach(scope => provider.addScope(scope));
+SCOPES.forEach(scope => googleProvider.addScope(scope));
 
 let isSigningIn = false;
 let cachedAccessToken: string | null = null;
@@ -27,7 +28,6 @@ export const initAuth = (
       if (cachedAccessToken) {
         if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
       } else if (!isSigningIn) {
-        // Token might need re-fetch or sign-in on demand
         if (onAuthFailure) onAuthFailure();
       }
     } else {
@@ -40,13 +40,10 @@ export const initAuth = (
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
   try {
     isSigningIn = true;
-    const result = await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, googleProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (!credential?.accessToken) {
-      throw new Error('No se pudo obtener el token de acceso de Google');
-    }
-    cachedAccessToken = credential.accessToken;
-    return { user: result.user, accessToken: cachedAccessToken };
+    cachedAccessToken = credential?.accessToken || null;
+    return { user: result.user, accessToken: cachedAccessToken || '' };
   } catch (error: any) {
     console.error('Error al iniciar sesión con Google:', error);
     throw error;
@@ -55,11 +52,11 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
   }
 };
 
-export const getAccessToken = async (): Promise<string | null> => {
-  return cachedAccessToken;
-};
-
-export const logout = async () => {
+export const logout = async (): Promise<void> => {
   await signOut(auth);
   cachedAccessToken = null;
+};
+
+export const getAccessToken = async (): Promise<string | null> => {
+  return cachedAccessToken;
 };

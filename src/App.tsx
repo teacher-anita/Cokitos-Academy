@@ -15,6 +15,8 @@ import { TeacherDashboard } from './components/TeacherDashboard';
 import { ScheduleOptimizerModal } from './components/ScheduleOptimizerModal';
 import { PlacementQuizModal } from './components/PlacementQuizModal';
 import { CouponModal } from './components/CouponModal';
+import { TeacherGate } from './components/TeacherGate';
+import { StudentProfileModal } from './components/StudentProfileModal';
 import { Student, ScheduleSlot, AudienceTheme } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
 import { initAuth, googleSignIn, logout } from './services/firebaseAuth';
@@ -23,12 +25,17 @@ import { ShieldCheck } from 'lucide-react';
 
 export default function App() {
   // Navigation & Theme State
-  const [activeRole, setActiveRole] = useState<'student' | 'teacher'>('student');
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [audienceTheme, setAudienceTheme] = useState<AudienceTheme>('adults');
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
   const [isPlacementQuizOpen, setIsPlacementQuizOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Teacher Authentication state (Private to Teacher Cokitö: User Coquito / PIN 3223 or Google)
+  const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('cokito_teacher_auth') === 'true';
+  });
 
   // Auth State
   const [user, setUser] = useState<User | null>(null);
@@ -56,9 +63,17 @@ export default function App() {
     const unsubscribe = initAuth(
       (currentUser) => {
         setUser(currentUser);
-        // If teacher logs in with Google, auto-switch to teacher role
-        if (currentUser && currentUser.email?.includes('anateresa')) {
-          setActiveRole('teacher');
+        if (currentUser) {
+          if (currentUser.email === 'anateresa.csb@gmail.com' || currentUser.email?.includes('anateresa')) {
+            setIsTeacherAuthenticated(true);
+            sessionStorage.setItem('cokito_teacher_auth', 'true');
+          } else {
+            // If registered student matches this Google account email, auto-switch to their profile
+            const matched = students.find(s => s.email.toLowerCase() === currentUser.email?.toLowerCase());
+            if (matched) {
+              setCurrentStudentId(matched.id);
+            }
+          }
         }
       },
       () => setUser(null)
@@ -66,7 +81,7 @@ export default function App() {
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe();
     };
-  }, []);
+  }, [students]);
 
   const handleLogin = async () => {
     setIsLoggingIn(true);
@@ -185,12 +200,11 @@ export default function App() {
       {/* Top Navbar */}
       <Header
         user={user}
-        activeRole={activeRole}
-        onRoleChange={(role) => {
-          setActiveRole(role);
-          if (role === 'teacher' && activeTab === 'landing') {
-            setActiveTab('teacher');
-          }
+        isTeacherAuthenticated={isTeacherAuthenticated}
+        onTeacherLogout={() => {
+          setIsTeacherAuthenticated(false);
+          sessionStorage.removeItem('cokito_teacher_auth');
+          setActiveTab('landing');
         }}
         audienceTheme={audienceTheme}
         onAudienceChange={setAudienceTheme}
@@ -199,6 +213,7 @@ export default function App() {
         isLoggingIn={isLoggingIn}
         onOpenOptimizer={() => setIsOptimizerOpen(true)}
         onOpenCouponModal={() => setIsCouponOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
         currentStudentXp={currentStudent?.xp || 0}
         currentStudentStreak={currentStudent?.streak || 0}
         currentStudent={currentStudent}
@@ -208,8 +223,8 @@ export default function App() {
         onSelectStudent={setCurrentStudentId}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Main Content (with bottom padding on mobile for the floating bar) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-8">
         
         {/* TAB 1: LANDING PAGE (Initial Welcome Page) */}
         {activeTab === 'landing' && (
@@ -238,7 +253,7 @@ export default function App() {
             slots={slots}
             students={students}
             currentStudent={currentStudent}
-            activeRole={activeRole}
+            activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
             audienceTheme={audienceTheme}
             onFreeSlot={handleFreeSlot}
             onOpenRegister={() => setActiveTab('register')}
@@ -251,7 +266,7 @@ export default function App() {
             currentStudent={currentStudent}
             students={students}
             onAwardXp={handleAwardXp}
-            activeRole={activeRole}
+            activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
             audienceTheme={audienceTheme}
           />
         )}
@@ -260,7 +275,7 @@ export default function App() {
         {activeTab === 'pathway' && (
           <LearningPathway
             currentStudent={currentStudent}
-            activeRole={activeRole}
+            activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
             audienceTheme={audienceTheme}
             onOpenRegister={() => setActiveTab('register')}
             onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
@@ -269,16 +284,45 @@ export default function App() {
           />
         )}
 
-        {/* TAB 6: TEACHER COKITÖ DASHBOARD */}
+        {/* TAB 6: TEACHER COKITÖ DASHBOARD (Protected Gate) */}
         {activeTab === 'teacher' && (
-          <TeacherDashboard
-            students={students}
-            onUpdateStudent={handleUpdateStudent}
-            onOpenOptimizer={() => setIsOptimizerOpen(true)}
-          />
+          isTeacherAuthenticated ? (
+            <TeacherDashboard
+              students={students}
+              onUpdateStudent={handleUpdateStudent}
+              onOpenOptimizer={() => setIsOptimizerOpen(true)}
+              onLogoutTeacher={() => {
+                setIsTeacherAuthenticated(false);
+                sessionStorage.removeItem('cokito_teacher_auth');
+                setActiveTab('landing');
+              }}
+            />
+          ) : (
+            <TeacherGate
+              user={user}
+              onLoginWithGoogle={handleLogin}
+              isLoggingIn={isLoggingIn}
+              onAuthenticated={() => {
+                setIsTeacherAuthenticated(true);
+                sessionStorage.setItem('cokito_teacher_auth', 'true');
+              }}
+              onBackToStudent={() => setActiveTab('landing')}
+            />
+          )
         )}
 
       </main>
+
+      {/* Student Profile Modal for comfortable mobile & tablet access */}
+      <StudentProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        student={currentStudent}
+        user={user}
+        onLogout={handleLogout}
+        onOpenCoupon={() => setIsCouponOpen(true)}
+        onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
+      />
 
       {/* Coupon / Beca Modal */}
       <CouponModal

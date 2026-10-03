@@ -123,27 +123,26 @@ ${unit.owlCulture.culturalStory}
 
           <div className="space-y-2 max-w-xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20 inline-block">
-              Exclusive Access for Enrolled Students
+              🔒 Exclusive Access / Acceso para Alumnos
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
               Virtual Classroom & Cokitö Global Curriculum
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              You are currently exploring in <strong>Guest / Explorer Mode</strong>. You have free access to the <strong>Placement Test (25 questions)</strong>, the <strong>Shared Schedule</strong>, and the <strong>Daily Cokitö Quests</strong>.
+              ¡Hello future student! 👋 Estás explorando en modo <strong>Visitor</strong>. Si estás empezando desde cero o tienes miedo de equivocarte, <em>don't worry!</em> Aquí aprendemos <strong>step by step</strong>, sin juzgarte y a tu propio ritmo.
             </p>
           </div>
 
-          <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-blue-200 text-left space-y-2">
+          <div className="p-4 sm:p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-blue-200 text-left space-y-2.5">
             <p className="font-bold text-white flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              What is included inside the Cokitö Classroom?
+              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
+              <span>¿Qué desbloqueas dentro de tu Cokitö Classroom?</span>
             </p>
             <ul className="space-y-1.5 list-disc list-inside text-blue-100">
-              <li>Live interactive speaking sessions (Google Meet / Zoom).</li>
-              <li>Structured international communicative syllabus (A1 to C1).</li>
-              <li>Micro-chunked 3-Session system (A, B, C) with 11 pedagogical items.</li>
-              <li>Cyber Owl Culture Corner with general knowledge & etiquette tips.</li>
-              <li>Self-grading Unit Quizzes and Boss Fight Expansion exams.</li>
+              <li><strong>Live Speaking Sessions:</strong> Clases en vivo en grupos reducidos o 1 a 1 para soltar la lengua sin estrés.</li>
+              <li><strong>Syllabus Oficial:</strong> Pensum estructurado de 12 niveles progresivos (A1 a C1).</li>
+              <li><strong>Smart Owl Culture Corner:</strong> Tips de pronunciación, modismos reales y curiosidades anglosajonas.</li>
+              <li><strong>Interactive Quizzes & XP:</strong> Evaluaciones autocorregibles para sumar puntos a tu racha activa.</li>
             </ul>
           </div>
 
@@ -153,19 +152,19 @@ ${unit.owlCulture.culturalStory}
               className="w-full sm:w-auto px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-transform hover:scale-102 flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
-              <span>Redeem Invitation / Scholarship Code</span>
+              <span>Canjear Código / Redeem Code</span>
             </button>
             <button
               onClick={onOpenPlacementTest}
               className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
             >
-              Start Free Placement Test
+              Prueba de Nivel Gratis (25 Preguntas)
             </button>
             <button
               onClick={onOpenRegister}
               className="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-semibold text-xs sm:text-sm transition-colors"
             >
-              Official Registration
+              Inscribirme Ahora / Register
             </button>
           </div>
         </div>

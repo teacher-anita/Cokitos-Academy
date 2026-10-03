@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
-import { User, Mail, Phone, Calendar, Clock, CheckCircle2, ChevronRight, ChevronLeft, Sparkles, Shield, Send, BookOpen, Layers, Award, AlertCircle, HelpCircle } from 'lucide-react';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  Calendar, 
+  Clock, 
+  CheckCircle2, 
+  ChevronRight, 
+  ChevronLeft, 
+  Sparkles, 
+  Shield, 
+  Send, 
+  BookOpen, 
+  Layers, 
+  Award, 
+  AlertCircle, 
+  HelpCircle,
+  Smartphone,
+  Users,
+  Star,
+  Zap,
+  KeyRound,
+  Tag
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { INTENSITY_PLANS } from '../data/curriculumData';
-import { Student, ScheduleSlot, PlanIntensity, ClassModality, GroupSize, AudienceTheme } from '../types';
+import { Student, ScheduleSlot, ClassModality, GroupSize, AudienceTheme } from '../types';
 import { PlacementQuizModal } from './PlacementQuizModal';
 import { generateEmailTemplate, sendGmailEmail } from '../services/gmailNotifier';
-import { buildGoogleCalendarUrl } from '../services/googleCalendar';
 
 interface RegistrationFlowProps {
   slots: ScheduleSlot[];
@@ -13,6 +34,92 @@ interface RegistrationFlowProps {
   onExploreCalendar: () => void;
   audienceTheme: AudienceTheme;
 }
+
+export type RegistrationPlanType = 'digital_5' | 'group_1w' | 'private_1w' | 'private_2w';
+
+interface CustomPlanInfo {
+  id: RegistrationPlanType;
+  title: string;
+  badge: string;
+  priceDisplay: string;
+  priceNumber: number;
+  period: string;
+  hoursNote: string;
+  description: string;
+  isSelfPaced: boolean;
+  features: string[];
+}
+
+const REGISTRATION_PLANS: CustomPlanInfo[] = [
+  {
+    id: 'digital_5',
+    title: 'Pase Digital Autónomo Cokitö',
+    badge: 'Opción Esencial • Autoaprendizaje',
+    priceDisplay: '$5',
+    priceNumber: 5,
+    period: '/ mes',
+    hoursNote: 'A tu propio ritmo (Sin horario fijo)',
+    description: 'Acceso completo e ilimitado a los 12 niveles de la plataforma, audios nativos, quizzes del Cyber Owl y retos diarios.',
+    isSelfPaced: true,
+    features: [
+      'Acceso a todos los niveles (SuperGoal y MegaGoal)',
+      'Quizzes interactivos de fin de unidad (+50 XP)',
+      'Smart Owl Trivia de cultura general y etiqueta',
+      'Sin clases en vivo con la profesora'
+    ]
+  },
+  {
+    id: 'group_1w',
+    title: 'Grupo Dinámico (1 Clase / Semana)',
+    badge: 'Más Popular • Grupos Reducidos',
+    priceDisplay: '$20',
+    priceNumber: 20,
+    period: '/ mes ($5/hora)',
+    hoursNote: '4 horas al mes (1 hora por semana)',
+    description: '1 clase semanal en vivo en grupos pequeños (máximo 4 alumnos). Ideal para soltar la lengua en conversación.',
+    isSelfPaced: false,
+    features: [
+      '1 clase semanal en vivo por Google Meet',
+      'Interacción guiada en parejas con Teacher Cokitö',
+      'Acceso total a la plataforma y libros digitales',
+      'Corrección directa de pronunciación y tareas'
+    ]
+  },
+  {
+    id: 'private_1w',
+    title: 'Mentoría Privada 1 a 1 (1 Clase / Semana)',
+    badge: 'Atención Exclusiva Personalizada',
+    priceDisplay: '$40',
+    priceNumber: 40,
+    period: '/ mes ($10/hora)',
+    hoursNote: '4 horas al mes (1 hora por semana)',
+    description: 'Atención 100% individualizada con La Teacher Cokitö. Ritmo adaptado a tu estilo de aprendizaje o neurodivergencia.',
+    isSelfPaced: false,
+    features: [
+      '1 hora semanal individual en vivo',
+      'Acompañamiento personalizado y sin juicio',
+      'Flexibilidad de horarios acordados en agenda',
+      'Enfoque en entrevistas, viajes o refuerzo escolar'
+    ]
+  },
+  {
+    id: 'private_2w',
+    title: 'Mentoría Privada Intensiva (2 Clases / Semana)',
+    badge: 'Progreso Acelerado VIP',
+    priceDisplay: '$75',
+    priceNumber: 75,
+    period: '/ mes',
+    hoursNote: '8 horas al mes (2 horas por semana)',
+    description: 'Máxima aceleración conversacional para quienes necesitan fluidez urgente por trabajo o viajes inminentes.',
+    isSelfPaced: false,
+    features: [
+      '2 horas semanales individuales en vivo',
+      'Doble práctica conversacional semanal',
+      'Simulación de situaciones laborales y presentaciones',
+      'Feedback continuo por WhatsApp de La Teacher'
+    ]
+  }
+];
 
 export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   slots,
@@ -28,16 +135,20 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [cedula, setCedula] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [age, setAge] = useState<number>(20);
+  const [age, setAge] = useState<number>(25);
   const [schoolOrProfession, setSchoolOrProfession] = useState('');
-  const [learningGoal, setLearningGoal] = useState('Oportunidades laborales y desarrollo profesional');
+  const [learningGoal, setLearningGoal] = useState('Oportunidades laborales y superación personal');
 
   // Package & Preferences
-  const [selectedPlan, setSelectedPlan] = useState<PlanIntensity>('regular');
+  const [selectedPlanId, setSelectedPlanId] = useState<RegistrationPlanType>('digital_5');
   const [selectedModality, setSelectedModality] = useState<ClassModality>('online');
-  const [selectedGroupSize, setSelectedGroupSize] = useState<GroupSize>('individual');
-  const [preferredTimeSlot, setPreferredTimeSlot] = useState('Tardes (4:00 - 7:00 pm)');
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
+  const [preferredTimeSlot, setPreferredTimeSlot] = useState('Tardes (4:00 - 7:00 pm)');
+
+  // Coupon Code State in Registration
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; label: string; discountPercent: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   // Placement Test State
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
@@ -53,8 +164,38 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [registeredStudent, setRegisteredStudent] = useState<Student | null>(null);
 
   const isKid = age < 18;
-  const currentPlan = INTENSITY_PLANS[selectedPlan];
-  const weeklyPrice = currentPlan.prices[selectedGroupSize];
+  const currentPlan = REGISTRATION_PLANS.find(p => p.id === selectedPlanId) || REGISTRATION_PLANS[0];
+
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCouponError(null);
+    const clean = couponCode.trim().toUpperCase();
+
+    if (clean === 'CSB2026') {
+      setAppliedCoupon({
+        code: clean,
+        label: 'Pase Comunidad Educativa CSB (100% Bonificado)',
+        discountPercent: 100
+      });
+      try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch {}
+    } else if (clean === 'FRIENDS2026') {
+      setAppliedCoupon({
+        code: clean,
+        label: 'Pase VIP Friends & Family (100% Bonificado)',
+        discountPercent: 100
+      });
+      try { confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } }); } catch {}
+    } else if (clean === 'COKITO5') {
+      setAppliedCoupon({
+        code: clean,
+        label: 'Suscripción Digital $5/mes Activada',
+        discountPercent: 100
+      });
+      try { confetti({ particleCount: 60, spread: 50, origin: { y: 0.6 } }); } catch {}
+    } else {
+      setCouponError('Código no válido o expirado. Consulta con La Teacher Cokitö.');
+    }
+  };
 
   const handleToggleSlot = (slot: ScheduleSlot) => {
     if (slot.status === 'booked') return;
@@ -71,7 +212,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       return;
     }
     if (!placementResult) {
-      alert('Por favor realiza la prueba de nivel antes de finalizar.');
+      alert('Por favor realiza la prueba diagnóstica de nivel antes de finalizar.');
       return;
     }
 
@@ -80,49 +221,41 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
     const newStudentId = `student_${Date.now()}`;
     const newStudent: Student = {
       id: newStudentId,
-      name,
-      lastName,
-      cedula,
-      email,
-      phone,
+      name: name.trim(),
+      lastName: lastName.trim(),
+      cedula: cedula.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone.trim(),
       age: Number(age),
       isKid,
       schoolOrProfession,
       learningGoal,
       avatar: `https://api.dicebear.com/7.x/${isKid ? 'bottts' : 'micah'}/svg?seed=${name}`,
-      plan: selectedPlan,
+      plan: 'basic',
       modality: selectedModality,
-      groupSize: selectedGroupSize,
+      groupSize: selectedPlanId === 'group_1w' ? 'crew4' : 'individual',
       preferredTimeSlot,
-      status: 'pending_evaluation',
+      status: appliedCoupon ? 'enrolled' : 'pending_evaluation',
+      levelId: placementResult.suggestedLevelId || 'level_1',
       placementTestScore: placementResult.score,
       placementTestDiagnosis: `Puntaje: ${placementResult.score}/${placementResult.total}. Sugerencia: ${placementResult.suggestedLevelName}. ${placementResult.diagnosisText}`,
       placementTestDate: new Date().toISOString().split('T')[0],
       registeredAt: new Date().toISOString().split('T')[0],
       currentUnit: 1,
       completedHours: 0,
-      xp: 200, // Welcome XP
+      xp: appliedCoupon ? 350 : 200,
       streak: 1,
       league: 'Bronce',
       rating: { fluency: 3, grammar: 3, vocabulary: 3, pronunciation: 3 },
-      notes: `Aspirante registrado. Paquete: ${currentPlan.name} (${selectedModality}, ${selectedGroupSize}). Diagnóstico: ${placementResult.suggestedLevelName}.`,
+      notes: `Plan: ${currentPlan.title}. Cupón: ${appliedCoupon ? appliedCoupon.code : 'Sin cupón'}. Diagnóstico: ${placementResult.suggestedLevelName}.`,
       assignedSlots: selectedSlotIds
     };
 
-    // Send confirmation email via Gmail
-    const emailData = generateEmailTemplate('welcome', {
-      studentName: `${name} ${lastName}`.trim(),
-      levelName: `Evaluación Inicial (${placementResult.score}/25 pts)`,
-      book: 'Nivel por asignar por Teacher Cokito',
-      planName: currentPlan.name,
-      slotTime: selectedSlotIds.length > 0 ? selectedSlotIds.join(', ') : preferredTimeSlot,
-      meetLink: 'https://meet.google.com/eng-cokito-welcome'
-    });
-
+    // Send confirmation email
     await sendGmailEmail({
       to: email,
-      subject: `¡Inscripción recibida! La Teacher Cokito revisará tu prueba de nivel`,
-      bodyText: `Hola ${name},\n\n¡Gracias por dar este primer paso tan valiente en la academia de La Teacher Cokito!\n\nHemos recibido tus datos y el resultado de tu prueba de nivel (${placementResult.score}/25 puntos).\n\nDetalles de tu solicitud:\n- Paquete elegido: ${currentPlan.name}\n- Modalidad: ${selectedModality === 'online' ? 'Online (Zoom CSB / Google Meet)' : 'Presencial'}\n- Formato: ${selectedGroupSize}\n- Diagnóstico preliminar: ${placementResult.suggestedLevelName}\n\nLa Teacher Cokito analizará tus respuestas a detalle y te contactará en las próximas 24 horas para asignarte tu nivel oficial definitivo (Super Goal o MegaGoal) y confirmar tu horario.\n\n¡Bienvenid@ a bordo!`
+      subject: `¡Inscripción recibida en la academia de La Teacher Cokitö!`,
+      bodyText: `Hola ${name},\n\n¡Bienvenido(a) a la academia de La Teacher Cokitö!\n\nHemos recibido tu registro y el resultado de tu prueba diagnóstica (${placementResult.score}/${placementResult.total} puntos).\n\nDetalles:\n- Plan elegido: ${currentPlan.title}\n- Nivel sugerido: ${placementResult.suggestedLevelName}\n- Horario / Modalidad: ${currentPlan.isSelfPaced ? 'Autónomo Asincrónico' : selectedSlotIds.join(', ') || preferredTimeSlot}\n\n¡Nos alegra mucho acompañarte en tu meta de hablar inglés con confianza!`
     }).catch(() => null);
 
     try {
@@ -138,21 +271,21 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] as const;
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
+    <div className="max-w-4xl mx-auto py-6 px-3 sm:px-6 w-full overflow-x-hidden">
       
-      {/* Progress Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
+      {/* Progress Stepper (Responsive) */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center justify-between max-w-2xl mx-auto px-2">
           {[
             { num: 1, label: 'Tus Datos' },
-            { num: 2, label: 'Paquete & Formato' },
-            { num: 3, label: 'Horarios & Prueba' },
+            { num: 2, label: 'Elegir Plan' },
+            { num: 3, label: 'Nivel & Horario' },
             { num: 4, label: 'Confirmación' }
           ].map((s, idx) => (
             <React.Fragment key={s.num}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${
                     step === s.num
                       ? 'bg-blue-600 text-white ring-4 ring-blue-100 shadow-md'
                       : step > s.num
@@ -160,24 +293,28 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                       : 'bg-slate-200 text-slate-500'
                   }`}
                 >
-                  {step > s.num ? <CheckCircle2 className="w-5 h-5" /> : s.num}
+                  {step > s.num ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" /> : s.num}
                 </div>
-                <span className={`text-xs mt-1.5 font-medium ${step === s.num ? 'text-blue-700 font-bold' : 'text-slate-500'}`}>
+                <span className={`text-[10px] sm:text-xs mt-1 font-medium text-center ${
+                  step === s.num ? 'text-blue-700 font-bold' : 'text-slate-500'
+                }`}>
                   {s.label}
                 </span>
               </div>
               {idx < 3 && (
-                <div className={`flex-1 h-1 mx-2 rounded-full ${step > idx + 1 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                <div className={`flex-1 h-0.5 sm:h-1 mx-1 sm:mx-2 rounded-full ${
+                  step > idx + 1 ? 'bg-emerald-500' : 'bg-slate-200'
+                }`} />
               )}
             </React.Fragment>
           ))}
         </div>
       </div>
 
-      {/* STEP 1: Personal Data & Contextual Questions */}
+      {/* STEP 1: Personal Information */}
       {step === 1 && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-fadeIn space-y-6">
-          <div className="border-b border-slate-100 pb-4">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-8 animate-fadeIn space-y-6">
+          <div className="border-b border-slate-100 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md inline-block mb-1">
               Paso 1 de 3
             </span>
@@ -189,108 +326,106 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Nombre(s) *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Nombre(s) *</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Ej. Mariana"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Apellidos *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Apellidos *</label>
               <input
                 type="text"
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 placeholder="Ej. Márquez"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
                 required
               />
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Cédula de Identidad / DNI *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Cédula / Identificación</label>
               <input
                 type="text"
                 value={cedula}
                 onChange={e => setCedula(e.target.value)}
                 placeholder="Ej. V-25.123.456"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Correo Electrónico *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico *</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="correo@ejemplo.com"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+                placeholder="tu.correo@ejemplo.com"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Teléfono / WhatsApp *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Teléfono / WhatsApp *</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="+58 412 1234567"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
                 required
               />
             </div>
           </div>
 
-          {/* Age & Contextual School/Job input */}
-          <div className="grid sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Edad del Alumno</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Edad del Alumno</label>
               <input
                 type="number"
                 min={5}
                 max={99}
                 value={age}
                 onChange={e => setAge(Number(e.target.value))}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-bold"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-bold"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className="text-[10px] text-slate-400 mt-1 block">
                 {isKid ? '🎈 Perfil Infantil / Juvenil' : '🎓 Perfil Adulto / Profesional'}
               </span>
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                {isKid ? '¿En qué Colegio o Instituto estudias y en qué grado?' : '¿Cuál es tu profesión, área de trabajo o empresa?'}
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {isKid ? 'Colegio o Instituto y Grado' : 'Profesión, Trabajo o Empresa'}
               </label>
               <input
                 type="text"
                 value={schoolOrProfession}
                 onChange={e => setSchoolOrProfession(e.target.value)}
-                placeholder={isKid ? 'Ej. Colegio Simón Bolívar II - 7mo Grado A' : 'Ej. Administrador / Ingeniero en Finanzas'}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+                placeholder={isKid ? 'Ej. Colegio Simón Bolívar II - 7mo Grado' : 'Ej. Odontólogo / Diseñadora / Estudiante'}
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
               />
             </div>
           </div>
 
-          {/* Goal Selector */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-2">
-              ¿Cuál es tu principal motivo u objetivo para aprender inglés?
+              ¿Cuál es tu principal motivo para aprender inglés?
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               {[
-                'Oportunidades laborales y entrevistas de trabajo',
-                'Viajes, turismo y desenvolverse en el extranjero',
-                'Exámenes escolares, Spelling Bee y certificaciones',
-                'Superación personal y poder pensar en inglés sin traducir'
+                'Oportunidades laborales y desarrollo profesional',
+                'Viajes, turismo y soltar la lengua en el extranjero',
+                'Exámenes, certificaciones o apoyo escolar',
+                'Superación personal y pensar en inglés sin traducir'
               ].map(goal => (
                 <button
                   key={goal}
@@ -308,141 +443,126 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             </div>
           </div>
 
-          {/* Navigation */}
           <div className="flex justify-end pt-2">
             <button
               type="button"
               onClick={() => {
                 if (!name.trim() || !email.trim()) {
-                  alert('Por favor ingresa al menos tu nombre y correo.');
+                  alert('Por favor ingresa al menos tu nombre y correo electrónico.');
                   return;
                 }
                 setStep(2);
               }}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
             >
-              <span>Siguiente: Elegir Paquete</span>
+              <span>Siguiente: Elegir Plan</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 2: Package, Modality & Rates */}
+      {/* STEP 2: Package Selection (Starting with the $5 Digital Plan!) */}
       {step === 2 && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-fadeIn space-y-6">
-          <div className="border-b border-slate-100 pb-4">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-8 animate-fadeIn space-y-6">
+          <div className="border-b border-slate-100 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md inline-block mb-1">
               Paso 2 de 3
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Elige tu Paquete y Modalidad
+              Selecciona tu Plan de Aprendizaje
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Tú eliges cuántas horas a la semana deseas estudiar y el formato. La Teacher Cokito te asignará el libro y nivel oficial tras tu prueba diagnóstica.
+              Elige si deseas practicar de forma autónoma asincrónica o con clases en vivo de La Teacher Cokitö.
             </p>
           </div>
 
-          {/* Modality & Group Size Selectors */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            
-            {/* Modality */}
-            <div className="space-y-1.5">
+          {/* Modality Toggle (Only relevant if taking live classes) */}
+          {selectedPlanId !== 'digital_5' && (
+            <div className="space-y-1.5 p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
               <label className="block text-xs font-semibold text-slate-700">Modalidad de Clase:</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedModality('online')}
-                  className={`p-3 rounded-2xl border text-center text-xs font-bold transition-all ${
+                  className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all ${
                     selectedModality === 'online'
-                      ? 'border-blue-600 bg-blue-50 text-blue-950 ring-2 ring-blue-200'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                      : 'border-slate-200 bg-slate-100 text-slate-600'
                   }`}
                 >
-                  💻 Online (Zoom / Meet)
+                  💻 Online (Google Meet)
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedModality('presencial')}
-                  className={`p-3 rounded-2xl border text-center text-xs font-bold transition-all ${
+                  className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all ${
                     selectedModality === 'presencial'
-                      ? 'border-blue-600 bg-blue-50 text-blue-950 ring-2 ring-blue-200'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                      : 'border-slate-200 bg-slate-100 text-slate-600'
                   }`}
                 >
                   🏫 Presencial
                 </button>
               </div>
             </div>
+          )}
 
-            {/* Group Size */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">Formato del Grupo:</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                {[
-                  { id: 'individual', label: '1 Persona', sub: 'Coach Privado' },
-                  { id: 'duo', label: '2 Personas', sub: 'Plan Dúo' },
-                  { id: 'squad3', label: '3 Personas', sub: 'Plan Squad' },
-                  { id: 'crew4', label: '4 Personas', sub: 'Full Crew' }
-                ].map(g => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setSelectedGroupSize(g.id as GroupSize)}
-                    className={`p-2 rounded-xl border text-center transition-all ${
-                      selectedGroupSize === g.id
-                        ? 'border-blue-600 bg-blue-50 text-blue-950 font-bold'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="text-xs block">{g.label}</span>
-                    <span className="text-[10px] text-slate-400 block">{g.sub}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Official Plans Grid */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            {(Object.keys(INTENSITY_PLANS) as PlanIntensity[]).map(planKey => {
-              const p = INTENSITY_PLANS[planKey];
-              const isSelected = selectedPlan === planKey;
-              const rate = p.prices[selectedGroupSize];
+          {/* Plans Grid (First option is ALWAYS $5 Platform Pass) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {REGISTRATION_PLANS.map(plan => {
+              const isSelected = selectedPlanId === plan.id;
 
               return (
                 <div
-                  key={planKey}
-                  onClick={() => setSelectedPlan(planKey)}
-                  className={`p-5 rounded-3xl border cursor-pointer transition-all flex flex-col justify-between ${
+                  key={plan.id}
+                  onClick={() => setSelectedPlanId(plan.id)}
+                  className={`p-5 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-4 ${
                     isSelected
-                      ? 'border-blue-600 bg-gradient-to-b from-blue-50/70 to-white shadow-md ring-2 ring-blue-200'
+                      ? 'border-blue-600 bg-blue-50/50 shadow-md ring-2 ring-blue-100'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
-                  <div>
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-slate-900 text-base">{p.name}</h3>
-                      <span className="text-xs font-black text-blue-700 bg-blue-100/80 px-2.5 py-1 rounded-full">
-                        ${rate.toFixed(2)} / sem
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        plan.id === 'digital_5'
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {plan.badge}
                       </span>
+                      {plan.id === 'digital_5' && (
+                        <Smartphone className="w-4 h-4 text-amber-600" />
+                      )}
                     </div>
-                    <span className="text-[11px] font-semibold text-amber-700 block mt-1">{p.badge}</span>
-                    <p className="text-xs text-slate-500 mt-2 leading-relaxed">{p.description}</p>
-                    
-                    <div className="mt-3 bg-white p-2.5 rounded-xl border border-slate-100 text-xs text-slate-600">
-                      <span className="font-bold text-slate-800 block text-[10px] uppercase tracking-wider mb-0.5">
-                        Distribución de clases:
-                      </span>
-                      {p.recommendedFormat}
+
+                    <div>
+                      <h3 className="font-black text-slate-900 text-base">{plan.title}</h3>
+                      <div className="flex items-baseline gap-1 mt-1">
+                        <span className="text-2xl sm:text-3xl font-black text-slate-900">{plan.priceDisplay}</span>
+                        <span className="text-xs text-slate-500 font-semibold">{plan.period}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {plan.description}
+                    </p>
+
+                    <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-600">
+                      {plan.features.map((feat, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{feat}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-slate-400">{p.hoursPerWeek} horas semanales</span>
-                    <span className="font-bold text-blue-700">
-                      {isSelected ? '✓ Paquete Seleccionado' : 'Elegir este paquete'}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-slate-400 font-medium">{plan.hoursNote}</span>
+                    <span className={`font-bold ${isSelected ? 'text-blue-700' : 'text-slate-400'}`}>
+                      {isSelected ? '✓ Seleccionado' : 'Elegir'}
                     </span>
                   </div>
                 </div>
@@ -451,11 +571,11 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="flex items-center gap-1.5 px-4 py-2 text-slate-600 text-xs font-semibold"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-600 text-xs font-semibold"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Atrás</span>
@@ -463,98 +583,165 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             <button
               type="button"
               onClick={() => setStep(3)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
             >
-              <span>Siguiente: Horarios & Prueba</span>
+              <span>{currentPlan.isSelfPaced ? 'Siguiente: Prueba de Nivel' : 'Siguiente: Horario & Prueba'}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 3: Schedule Selection & Placement Test */}
+      {/* STEP 3: Placement Test, Schedule & Coupon Code */}
       {step === 3 && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 animate-fadeIn space-y-6">
-          <div className="border-b border-slate-100 pb-4">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-8 animate-fadeIn space-y-6">
+          <div className="border-b border-slate-100 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md inline-block mb-1">
               Paso 3 de 3
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Preferencia de Horario y Prueba de Nivel
+              {currentPlan.isSelfPaced ? 'Prueba Diagnóstica & Confirmación' : 'Horarios y Prueba Diagnóstica'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Visualiza los turnos disponibles en tiempo real (los horarios ocupados por otros estudiantes son confidenciales).
+              {currentPlan.isSelfPaced
+                ? 'La prueba toma de 5 a 10 minutos y te posiciona en el libro y nivel ideal para comenzar.'
+                : 'Selecciona tus turnos preferidos y completa la prueba para que La Teacher Cokitö organice tu grupo.'}
             </p>
           </div>
 
-          {/* Confidentiality Notice */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center gap-2.5 text-xs text-emerald-950 font-medium">
-            <Shield className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>
-              <strong>Confidencialidad Total:</strong> Los turnos marcados como "🔒 Reservado" pertenecen a otros alumnos y sus identidades están protegidas.
-            </span>
-          </div>
+          {/* Schedule Picker (Only if LIVE classes plan is chosen) */}
+          {!currentPlan.isSelfPaced && (
+            <div className="space-y-3">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-2 text-xs text-emerald-950 font-medium">
+                <Shield className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  <strong>Confidencialidad:</strong> Los horarios marcados como "🔒 Reservado" pertenecen a otros alumnos y sus identidades están protegidas.
+                </span>
+              </div>
 
-          {/* Schedule slots picker */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <label className="font-bold text-slate-800">
-                Selecciona tus bloques semanales preferidos ({currentPlan.hoursPerWeek}h requeridas):
-              </label>
-              <span className="text-blue-700 font-semibold">{selectedSlotIds.length} bloque(s) elegidos</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="font-bold text-slate-800">
+                    Selecciona tu turno en vivo preferido:
+                  </label>
+                  <span className="text-blue-700 font-semibold">{selectedSlotIds.length} bloque(s) elegidos</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                  {days.map(day => {
+                    const daySlots = slots.filter(s => s.day === day);
+                    return (
+                      <div key={day} className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center">
+                        <span className="text-[11px] font-bold text-slate-700 block pb-1 border-b border-slate-200 uppercase">
+                          {day}
+                        </span>
+                        <div className="mt-1.5 space-y-1">
+                          {daySlots.map(slot => {
+                            const isBooked = slot.status === 'booked';
+                            const isSelected = selectedSlotIds.includes(slot.id);
+
+                            return (
+                              <button
+                                key={slot.id}
+                                type="button"
+                                disabled={isBooked}
+                                onClick={() => handleToggleSlot(slot)}
+                                className={`w-full p-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                                  isBooked
+                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                    : isSelected
+                                    ? 'bg-blue-600 text-white font-bold shadow-2xs'
+                                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-300'
+                                }`}
+                              >
+                                <span>{slot.startTime}</span>
+                                <span className="block opacity-80 text-[9px]">
+                                  {isBooked ? '🔒 Reserv.' : isSelected ? 'Elegido' : 'Libre'}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Self-Paced Note */}
+          {currentPlan.isSelfPaced && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-950 flex items-center gap-3">
+              <Smartphone className="w-5 h-5 text-amber-600 shrink-0" />
+              <div>
+                <strong className="block font-bold">Modalidad 100% Asincrónica:</strong>
+                <span>No necesitas agendar clases en vivo. Podrás ingresar a la plataforma, resolver los retos del Cyber Owl y avanzar a cualquier hora del día o de la noche.</span>
+              </div>
+            </div>
+          )}
+
+          {/* COUPON / BECA CODE INPUT */}
+          <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-amber-600" />
+              <strong className="text-xs font-bold text-slate-900">
+                ¿Tienes un Código de Invitación, Beca o Cupón?
+              </strong>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-              {days.map(day => {
-                const daySlots = slots.filter(s => s.day === day);
-                return (
-                  <div key={day} className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center">
-                    <span className="text-[11px] font-bold text-slate-700 block pb-1 border-b border-slate-200 uppercase">
-                      {day}
-                    </span>
-                    <div className="mt-1.5 space-y-1">
-                      {daySlots.map(slot => {
-                        const isBooked = slot.status === 'booked';
-                        const isSelected = selectedSlotIds.includes(slot.id);
-
-                        return (
-                          <button
-                            key={slot.id}
-                            type="button"
-                            disabled={isBooked}
-                            onClick={() => handleToggleSlot(slot)}
-                            className={`w-full p-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                              isBooked
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : isSelected
-                                ? 'bg-blue-600 text-white font-bold shadow-xs'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-300'
-                            }`}
-                          >
-                            <span>{slot.startTime}</span>
-                            <span className="block opacity-80">
-                              {isBooked ? '🔒 Reserv.' : isSelected ? 'Elegido' : 'Libre'}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+            {appliedCoupon ? (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <div>
+                    <span className="font-bold block">Código Activo: {appliedCoupon.code}</span>
+                    <span className="text-[11px] text-emerald-700">{appliedCoupon.label}</span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAppliedCoupon(null)}
+                  className="text-xs text-rose-600 hover:underline font-bold"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleApplyCoupon} className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={e => setCouponCode(e.target.value)}
+                  placeholder="Ej. CSB2026 o FRIENDS2026"
+                  className="flex-1 p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase tracking-wider focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors shrink-0"
+                >
+                  Aplicar Código
+                </button>
+              </form>
+            )}
+
+            {couponError && (
+              <p className="text-[11px] text-rose-600 font-semibold">{couponError}</p>
+            )}
           </div>
 
-          {/* MANDATORY PLACEMENT TEST SECTION */}
-          <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-6 text-white space-y-4 shadow-md">
+          {/* PLACEMENT TEST REQUIREMENT */}
+          <div className="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-3xl p-5 sm:p-6 text-white space-y-4 shadow-md">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-950 px-2.5 py-0.5 rounded-full inline-block mb-1">
                   Requisito Indispensable
                 </span>
-                <h3 className="text-lg font-black tracking-tight">Prueba Diagnóstica de Nivel (25 Preguntas)</h3>
-                <p className="text-xs text-blue-200 max-w-md mt-0.5">
-                  Toma solo de 5 a 10 minutos. Evalúa gramática básica, vocabulario y comprensión lectora para que La Teacher Cokito te asigne el nivel ideal.
+                <h3 className="text-base sm:text-lg font-black tracking-tight">
+                  Prueba Diagnóstica de Nivel (25 Preguntas)
+                </h3>
+                <p className="text-xs text-blue-200 max-w-md mt-0.5 leading-relaxed">
+                  Toma solo de 5 a 10 minutos. Evalúa gramática básica, vocabulario y comprensión lectora para que conozcas tu nivel exacto.
                 </p>
               </div>
 
@@ -567,7 +754,6 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               </button>
             </div>
 
-            {/* If completed */}
             {placementResult && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 flex items-center justify-between text-xs animate-fadeIn">
                 <div className="flex items-center gap-2.5">
@@ -587,11 +773,11 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           </div>
 
           {/* Navigation & Submit */}
-          <div className="flex justify-between pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="flex items-center gap-1.5 px-4 py-2 text-slate-600 text-xs font-semibold"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-600 text-xs font-semibold"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Atrás</span>
@@ -600,14 +786,14 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               type="button"
               onClick={handleFinalSubmit}
               disabled={isSubmitting || !placementResult}
-              className="flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-colors disabled:opacity-50"
             >
               {isSubmitting ? (
                 <span>Registrando en la plataforma...</span>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Enviar Registro a Teacher Cokito</span>
+                  <span>Finalizar Inscripción ({appliedCoupon ? 'Gratis con Código' : currentPlan.priceDisplay})</span>
                 </>
               )}
             </button>
@@ -615,9 +801,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         </div>
       )}
 
-      {/* STEP 4: Success & Confirmation */}
+      {/* STEP 4: Confirmation Screen */}
       {step === 4 && registeredStudent && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 animate-fadeIn text-center space-y-6">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 sm:p-8 animate-fadeIn text-center space-y-6">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
             <CheckCircle2 className="w-8 h-8" />
           </div>
@@ -630,71 +816,56 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               Bienvenido(a), {registeredStudent.name}
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm max-w-lg mx-auto mt-2 leading-relaxed">
-              Tus datos, tu paquete de <strong>{currentPlan.name}</strong> y el resultado de tu prueba (<strong>{registeredStudent.placementTestScore}/25 pts</strong>) han quedado registrados directamente en la plataforma.
+              Tus datos, tu plan de <strong>{currentPlan.title}</strong> y el resultado de tu prueba (<strong>{registeredStudent.placementTestScore}/25 pts</strong>) han quedado registrados directamente en la plataforma.
             </p>
           </div>
 
-          {/* Summary Box */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-md mx-auto text-left text-xs space-y-2">
             <div className="flex justify-between">
               <span className="text-slate-500">Alumno:</span>
               <strong className="text-slate-900">{registeredStudent.name} {registeredStudent.lastName}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Paquete Seleccionado:</span>
-              <strong className="text-blue-700">{currentPlan.name}</strong>
+              <span className="text-slate-500">Plan Seleccionado:</span>
+              <strong className="text-blue-700">{currentPlan.title}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Modalidad:</span>
-              <strong className="text-slate-900">{selectedModality.toUpperCase()}</strong>
+              <span className="text-slate-500">Inversión:</span>
+              <strong className="text-emerald-700">
+                {appliedCoupon ? '100% Bonificado por Código' : `${currentPlan.priceDisplay} ${currentPlan.period}`}
+              </strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Próximo Paso:</span>
-              <strong className="text-amber-700">Asignación de Nivel por Teacher Cokito</strong>
+              <span className="text-slate-500">Nivel Asignado:</span>
+              <strong className="text-slate-900">{(registeredStudent.levelId || 'level_1').toUpperCase()}</strong>
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl max-w-md mx-auto text-xs text-blue-950 text-left space-y-1">
-            <p className="font-bold flex items-center gap-1.5">
-              <Mail className="w-4 h-4 text-blue-600" />
-              Notificación enviada a tu correo:
-            </p>
-            <p className="text-blue-800">
-              En las próximas 24 horas recibirás la confirmación de tu libro, grupo y enlace de Google Classroom para arrancar tus clases.
-            </p>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="pt-2">
             <button
               type="button"
               onClick={onExploreCalendar}
-              className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md transition-colors"
+              className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
             >
-              Ver Horarios en la Agenda Compartida
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setStep(1);
-                setPlacementResult(null);
-                setSelectedSlotIds([]);
-              }}
-              className="text-xs text-slate-500 hover:text-slate-800 font-medium"
-            >
-              Registrar otro estudiante
+              Ir a la Agenda y Classroom
             </button>
           </div>
         </div>
       )}
 
-      {/* Placement Test Interactive Modal */}
+      {/* Standalone Placement Quiz Modal */}
       <PlacementQuizModal
         isOpen={isQuizModalOpen}
-        studentName={`${name} ${lastName}`.trim()}
+        studentName={name || 'Aspirante'}
         onClose={() => setIsQuizModalOpen(false)}
         onFinishTest={(result) => {
-          setPlacementResult(result);
+          setPlacementResult({
+            score: result.score,
+            total: result.total,
+            suggestedLevelId: result.suggestedLevelId,
+            suggestedLevelName: result.suggestedLevelName,
+            diagnosisText: result.diagnosisText
+          });
           setIsQuizModalOpen(false);
         }}
       />

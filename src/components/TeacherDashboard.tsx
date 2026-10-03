@@ -8,12 +8,14 @@ interface TeacherDashboardProps {
   students: Student[];
   onUpdateStudent: (updatedStudent: Student) => void;
   onOpenOptimizer: () => void;
+  onLogoutTeacher?: () => void;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   students,
   onUpdateStudent,
-  onOpenOptimizer
+  onOpenOptimizer,
+  onLogoutTeacher
 }) => {
   // Pending students evaluation modal
   const [evaluatingStudent, setEvaluatingStudent] = useState<Student | null>(null);
@@ -156,12 +158,22 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenOptimizer}
-          className="flex items-center gap-2 px-5 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-colors"
-        >
-          <span>Estructura de Horarios Recomendada</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <button
+            onClick={onOpenOptimizer}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-colors"
+          >
+            <span>Estructura Recomendada</span>
+          </button>
+          {onLogoutTeacher && (
+            <button
+              onClick={onLogoutTeacher}
+              className="flex items-center justify-center gap-1.5 px-4 py-3 bg-red-600/90 hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md transition-colors border border-red-400/30"
+            >
+              <span>Cerrar Sesión Teacher 🔒</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Metrics Row */}
@@ -177,7 +189,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <span className="text-[11px] text-slate-400 block mt-0.5">Con nivel asignado</span>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-xs font-bold text-emerald-600 block uppercase">Carga Docente</span>
+          <span className="text-xs font-bold text-emerald-600 block uppercase">Horas Semanales</span>
           <span className="text-2xl font-black text-slate-900">{totalTeachingHours} h / sem</span>
           <span className="text-[11px] text-slate-400 block mt-0.5">Capacidad óptima: 20-24h</span>
         </div>

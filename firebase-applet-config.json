@@ -3,6 +3,7 @@
   "appId": "1:512009187522:web:93e2694083fc06798f0b5b",
   "apiKey": "AIzaSyA_IoUEWAHSBIDHmAIS0BYo8GgM67wNaP8",
   "authDomain": "gen-lang-client-0517657328.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-cokitsacademy-cfd31242-2bd8-493c-a591-83e7a9ee1a6f",
   "storageBucket": "gen-lang-client-0517657328.firebasestorage.app",
   "messagingSenderId": "512009187522",
   "measurementId": "",
