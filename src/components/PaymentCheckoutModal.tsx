@@ -59,10 +59,13 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
   };
 
   const handleSimulatePayPal = () => {
+    try {
+      window.open('https://paypal.me/anateresacsb/5', '_blank');
+    } catch {}
     try { confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } }); } catch {}
     setIsSuccess(true);
     if (onPaymentSuccess) {
-      onPaymentSuccess('PayPal', `PAYPAL_${Date.now()}`);
+      onPaymentSuccess('PayPal (anateresa.csb@gmail.com)', `PAYPAL_${Date.now()}`);
     }
   };
 
@@ -208,12 +211,12 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                     </button>
 
                     <a
-                      href="https://www.paypal.me"
+                      href="https://paypal.me/anateresacsb/5"
                       target="_blank"
                       rel="noreferrer"
                       className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      <span>Abrir PayPal en pestaña externa</span>
+                      <span>Abrir paypal.me/anateresacsb/5</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>

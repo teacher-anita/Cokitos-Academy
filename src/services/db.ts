@@ -12,8 +12,8 @@ import { Student, ScheduleSlot } from '../types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from '../data/curriculumData';
 
 const STORAGE_KEYS = {
-  STUDENTS: 'cokito_students_data_v2',
-  SLOTS: 'cokito_slots_data_v2'
+  STUDENTS: 'cokito_students_data_v3',
+  SLOTS: 'cokito_slots_data_v3'
 };
 
 // 1. SAVE STUDENT (Local + Firestore Cloud)

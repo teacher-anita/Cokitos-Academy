@@ -355,6 +355,37 @@ export const ENGLISH_LEVELS: EnglishLevel[] = [
 
 export const INITIAL_STUDENTS: Student[] = [
   {
+    id: 'student_maria_guadalupe',
+    name: 'Maria Guadalupe',
+    lastName: 'Peña Montilla',
+    cedula: 'V-26.418.082',
+    email: 'malupena26.mo@gmail.com',
+    phone: '04241830082',
+    age: 25,
+    isKid: false,
+    schoolOrProfession: 'Auxiliar - CSB Preschool (PRE CSB)',
+    learningGoal: 'Consolidación comunicativa, fluidez docente y desarrollo profesional.',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    plan: 'basic',
+    modality: 'presencial',
+    groupSize: 'individual',
+    preferredTimeSlot: 'LUN-MIER 6:00 pm - 7:00 pm',
+    levelId: 'level_3',
+    status: 'enrolled',
+    placementTestScore: 9,
+    placementTestDiagnosis: '🟢 BEG - INTER (Super Goal 3). Puntaje prueba: 9/25. Unidad actual: 3. Avance curricular: 48.0% (12 horas completadas de 24h).',
+    placementTestDate: '2026-10-02',
+    registeredAt: '2026-10-02',
+    currentUnit: 3,
+    completedHours: 12.0,
+    xp: 1350,
+    streak: 8,
+    league: 'Plata',
+    rating: { fluency: 3, grammar: 3, vocabulary: 4, pronunciation: 4 },
+    notes: 'Alumna confirmada. Horario: Lunes y Miércoles de 6:00 pm a 7:00 pm. Institución: PRE CSB (Auxiliar). Correos: malupena26.mo@gmail.com / malupena.26mo@gmail.com. Tel: 04241830082.',
+    assignedSlots: ['lun_18', 'mie_18']
+  },
+  {
     id: 'student_mariana',
     name: 'Mariana',
     lastName: 'Márquez',
@@ -453,7 +484,7 @@ export const INITIAL_SCHEDULE_SLOTS: ScheduleSlot[] = [
   { id: 'lun_09', day: 'Lunes', startTime: '09:00', endTime: '10:00', status: 'available' },
   { id: 'lun_10', day: 'Lunes', startTime: '10:00', endTime: '11:00', status: 'available' },
   { id: 'lun_16', day: 'Lunes', startTime: '16:00', endTime: '17:00', status: 'available' },
-  { id: 'lun_18', day: 'Lunes', startTime: '18:00', endTime: '19:30', studentId: 'student_carlos', studentName: 'Carlos Mendoza', levelId: 'level_3', status: 'booked', meetLink: 'https://meet.google.com/eng-carlos-cokito' },
+  { id: 'lun_18', day: 'Lunes', startTime: '18:00', endTime: '19:00', studentId: 'student_maria_guadalupe', studentName: 'Maria Guadalupe Peña Montilla', levelId: 'level_3', status: 'booked', meetLink: 'https://meet.google.com/eng-malu-cokito' },
 
   // Martes
   { id: 'mar_09', day: 'Martes', startTime: '09:00', endTime: '10:00', status: 'available' },
@@ -465,7 +496,7 @@ export const INITIAL_SCHEDULE_SLOTS: ScheduleSlot[] = [
   { id: 'mie_09', day: 'Miércoles', startTime: '09:00', endTime: '10:00', status: 'available' },
   { id: 'mie_10', day: 'Miércoles', startTime: '10:00', endTime: '11:00', status: 'available' },
   { id: 'mie_16', day: 'Miércoles', startTime: '16:00', endTime: '17:00', status: 'available' },
-  { id: 'mie_18', day: 'Miércoles', startTime: '18:00', endTime: '19:30', studentId: 'student_carlos', studentName: 'Carlos Mendoza', levelId: 'level_3', status: 'booked', meetLink: 'https://meet.google.com/eng-carlos-cokito' },
+  { id: 'mie_18', day: 'Miércoles', startTime: '18:00', endTime: '19:00', studentId: 'student_maria_guadalupe', studentName: 'Maria Guadalupe Peña Montilla', levelId: 'level_3', status: 'booked', meetLink: 'https://meet.google.com/eng-malu-cokito' },
 
   // Jueves
   { id: 'jue_09', day: 'Jueves', startTime: '09:00', endTime: '10:00', status: 'available' },
