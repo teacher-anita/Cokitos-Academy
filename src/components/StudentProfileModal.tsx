@@ -1,6 +1,6 @@
 import React from 'react';
-import { X, Flame, Zap, Award, BookOpen, Clock, Calendar, Mail, Phone, LogOut, CheckCircle2, ShieldCheck, User } from 'lucide-react';
-import { Student } from '../types';
+import { X, Flame, Zap, Award, BookOpen, Clock, Calendar, Mail, Phone, LogOut, CheckCircle2, ShieldCheck, User, GraduationCap, Baby } from 'lucide-react';
+import { Student, AudienceTheme } from '../types';
 import { User as FirebaseUser } from 'firebase/auth';
 
 interface StudentProfileModalProps {
@@ -11,6 +11,8 @@ interface StudentProfileModalProps {
   onLogout: () => void;
   onOpenCoupon: () => void;
   onOpenPlacementTest: () => void;
+  audienceTheme?: AudienceTheme;
+  onAudienceChange?: (theme: AudienceTheme) => void;
 }
 
 export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
@@ -20,9 +22,12 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   user,
   onLogout,
   onOpenCoupon,
-  onOpenPlacementTest
+  onOpenPlacementTest,
+  audienceTheme,
+  onAudienceChange
 }) => {
   if (!isOpen) return null;
+  const isKids = audienceTheme === 'kids';
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
@@ -181,6 +186,41 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                   className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors"
                 >
                   Hacer Prueba de Nivel Gratis
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Theme Selector: Adultos vs Kids */}
+          {onAudienceChange && (
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                Modo Visual de la Academia:
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => onAudienceChange('adults')}
+                  className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
+                    !isKids
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Modo Adultos</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAudienceChange('kids')}
+                  className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
+                    isKids
+                      ? 'bg-sky-500 text-white shadow-xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <Baby className="w-4 h-4" />
+                  <span>Modo Kids</span>
                 </button>
               </div>
             </div>

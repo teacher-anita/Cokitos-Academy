@@ -97,10 +97,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* Day filters */}
-        <div className="flex items-center gap-1 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
           <button
             onClick={() => setSelectedDayFilter('Todos')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
               selectedDayFilter === 'Todos'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:text-slate-900'
@@ -112,7 +112,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <button
               key={d}
               onClick={() => setSelectedDayFilter(d)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
                 selectedDayFilter === d
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'

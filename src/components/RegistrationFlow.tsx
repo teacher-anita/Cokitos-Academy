@@ -35,7 +35,7 @@ interface RegistrationFlowProps {
   audienceTheme: AudienceTheme;
 }
 
-export type RegistrationPlanType = 'digital_5' | 'group_1w' | 'private_1w' | 'private_2w';
+export type RegistrationPlanType = 'digital_5' | 'basic_2' | 'regular_3' | 'intensive_4' | 'express_6';
 
 interface CustomPlanInfo {
   id: RegistrationPlanType;
@@ -69,54 +69,71 @@ const REGISTRATION_PLANS: CustomPlanInfo[] = [
     ]
   },
   {
-    id: 'group_1w',
-    title: 'Grupo Dinámico (1 Clase / Semana)',
-    badge: 'Más Popular • Grupos Reducidos',
-    priceDisplay: '$20',
-    priceNumber: 20,
-    period: '/ mes ($5/hora)',
-    hoursNote: '4 horas al mes (1 hora por semana)',
-    description: '1 clase semanal en vivo en grupos pequeños (máximo 4 alumnos). Ideal para soltar la lengua en conversación.',
+    id: 'express_6',
+    title: '⚡ Nivel Express / Súper Intensivo (6 h/sem)',
+    badge: '¡Máxima Velocidad! • 4 Semanas/Nivel',
+    priceDisplay: '$105',
+    priceNumber: 105,
+    period: '/ semana',
+    hoursNote: '6 horas semanales (3 sesiones de 120 min)',
+    description: 'Inmersión récord: completa 1 nivel oficial en solo 4 semanas. Ideal para viajes inminentes o entrevistas urgentes.',
     isSelfPaced: false,
     features: [
-      '1 clase semanal en vivo por Google Meet',
-      'Interacción guiada en parejas con Teacher Cokitö',
-      'Acceso total a la plataforma y libros digitales',
-      'Corrección directa de pronunciación y tareas'
+      '3 sesiones semanales de 120 min (Lun/Mié/Vie)',
+      '¡Terminas cada nivel en solo 4 semanas (1 mes)!',
+      'Atención VIP exclusiva de Teacher Cokitö',
+      'Soporte y dudas continuo vía WhatsApp'
     ]
   },
   {
-    id: 'private_1w',
-    title: 'Mentoría Privada 1 a 1 (1 Clase / Semana)',
-    badge: 'Atención Exclusiva Personalizada',
-    priceDisplay: '$40',
-    priceNumber: 40,
-    period: '/ mes ($10/hora)',
-    hoursNote: '4 horas al mes (1 hora por semana)',
-    description: 'Atención 100% individualizada con La Teacher Cokitö. Ritmo adaptado a tu estilo de aprendizaje o neurodivergencia.',
+    id: 'intensive_4',
+    title: 'Plan Intensivo (4 h/sem)',
+    badge: 'Progreso Acelerado • 6 Semanas/Nivel',
+    priceDisplay: '$80',
+    priceNumber: 80,
+    period: '/ semana',
+    hoursNote: '4 horas semanales (2 de 120 min o 4 de 60 min)',
+    description: 'Avance rápido y enfocado para metas a corto plazo, ascensos laborales o preparación de certificaciones.',
     isSelfPaced: false,
     features: [
-      '1 hora semanal individual en vivo',
-      'Acompañamiento personalizado y sin juicio',
-      'Flexibilidad de horarios acordados en agenda',
-      'Enfoque en entrevistas, viajes o refuerzo escolar'
+      '4 horas semanales de clases en vivo',
+      'Terminas cada nivel en 6 semanas (1.5 meses)',
+      'Simulación de entrevistas y fluidez laboral',
+      'Acceso total al Classroom y libros oficiales'
     ]
   },
   {
-    id: 'private_2w',
-    title: 'Mentoría Privada Intensiva (2 Clases / Semana)',
-    badge: 'Progreso Acelerado VIP',
-    priceDisplay: '$75',
-    priceNumber: 75,
-    period: '/ mes',
-    hoursNote: '8 horas al mes (2 horas por semana)',
-    description: 'Máxima aceleración conversacional para quienes necesitan fluidez urgente por trabajo o viajes inminentes.',
+    id: 'regular_3',
+    title: 'Plan Regular (3 h/sem)',
+    badge: '⭐ Más Recomendado • 8 Semanas/Nivel',
+    priceDisplay: '$67.5',
+    priceNumber: 67.5,
+    period: '/ semana',
+    hoursNote: '3 horas semanales (2 sesiones de 90 min)',
+    description: 'La fórmula pedagógica dorada: máximo equilibrio entre velocidad, retención cognitiva y comodidad de horario.',
     isSelfPaced: false,
     features: [
-      '2 horas semanales individuales en vivo',
-      'Doble práctica conversacional semanal',
-      'Simulación de situaciones laborales y presentaciones',
-      'Feedback continuo por WhatsApp de La Teacher'
+      '2 sesiones semanales de 90 min (ej. Lun/Mié)',
+      'Terminas cada nivel en 8 semanas (2 meses)',
+      'Práctica conversacional inmersiva y natural',
+      'Feedback detallado de pronunciación en cada clase'
+    ]
+  },
+  {
+    id: 'basic_2',
+    title: 'Plan Súper Básico (2 h/sem)',
+    badge: 'Constante y Relajado • 12 Semanas/Nivel',
+    priceDisplay: '$50',
+    priceNumber: 50,
+    period: '/ semana',
+    hoursNote: '2 horas semanales (2 sesiones de 60 min)',
+    description: 'Para personas con agendas apretadas que desean avanzar firme y sin sobrecarga mental.',
+    isSelfPaced: false,
+    features: [
+      '2 sesiones semanales de 60 min (ej. Mar/Jue)',
+      'Terminas cada nivel en 12 semanas (3 meses)',
+      'Aprende sin miedo, sin estrés y a tu ritmo',
+      'Materiales digitales y audios incluidos'
     ]
   }
 ];
@@ -142,6 +159,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   // Package & Preferences
   const [selectedPlanId, setSelectedPlanId] = useState<RegistrationPlanType>('digital_5');
   const [selectedModality, setSelectedModality] = useState<ClassModality>('online');
+  const [selectedGroupSize, setSelectedGroupSize] = useState<GroupSize>('individual');
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
   const [preferredTimeSlot, setPreferredTimeSlot] = useState('Tardes (4:00 - 7:00 pm)');
 
@@ -231,9 +249,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       schoolOrProfession,
       learningGoal,
       avatar: `https://api.dicebear.com/7.x/${isKid ? 'bottts' : 'micah'}/svg?seed=${name}`,
-      plan: 'basic',
+      plan: selectedPlanId === 'express_6' ? 'super_intensive' : selectedPlanId === 'intensive_4' ? 'intensive' : selectedPlanId === 'regular_3' ? 'regular' : 'basic',
       modality: selectedModality,
-      groupSize: selectedPlanId === 'group_1w' ? 'crew4' : 'individual',
+      groupSize: selectedPlanId === 'digital_5' ? 'individual' : selectedGroupSize,
       preferredTimeSlot,
       status: appliedCoupon ? 'enrolled' : 'pending_evaluation',
       levelId: placementResult.suggestedLevelId || 'level_1',
@@ -504,6 +522,45 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 >
                   🏫 Presencial
                 </button>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200/60">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Formato del Grupo:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGroupSize('individual')}
+                    className={`p-2 rounded-xl border text-center text-xs font-bold transition-all ${
+                      selectedGroupSize === 'individual'
+                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                        : 'border-slate-200 bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    👤 1 a 1 (Privada)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGroupSize('duo')}
+                    className={`p-2 rounded-xl border text-center text-xs font-bold transition-all ${
+                      selectedGroupSize === 'duo'
+                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                        : 'border-slate-200 bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    👥 Dúo (2 alumnos)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGroupSize('crew4')}
+                    className={`p-2 rounded-xl border text-center text-xs font-bold transition-all ${
+                      selectedGroupSize === 'crew4'
+                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                        : 'border-slate-200 bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    🧑‍🤝‍🧑 Grupo (3-4 pax)
+                  </button>
+                </div>
               </div>
             </div>
           )}

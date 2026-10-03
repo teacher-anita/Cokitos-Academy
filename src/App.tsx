@@ -15,6 +15,7 @@ import { TeacherDashboard } from './components/TeacherDashboard';
 import { ScheduleOptimizerModal } from './components/ScheduleOptimizerModal';
 import { PlacementQuizModal } from './components/PlacementQuizModal';
 import { CouponModal } from './components/CouponModal';
+import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { TeacherGate } from './components/TeacherGate';
 import { StudentProfileModal } from './components/StudentProfileModal';
 import { Student, ScheduleSlot, AudienceTheme } from './types';
@@ -31,6 +32,7 @@ export default function App() {
   const [isPlacementQuizOpen, setIsPlacementQuizOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   // Teacher Authentication state (Private to Teacher Cokitö: User Coquito / PIN 3223 or Google)
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState<boolean>(() => {
@@ -192,6 +194,58 @@ export default function App() {
     }
   };
 
+  const handlePaymentSuccess = async (method: string, reference: string) => {
+    // If student exists, upgrade them to enrolled with digital pass
+    if (currentStudent && currentStudent.id !== 'guest') {
+      const updated: Student = {
+        ...currentStudent,
+        status: 'enrolled',
+        plan: 'basic',
+        xp: (currentStudent.xp || 0) + 200,
+        notes: `${currentStudent.notes || ''} | Pase Digital $5 activado vía ${method} (Ref: ${reference})`
+      };
+      setStudents(prev => prev.map(s => s.id === updated.id ? updated : s));
+      await saveStudent(updated);
+    } else {
+      const newStudentId = `student_${Date.now()}`;
+      const newStudent: Student = {
+        id: newStudentId,
+        name: user?.displayName || 'Alumno Cokitö',
+        lastName: '',
+        email: user?.email || 'alumno@cokito.com',
+        phone: '',
+        age: 25,
+        isKid: false,
+        schoolOrProfession: 'Estudiante Digital',
+        learningGoal: 'Aprender inglés a mi propio ritmo',
+        avatar: user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=PaseDigital`,
+        plan: 'basic',
+        modality: 'online',
+        groupSize: 'individual',
+        preferredTimeSlot: 'Autónomo Asincrónico',
+        status: 'enrolled',
+        levelId: 'level_1',
+        placementTestScore: 25,
+        placementTestDiagnosis: 'Pase Digital $5 Activado',
+        placementTestDate: new Date().toISOString().split('T')[0],
+        registeredAt: new Date().toISOString().split('T')[0],
+        currentUnit: 1,
+        completedHours: 0,
+        xp: 300,
+        streak: 1,
+        league: 'Bronce',
+        rating: { fluency: 3, grammar: 3, vocabulary: 3, pronunciation: 3 },
+        notes: `Pase Digital $5 activado vía ${method} (Ref: ${reference})`,
+        assignedSlots: []
+      };
+      setStudents(prev => [...prev, newStudent]);
+      setCurrentStudentId(newStudent.id);
+      await saveStudent(newStudent);
+    }
+    setIsPaymentModalOpen(false);
+    setActiveTab('pathway');
+  };
+
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
       audienceTheme === 'kids' ? 'bg-sky-50/50 text-slate-800' : 'bg-slate-50 text-slate-900'
@@ -234,6 +288,7 @@ export default function App() {
             onExploreCalendar={() => setActiveTab('calendar')}
             onExploreGamification={() => setActiveTab('duolingo')}
             onOpenOptimizer={() => setIsOptimizerOpen(true)}
+            onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
           />
         )}
 
@@ -322,6 +377,15 @@ export default function App() {
         onLogout={handleLogout}
         onOpenCoupon={() => setIsCouponOpen(true)}
         onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
+        audienceTheme={audienceTheme}
+        onAudienceChange={setAudienceTheme}
+      />
+
+      {/* Payment / Checkout Modal for $5 Pase Digital */}
+      <PaymentCheckoutModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onPaymentSuccess={handlePaymentSuccess}
       />
 
       {/* Coupon / Beca Modal */}
