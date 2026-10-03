@@ -370,19 +370,19 @@ export const INITIAL_STUDENTS: Student[] = [
     modality: 'presencial',
     groupSize: 'individual',
     preferredTimeSlot: 'LUN-MIER 6:00 pm - 7:00 pm',
-    levelId: 'level_3',
+    levelId: 'level_1',
     status: 'enrolled',
     placementTestScore: 9,
-    placementTestDiagnosis: '🟢 BEG - INTER (Super Goal 3). Puntaje prueba: 9/25. Unidad actual: 3. Avance curricular: 48.0% (12 horas completadas de 24h).',
+    placementTestDiagnosis: '🟢 Principiante (Super Goal 1). Auxiliar CSB Preschool. Iniciando fundamentos pedagógicos, estructuras básicas y vocabulario.',
     placementTestDate: '2026-10-02',
     registeredAt: '2026-10-02',
-    currentUnit: 3,
-    completedHours: 12.0,
-    xp: 1350,
-    streak: 8,
-    league: 'Plata',
-    rating: { fluency: 3, grammar: 3, vocabulary: 4, pronunciation: 4 },
-    notes: 'Alumna confirmada. Horario: Lunes y Miércoles de 6:00 pm a 7:00 pm. Institución: PRE CSB (Auxiliar). Correos: malupena26.mo@gmail.com / malupena.26mo@gmail.com. Tel: 04241830082.',
+    currentUnit: 1,
+    completedHours: 4.0,
+    xp: 650,
+    streak: 4,
+    league: 'Bronce',
+    rating: { fluency: 2, grammar: 2, vocabulary: 3, pronunciation: 3 },
+    notes: 'Alumna confirmada en Super Goal 1 (Principiante). Horario: Lunes y Miércoles de 6:00 pm a 7:00 pm. Institución: PRE CSB (Auxiliar). Correos: malupena26.mo@gmail.com / malupena.26mo@gmail.com. Tel: 04241830082.',
     assignedSlots: ['lun_18', 'mie_18']
   },
   {
@@ -538,12 +538,12 @@ export const INITIAL_SCHEDULE_SLOTS: ScheduleSlot[] = [
           enrolledStudents: [{
             studentId: 'student_maria_guadalupe',
             studentName: 'Maria Guadalupe Peña Montilla',
-            levelId: 'level_3'
+            levelId: 'level_1'
           }],
           teacherName: 'Teacher Cokitö',
           studentId: 'student_maria_guadalupe',
           studentName: 'Maria Guadalupe Peña Montilla',
-          levelId: 'level_3',
+          levelId: 'level_1',
           status: 'booked' as const,
           meetLink: 'https://meet.google.com/eng-malu-cokito'
         };

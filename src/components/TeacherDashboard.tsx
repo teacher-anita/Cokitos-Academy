@@ -82,7 +82,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       {
         studentId: student.id,
         studentName: `${student.name} ${student.lastName || ''}`.trim(),
-        levelId: student.levelId,
+        levelId: student.levelId || 'level_1',
         avatar: student.avatar,
         email: student.email
       }

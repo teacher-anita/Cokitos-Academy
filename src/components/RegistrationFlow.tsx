@@ -1081,18 +1081,18 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             )}
           </div>
 
-          {/* PLACEMENT TEST REQUIREMENT (NOW OPTIONAL) */}
-          <div className="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-3xl p-5 sm:p-6 text-white space-y-4 shadow-md">
+          {/* PLACEMENT TEST REQUIREMENT (100% OPCIONAL) */}
+          <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 rounded-3xl p-5 sm:p-6 text-white space-y-4 shadow-md border border-blue-800">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950 px-2.5 py-0.5 rounded-full inline-block mb-1">
-                  Recomendado • Opcional
+                  100% Opcional
                 </span>
                 <h3 className="text-base sm:text-lg font-black tracking-tight">
                   Prueba Diagnóstica de Nivel (25 Preguntas)
                 </h3>
                 <p className="text-xs text-blue-200 max-w-md mt-0.5 leading-relaxed">
-                  Puedes realizarla ahora para ubicarte en tu libro ideal, o puedes continuar e iniciar en el Nivel Inicial (A1) y hacer la prueba más adelante desde tu perfil.
+                  ¿Quieres medir tu nivel ahora? Puedes hacer la prueba rápida para sugerir tu libro oficial, o puedes finalizar tu inscripción directamente e iniciar desde el Nivel 1 (Principiante).
                 </p>
               </div>
 
@@ -1100,9 +1100,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsQuizModalOpen(true)}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-md transition-colors whitespace-nowrap"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-md transition-colors whitespace-nowrap flex items-center justify-center gap-1.5"
                 >
-                  {placementResult ? '✓ Repetir Prueba' : '📝 Hacer Prueba Ahora'}
+                  <span>{placementResult ? '✓ Repetir Prueba' : '📝 Hacer Prueba Ahora'}</span>
                 </button>
               </div>
             </div>
@@ -1123,9 +1123,14 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 </span>
               </div>
             ) : (
-              <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-[11px] text-blue-200 flex items-center justify-between">
-                <span>¿Deseas omitir la prueba por ahora? Comenzarás en el Nivel Inicial (A1).</span>
-                <span className="text-amber-300 font-bold ml-2">Nivel Inicial por defecto</span>
+              <div className="p-3 bg-white/10 border border-white/20 rounded-2xl text-xs text-blue-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span><strong>Modo directo:</strong> Comenzarás en el Nivel 1 (Principiante A1). Podrás tomar la prueba de nivel en cualquier momento desde tu perfil.</span>
+                </div>
+                <span className="text-[11px] bg-amber-400/20 text-amber-200 border border-amber-400/30 px-2.5 py-1 rounded-lg font-bold shrink-0 self-start sm:self-auto">
+                  Nivel 1 por defecto
+                </span>
               </div>
             )}
           </div>
@@ -1135,7 +1140,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-600 text-xs font-semibold"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-600 text-xs font-semibold hover:text-slate-900 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Atrás</span>
@@ -1143,8 +1148,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             <button
               type="button"
               onClick={handleFinalSubmit}
-              disabled={isSubmitting || !placementResult}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-colors disabled:opacity-50"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <span>Registrando en la plataforma...</span>
