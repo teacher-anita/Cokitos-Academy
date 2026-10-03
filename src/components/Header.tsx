@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sparkles, Calendar, BookOpen, UserCheck, Flame, Zap, LogOut, CheckCircle2, Home, Baby, GraduationCap } from 'lucide-react';
+import { Sparkles, Calendar, BookOpen, UserCheck, Flame, Zap, LogOut, CheckCircle2, Home, Baby, GraduationCap, Lock } from 'lucide-react';
 import { User } from 'firebase/auth';
-import { AudienceTheme } from '../types';
+import { AudienceTheme, Student } from '../types';
 
 interface HeaderProps {
   user: User | null;
@@ -15,8 +15,11 @@ interface HeaderProps {
   onOpenOptimizer: () => void;
   currentStudentXp: number;
   currentStudentStreak: number;
+  currentStudent: Student | null;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  allStudents: Student[];
+  onSelectStudent: (studentId: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,10 +34,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenOptimizer,
   currentStudentXp,
   currentStudentStreak,
+  currentStudent,
   activeTab,
-  onTabChange
+  onTabChange,
+  allStudents,
+  onSelectStudent
 }) => {
   const isKids = audienceTheme === 'kids';
+  const isEnrolled = activeRole === 'teacher' || (currentStudent && currentStudent.status === 'enrolled');
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
@@ -91,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'hover:text-slate-900'
               }`}
             >
-              Inscripción & Prueba
+              Inscripción & Test
             </button>
             <button
               onClick={() => onTabChange('calendar')}
@@ -102,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5 text-blue-600" />
-              Agenda Compartida
+              Agenda
             </button>
             <button
               onClick={() => onTabChange('duolingo')}
@@ -113,19 +120,23 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Zap className="w-3.5 h-3.5 text-emerald-500" />
-              Retos Duolingo
+              Retos
             </button>
+
+            {/* AULA VIRTUAL & RUTA */}
             <button
-              onClick={() => onTabChange('classroom')}
+              onClick={() => onTabChange('pathway')}
               className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === 'classroom'
-                  ? 'bg-white text-indigo-700 shadow-xs'
+                activeTab === 'pathway'
+                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
                   : 'hover:text-slate-900'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-              Classroom
+              <span>Aula Virtual</span>
+              {!isEnrolled && <Lock className="w-3 h-3 text-amber-500" />}
             </button>
+
             {activeRole === 'teacher' && (
               <button
                 onClick={() => onTabChange('teacher')}
@@ -136,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 <UserCheck className="w-3.5 h-3.5" />
-                Panel Docente
+                Docente
               </button>
             )}
           </nav>
@@ -144,6 +155,23 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Cluster */}
           <div className="flex items-center gap-2">
             
+            {/* Quick Switch for testing: Alumno / Aspirante / Teacher */}
+            {activeRole === 'student' && (
+              <select
+                value={currentStudent?.id || ''}
+                onChange={e => onSelectStudent(e.target.value)}
+                className="hidden lg:block text-[11px] p-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold max-w-[130px] truncate"
+                title="Cambiar perfil de prueba"
+              >
+                <option value="guest">👤 Visitante (Sin Matricular)</option>
+                {allStudents.map(st => (
+                  <option key={st.id} value={st.id}>
+                    {st.name} ({st.status === 'enrolled' ? 'Matriculado' : 'Aspirante'})
+                  </option>
+                ))}
+              </select>
+            )}
+
             {/* AUDIENCE THEME TOGGLE: Kids vs Adultos */}
             <div className="bg-slate-100 p-0.5 rounded-xl flex items-center text-xs font-bold border border-slate-200/80">
               <button
@@ -223,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onLogin}
                 disabled={isLoggingIn}
                 className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
-                title="Conectar Google Calendar, Classroom y Gmail"
+                title="Conectar Google Workspace"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 48 48">
                   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -273,12 +301,13 @@ export const Header: React.FC<HeaderProps> = ({
             Retos
           </button>
           <button
-            onClick={() => onTabChange('classroom')}
-            className={`px-3 py-1 rounded-xl whitespace-nowrap ${
-              activeTab === 'classroom' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600'
+            onClick={() => onTabChange('pathway')}
+            className={`px-3 py-1 rounded-xl whitespace-nowrap flex items-center gap-1 ${
+              activeTab === 'pathway' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600'
             }`}
           >
-            Classroom
+            <span>Aula Virtual</span>
+            {!isEnrolled && <Lock className="w-2.5 h-2.5 text-amber-400" />}
           </button>
           {activeRole === 'teacher' && (
             <button

@@ -10,12 +10,14 @@ import { LandingHero } from './components/LandingHero';
 import { RegistrationFlow } from './components/RegistrationFlow';
 import { CalendarView } from './components/CalendarView';
 import { GamificationHub } from './components/GamificationHub';
-import { ClassroomHub } from './components/ClassroomHub';
+import { LearningPathway } from './components/LearningPathway';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { ScheduleOptimizerModal } from './components/ScheduleOptimizerModal';
+import { PlacementQuizModal } from './components/PlacementQuizModal';
 import { Student, ScheduleSlot, AudienceTheme } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
 import { initAuth, googleSignIn, logout } from './services/firebaseAuth';
+import { saveStudent, saveSlots, subscribeToStudents, getLocalSlots } from './services/db';
 import { ShieldCheck } from 'lucide-react';
 
 export default function App() {
@@ -24,49 +26,39 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [audienceTheme, setAudienceTheme] = useState<AudienceTheme>('adults');
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
+  const [isPlacementQuizOpen, setIsPlacementQuizOpen] = useState(false);
 
   // Auth State
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Persistent LocalStorage State
-  const [students, setStudents] = useState<Student[]>(() => {
-    try {
-      const saved = localStorage.getItem('cokito_students_data_v2');
-      return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
-    } catch {
-      return INITIAL_STUDENTS;
-    }
-  });
+  // Real-time Database State (Firestore + Local fallback)
+  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [slots, setSlots] = useState<ScheduleSlot[]>(() => getLocalSlots());
 
-  const [slots, setSlots] = useState<ScheduleSlot[]>(() => {
-    try {
-      const saved = localStorage.getItem('cokito_slots_data_v2');
-      return saved ? JSON.parse(saved) : INITIAL_SCHEDULE_SLOTS;
-    } catch {
-      return INITIAL_SCHEDULE_SLOTS;
-    }
-  });
+  // Current active student selector (Defaults to 'guest' for phone visitors to test paywall!)
+  const [currentStudentId, setCurrentStudentId] = useState<string>('guest');
 
-  // Current active student
-  const [currentStudentId, setCurrentStudentId] = useState<string>('student_mariana');
-
+  // Real-time Firestore Sync
   useEffect(() => {
-    try {
-      localStorage.setItem('cokito_students_data_v2', JSON.stringify(students));
-    } catch {}
-  }, [students]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('cokito_slots_data_v2', JSON.stringify(slots));
-    } catch {}
-  }, [slots]);
+    const unsubStudents = subscribeToStudents((latestStudents) => {
+      setStudents(latestStudents);
+    });
+    return () => {
+      if (typeof unsubStudents === 'function') unsubStudents();
+    };
+  }, []);
 
   // Firebase Auth Listener
   useEffect(() => {
     const unsubscribe = initAuth(
-      (currentUser) => setUser(currentUser),
+      (currentUser) => {
+        setUser(currentUser);
+        // If teacher logs in with Google, auto-switch to teacher role
+        if (currentUser && currentUser.email?.includes('anateresa')) {
+          setActiveRole('teacher');
+        }
+      },
       () => setUser(null)
     );
     return () => {
@@ -91,95 +83,89 @@ export default function App() {
     setUser(null);
   };
 
-  // Find active student
-  const currentStudent = students.find(s => s.id === currentStudentId) || students[0] || null;
+  // Find active student or null if guest
+  const currentStudent = currentStudentId === 'guest'
+    ? null
+    : students.find(s => s.id === currentStudentId) || null;
 
-  // Registration Callback (Saved in state and localStorage!)
-  const handleRegisterComplete = (newStudent: Student, bookedSlotIds: string[]) => {
-    setStudents(prev => [newStudent, ...prev]);
+  // Registration Callback (Saves to Cloud Firestore + LocalStorage!)
+  const handleRegisterComplete = async (newStudent: Student, bookedSlotIds: string[]) => {
+    await saveStudent(newStudent);
     setCurrentStudentId(newStudent.id);
 
-    // If student is kid, adapt audience theme automatically
     if (newStudent.isKid) {
       setAudienceTheme('kids');
     }
 
-    // Reserve slots
     if (bookedSlotIds.length > 0) {
-      setSlots(prev =>
-        prev.map(slot => {
-          if (bookedSlotIds.includes(slot.id)) {
-            return {
-              ...slot,
-              status: 'booked',
-              studentId: newStudent.id,
-              studentName: `${newStudent.name} ${newStudent.lastName || ''}`.trim(),
-              levelId: newStudent.levelId,
-              meetLink: 'https://meet.google.com/eng-class'
-            };
-          }
-          return slot;
-        })
-      );
-    }
-  };
-
-  const handleFreeSlot = (slotId: string) => {
-    setSlots(prev =>
-      prev.map(slot => {
-        if (slot.id === slotId) {
+      const updatedSlots = slots.map(slot => {
+        if (bookedSlotIds.includes(slot.id)) {
           return {
             ...slot,
-            status: 'available',
-            studentId: undefined,
-            studentName: undefined,
-            levelId: undefined,
-            meetLink: undefined
+            status: 'booked' as const,
+            studentId: newStudent.id,
+            studentName: `${newStudent.name} ${newStudent.lastName || ''}`.trim(),
+            levelId: newStudent.levelId,
+            meetLink: 'https://meet.google.com/eng-class'
           };
         }
         return slot;
-      })
-    );
+      });
+      setSlots(updatedSlots);
+      await saveSlots(updatedSlots);
+    }
   };
 
-  const handleAwardXp = (studentId: string, amount: number) => {
-    setStudents(prev =>
-      prev.map(st => {
-        if (st.id === studentId) {
+  const handleFreeSlot = async (slotId: string) => {
+    const updatedSlots = slots.map(slot => {
+      if (slot.id === slotId) {
+        return {
+          ...slot,
+          status: 'available' as const,
+          studentId: undefined,
+          studentName: undefined,
+          levelId: undefined,
+          meetLink: undefined
+        };
+      }
+      return slot;
+    });
+    setSlots(updatedSlots);
+    await saveSlots(updatedSlots);
+  };
+
+  const handleAwardXp = async (studentId: string, amount: number) => {
+    const target = students.find(s => s.id === studentId);
+    if (!target) return;
+    const updated: Student = {
+      ...target,
+      xp: target.xp + amount,
+      streak: target.streak + 1
+    };
+    await saveStudent(updated);
+  };
+
+  const handleUpdateStudent = async (updatedStudent: Student) => {
+    await saveStudent(updatedStudent);
+
+    // Also update slots if assigned
+    if (updatedStudent.assignedSlots && updatedStudent.assignedSlots.length > 0) {
+      const updatedSlots = slots.map(slot => {
+        const slotTag = `${slot.day}-${slot.startTime}`;
+        if (updatedStudent.assignedSlots.includes(slotTag)) {
           return {
-            ...st,
-            xp: st.xp + amount,
-            streak: st.streak + 1
+            ...slot,
+            status: 'booked' as const,
+            studentId: updatedStudent.id,
+            studentName: `${updatedStudent.name} ${updatedStudent.lastName || ''}`.trim(),
+            levelId: updatedStudent.levelId,
+            meetLink: 'https://meet.google.com/eng-cokito-class'
           };
         }
-        return st;
-      })
-    );
-  };
-
-  const handleUpdateStudent = (updatedStudent: Student) => {
-    setStudents(prev =>
-      prev.map(st => (st.id === updatedStudent.id ? updatedStudent : st))
-    );
-
-    // Also update slots if level or slots changed
-    if (updatedStudent.assignedSlots && updatedStudent.assignedSlots.length > 0) {
-      setSlots(prev =>
-        prev.map(slot => {
-          const slotTag = `${slot.day}-${slot.startTime}`;
-          if (updatedStudent.assignedSlots.includes(slotTag)) {
-            return {
-              ...slot,
-              status: 'booked',
-              studentId: updatedStudent.id,
-              studentName: `${updatedStudent.name} ${updatedStudent.lastName || ''}`.trim(),
-              levelId: updatedStudent.levelId,
-              meetLink: 'https://meet.google.com/eng-cokito-class'
-            };
-          }
-          return slot;
-        })
-      );
+        return slot;
+      });
+      setSlots(updatedSlots);
+      await saveSlots(updatedSlots);
     }
   };
 
@@ -206,8 +192,11 @@ export default function App() {
         onOpenOptimizer={() => setIsOptimizerOpen(true)}
         currentStudentXp={currentStudent?.xp || 0}
         currentStudentStreak={currentStudent?.streak || 0}
+        currentStudent={currentStudent}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        allStudents={students}
+        onSelectStudent={setCurrentStudentId}
       />
 
       {/* Main Content */}
@@ -258,10 +247,15 @@ export default function App() {
           />
         )}
 
-        {/* TAB 5: GOOGLE CLASSROOM MATERIALS */}
-        {activeTab === 'classroom' && (
-          <ClassroomHub
+        {/* TAB 5: AULA VIRTUAL & RUTA DE APRENDIZAJE (MCGRAW-HILL) */}
+        {activeTab === 'pathway' && (
+          <LearningPathway
+            currentStudent={currentStudent}
             activeRole={activeRole}
+            audienceTheme={audienceTheme}
+            onOpenRegister={() => setActiveTab('register')}
+            onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
+            onAwardXp={handleAwardXp}
           />
         )}
 
@@ -275,6 +269,17 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Standalone Placement Quiz Modal */}
+      <PlacementQuizModal
+        isOpen={isPlacementQuizOpen}
+        studentName="Aspirante"
+        onClose={() => setIsPlacementQuizOpen(false)}
+        onFinishTest={() => {
+          setIsPlacementQuizOpen(false);
+          setActiveTab('register');
+        }}
+      />
 
       {/* Pedagogical Optimizer Modal */}
       <ScheduleOptimizerModal
