@@ -21,7 +21,8 @@ import {
   KeyRound,
   Compass,
   Lightbulb,
-  Globe2
+  Globe2,
+  Banknote
 } from 'lucide-react';
 import { Student, AudienceTheme } from '../types';
 import { PATHWAY_LEVELS, PathwayLevel, PathwayUnit, PathwaySession } from '../data/pathwayData';
@@ -34,6 +35,7 @@ interface LearningPathwayProps {
   onOpenRegister: () => void;
   onOpenPlacementTest: () => void;
   onOpenCouponModal: () => void;
+  onOpenPaymentModal?: () => void;
   onAwardXp: (studentId: string, amount: number) => void;
 }
 
@@ -44,6 +46,7 @@ export const LearningPathway: React.FC<LearningPathwayProps> = ({
   onOpenRegister,
   onOpenPlacementTest,
   onOpenCouponModal,
+  onOpenPaymentModal,
   onAwardXp
 }) => {
   const isTeacher = activeRole === 'teacher';
@@ -115,56 +118,59 @@ ${unit.owlCulture.culturalStory}
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fadeIn">
         
-        {/* Paywall Banner */}
-        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-8 text-white border border-slate-800 shadow-xl text-center space-y-5">
+        {/* Paywall Banner: Ghost Mode / Visión Fantasma */}
+        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-slate-800 shadow-xl text-center space-y-5">
           <div className="w-16 h-16 rounded-3xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center mx-auto shadow-md">
             <Lock className="w-8 h-8" />
           </div>
 
           <div className="space-y-2 max-w-xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20 inline-block">
-              🔒 Exclusive Access / Acceso para Alumnos
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/30 inline-block">
+              👻 Visión Fantasma • Modo Vista Previa
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Virtual Classroom & Cokitö Global Curriculum
+              Virtual Classroom & Pensum Oficial Cokitö
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              ¡Hello future student! 👋 Estás explorando en modo <strong>Visitor</strong>. Si estás empezando desde cero o tienes miedo de equivocarte, <em>don't worry!</em> Aquí aprendemos <strong>step by step</strong>, sin juzgarte y a tu propio ritmo.
+              Estás explorando en <strong>Modo Fantasma</strong>. Puedes ver todos los niveles, módulos y la metodología. Para activar tu cuenta e interactuar con el <strong>Cyber Owl</strong>, audios nativos y agendar tus clases en vivo, valida tus $5 o ingresa tu código:
             </p>
           </div>
 
           <div className="p-4 sm:p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-blue-200 text-left space-y-2.5">
             <p className="font-bold text-white flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>¿Qué desbloqueas dentro de tu Cokitö Classroom?</span>
+              <span>¿Qué desbloqueas con tu Pase Validado?</span>
             </p>
             <ul className="space-y-1.5 list-disc list-inside text-blue-100">
-              <li><strong>Live Speaking Sessions:</strong> Clases en vivo en grupos reducidos o 1 a 1 para soltar la lengua sin estrés.</li>
-              <li><strong>Syllabus Oficial:</strong> Pensum estructurado de 12 niveles progresivos (A1 a C1).</li>
-              <li><strong>Smart Owl Culture Corner:</strong> Tips de pronunciación, modismos reales y curiosidades anglosajonas.</li>
-              <li><strong>Interactive Quizzes & XP:</strong> Evaluaciones autocorregibles para sumar puntos a tu racha activa.</li>
+              <li><strong>Live Speaking Sessions:</strong> Clases en vivo en grupos reducidos o 1 a 1 sin juzgarte.</li>
+              <li><strong>Pensum Oficial Completo:</strong> 12 niveles progresivos (SuperGoal y MegaGoal).</li>
+              <li><strong>Cyber Owl Interactive Quizzes:</strong> Evaluaciones autocorregibles con rachas de XP.</li>
+              <li><strong>Smart Owl Culture Corner:</strong> Modismos, pronunciación y curiosidades.</li>
             </ul>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 flex-wrap">
             <button
               onClick={onOpenCouponModal}
               className="w-full sm:w-auto px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-transform hover:scale-102 flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
-              <span>Canjear Código / Redeem Code</span>
+              <span>Validar con Código / Beca</span>
             </button>
-            <button
-              onClick={onOpenPlacementTest}
-              className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
-            >
-              Prueba de Nivel Gratis (25 Preguntas)
-            </button>
+            {onOpenPaymentModal && (
+              <button
+                onClick={onOpenPaymentModal}
+                className="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-transform hover:scale-102 flex items-center justify-center gap-2"
+              >
+                <Banknote className="w-4 h-4" />
+                <span>Validar con $5 (PayPal / Pago Móvil)</span>
+              </button>
+            )}
             <button
               onClick={onOpenRegister}
-              className="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-semibold text-xs sm:text-sm transition-colors"
+              className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
             >
-              Inscribirme Ahora / Register
+              Crear Cuenta / Registrarme
             </button>
           </div>
         </div>

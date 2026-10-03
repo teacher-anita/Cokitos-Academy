@@ -63,6 +63,8 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          
+          {/* Row 1: Brand & Top Actions (Guaranteed 100% visible, never escapes on the right) */}
           <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
             
             {/* Logo & Teacher Cokitö Branding */}
@@ -82,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="font-black text-slate-900 tracking-tight text-sm sm:text-base md:text-lg truncate">
                     La Teacher Cokitö
                   </span>
-                  <span className={`hidden sm:inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${
                     isKids
                       ? 'bg-yellow-100 text-yellow-900 border-yellow-300'
                       : 'bg-blue-50 text-blue-800 border-blue-200'
@@ -90,101 +92,28 @@ export const Header: React.FC<HeaderProps> = ({
                     {isKids ? 'Kids' : 'Academia'}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 hidden md:block">Aprende Inglés Sin Miedo & a Tu Ritmo</p>
+                <p className="text-[11px] text-slate-400 hidden sm:block">Aprende Inglés Sin Miedo & a Tu Ritmo</p>
               </div>
             </button>
 
-            {/* Desktop Center Tabs Navigation (Hidden on mobile & tablet) */}
-            <nav className="hidden lg:flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl text-xs font-semibold text-slate-600">
-              <button
-                onClick={() => onTabChange('landing')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'landing'
-                    ? 'bg-white text-blue-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                <Home className="w-3.5 h-3.5" />
-                Inicio
-              </button>
-              <button
-                onClick={() => onTabChange('register')}
-                className={`px-3 py-1.5 rounded-xl transition-all ${
-                  activeTab === 'register'
-                    ? 'bg-white text-blue-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                Inscripción & Test
-              </button>
-              <button
-                onClick={() => onTabChange('calendar')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'calendar'
-                    ? 'bg-white text-blue-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                Agenda
-              </button>
-              <button
-                onClick={() => onTabChange('duolingo')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'duolingo'
-                    ? 'bg-white text-emerald-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                <Zap className="w-3.5 h-3.5 text-emerald-500" />
-                Retos Cokitö
-              </button>
-              <button
-                onClick={() => onTabChange('pathway')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'pathway'
-                    ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Classroom</span>
-                {!isEnrolled && <Lock className="w-3 h-3 text-amber-500" />}
-              </button>
-              
-              {/* Teacher Portal Tab */}
-              <button
-                onClick={() => onTabChange('teacher')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'teacher'
-                    ? 'bg-blue-900 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-blue-900 hover:bg-slate-200/60'
-                }`}
-                title="Acceso restringido para La Teacher"
-              >
-                <Lock className={`w-3.5 h-3.5 ${isTeacherAuthenticated ? 'text-emerald-400' : 'text-amber-500'}`} />
-                <span>Teacher</span>
-              </button>
-            </nav>
-
-            {/* Right Action Cluster */}
+            {/* Right Action Cluster - Always visible on desktop, tablet, and mobile */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               
-              {/* Coupon / Beca button (Compact on mobile) */}
+              {/* Coupon / Beca button */}
               <button
                 onClick={onOpenCouponModal}
-                className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all shadow-2xs"
                 title="Canjear código de cortesía o beca"
               >
                 <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-                <span className="hidden sm:inline">Código</span>
+                <span className="hidden sm:inline">Código / Beca</span>
               </button>
 
-              {/* AUDIENCE THEME TOGGLE: Kids vs Adultos (Shown on md+, hidden on mobile to avoid overflow) */}
-              <div className="hidden md:flex bg-slate-100 p-0.5 rounded-xl items-center text-xs font-bold border border-slate-200/80">
+              {/* AUDIENCE THEME TOGGLE: Kids vs Adultos */}
+              <div className="hidden sm:flex bg-slate-100 p-0.5 rounded-xl items-center text-xs font-bold border border-slate-200/80">
                 <button
                   onClick={() => onAudienceChange('adults')}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
                     !isKids
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -196,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <button
                   onClick={() => onAudienceChange('kids')}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
                     isKids
                       ? 'bg-sky-500 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -208,8 +137,8 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
 
-              {/* Gamification badge: Compact & Clean */}
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded-xl text-xs">
+              {/* Gamification badge: Racha + XP */}
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200/80 px-2 sm:px-2.5 py-1 rounded-xl text-xs">
                 <div className="flex items-center gap-0.5 text-orange-600 font-bold" title="Racha activa de días">
                   <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
                   <span>{currentStudentStreak}</span>
@@ -221,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
 
-              {/* Profile / Avatar Button (Opens Mobile Profile) */}
+              {/* Profile / Avatar Button */}
               <button
                 onClick={onOpenProfile}
                 className="flex items-center p-0.5 sm:p-1 hover:bg-slate-100 rounded-xl transition-colors focus:outline-hidden"
@@ -246,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* Teacher Logout if authenticated (desktop) */}
+              {/* Teacher Logout if authenticated */}
               {isTeacherAuthenticated && (
                 <button
                   onClick={onTeacherLogout}
@@ -260,85 +189,193 @@ export const Header: React.FC<HeaderProps> = ({
 
             </div>
           </div>
+
+          {/* Row 2: Navigation Pills Bar with Emojis & Aligned Locks (Visible on Desktop & Tablet) */}
+          <div className="hidden md:flex items-center justify-center border-t border-slate-100 py-1.5 overflow-x-auto no-scrollbar">
+            <nav className="flex items-center gap-1 sm:gap-1.5 bg-slate-100/90 p-1 rounded-2xl text-xs font-semibold text-slate-600">
+              
+              {/* 1. Inicio */}
+              <button
+                onClick={() => onTabChange('landing')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'landing'
+                    ? 'bg-white text-blue-700 shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">🏠</span>
+                <span>Inicio</span>
+              </button>
+
+              {/* 2. Inscripción & Test */}
+              <button
+                onClick={() => onTabChange('register')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'register'
+                    ? 'bg-white text-blue-700 shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">✍️</span>
+                <span>Inscripción & Test</span>
+              </button>
+
+              {/* 3. Agenda */}
+              <button
+                onClick={() => onTabChange('calendar')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'calendar'
+                    ? 'bg-white text-blue-700 shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">📅</span>
+                <span>Agenda</span>
+              </button>
+
+              {/* 4. Retos Cokitö */}
+              <button
+                onClick={() => onTabChange('duolingo')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'duolingo'
+                    ? 'bg-white text-emerald-700 shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">⚡</span>
+                <span>Retos Cokitö</span>
+              </button>
+
+              {/* 5. Classroom (Emoji on left, Lock on RIGHT) */}
+              <button
+                onClick={() => onTabChange('pathway')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'pathway'
+                    ? 'bg-white text-indigo-700 shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">📚</span>
+                <span>Classroom</span>
+                {!isEnrolled && (
+                  <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 ml-0.5" />
+                )}
+              </button>
+              
+              {/* 6. Teacher Portal (Emoji on left, Lock on RIGHT) */}
+              <button
+                onClick={() => onTabChange('teacher')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'teacher'
+                    ? 'bg-blue-900 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-blue-900 hover:bg-slate-200/60'
+                }`}
+                title="Acceso restringido para La Teacher"
+              >
+                <span className="text-sm">👩‍🏫</span>
+                <span>Teacher</span>
+                <Lock className={`w-3.5 h-3.5 shrink-0 ml-0.5 ${isTeacherAuthenticated ? 'text-emerald-400' : 'text-amber-500'}`} />
+              </button>
+
+            </nav>
+          </div>
+
         </div>
       </header>
 
-      {/* MOBILE & TABLET BOTTOM NAVIGATION BAR (Bello, táctil y 100% responsive) */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl px-1 py-1 flex lg:hidden items-center justify-around pb-safe">
+      {/* MOBILE BOTTOM NAVIGATION BAR (Con emoticones consistentes y candados a la derecha) */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl px-1 py-1 flex md:hidden items-center justify-around pb-safe">
         <div className="w-full max-w-lg mx-auto flex items-center justify-around">
           
+          {/* 1. Inicio */}
           <button
             onClick={() => onTabChange('landing')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[68px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
               activeTab === 'landing'
                 ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Home className="w-5 h-5 shrink-0" />
+            <span className="text-base">🏠</span>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Inicio</span>
           </button>
 
+          {/* 2. Inscripción */}
+          <button
+            onClick={() => onTabChange('register')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
+              activeTab === 'register'
+                ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <span className="text-base">✍️</span>
+            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Inscripción</span>
+          </button>
+
+          {/* 3. Classroom (Lock on RIGHT) */}
           <button
             onClick={() => onTabChange('pathway')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[68px] relative ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] relative ${
               activeTab === 'pathway'
                 ? 'text-indigo-600 font-bold bg-indigo-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <div className="relative">
-              <BookOpen className="w-5 h-5 shrink-0" />
+              <span className="text-base">📚</span>
               {!isEnrolled && (
-                <span className="absolute -top-1 -right-1.5 w-3 h-3 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center">
-                  <Lock className="w-1.5 h-1.5 text-white" />
+                <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-amber-500 rounded-full border border-white flex items-center justify-center">
+                  <Lock className="w-2 h-2 text-white" />
                 </span>
               )}
             </div>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Classroom</span>
           </button>
 
+          {/* 4. Retos */}
           <button
             onClick={() => onTabChange('duolingo')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[68px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
               activeTab === 'duolingo'
                 ? 'text-emerald-600 font-bold bg-emerald-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Zap className="w-5 h-5 shrink-0" />
+            <span className="text-base">⚡</span>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Retos</span>
           </button>
 
+          {/* 5. Agenda */}
           <button
             onClick={() => onTabChange('calendar')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[68px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
               activeTab === 'calendar'
                 ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Calendar className="w-5 h-5 shrink-0" />
+            <span className="text-base">📅</span>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
           </button>
 
-          <button
-            onClick={onOpenProfile}
-            className="flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 hover:text-slate-800 transition-all flex-1 min-w-0 max-w-[68px]"
-          >
-            <UserIcon className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Perfil</span>
-          </button>
-
+          {/* 6. Teacher (Lock on RIGHT) */}
           <button
             onClick={() => onTabChange('teacher')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[68px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] relative ${
               activeTab === 'teacher'
                 ? 'text-blue-900 font-bold bg-blue-100/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Lock className={`w-5 h-5 shrink-0 ${isTeacherAuthenticated ? 'text-emerald-500' : 'text-amber-500'}`} />
+            <div className="relative">
+              <span className="text-base">👩‍🏫</span>
+              <span className={`absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full border border-white flex items-center justify-center ${
+                isTeacherAuthenticated ? 'bg-emerald-500' : 'bg-amber-500'
+              }`}>
+                <Lock className="w-2 h-2 text-white" />
+              </span>
+            </div>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Teacher</span>
           </button>
 

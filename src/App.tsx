@@ -23,6 +23,7 @@ import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData'
 import { initAuth, googleSignIn, logout } from './services/firebaseAuth';
 import { saveStudent, saveSlots, subscribeToStudents, getLocalSlots } from './services/db';
 import { ShieldCheck } from 'lucide-react';
+import { CyberOwlChatbot } from './components/CyberOwlChatbot';
 
 export default function App() {
   // Navigation & Theme State
@@ -278,7 +279,7 @@ export default function App() {
       />
 
       {/* Main Content (with bottom padding on mobile for the floating bar) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 md:pb-8">
         
         {/* TAB 1: LANDING PAGE (Initial Welcome Page) */}
         {activeTab === 'landing' && (
@@ -335,6 +336,7 @@ export default function App() {
             onOpenRegister={() => setActiveTab('register')}
             onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
             onOpenCouponModal={() => setIsCouponOpen(true)}
+            onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
             onAwardXp={handleAwardXp}
           />
         )}
@@ -431,6 +433,12 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Cyber Owl Gemini AI Chatbot with WhatsApp Bridge */}
+      <CyberOwlChatbot 
+        studentName={currentStudent?.name}
+        teacherWhatsAppUsername="CokitoVZLA"
+      />
 
     </div>
   );

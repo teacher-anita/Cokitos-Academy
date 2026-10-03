@@ -21,7 +21,11 @@ import {
   Star,
   Zap,
   KeyRound,
-  Tag
+  Tag,
+  Lock,
+  Banknote,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student, ScheduleSlot, ClassModality, GroupSize, AudienceTheme } from '../types';
@@ -180,6 +184,105 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredStudent, setRegisteredStudent] = useState<Student | null>(null);
+
+  // Step 4 Validation State (post-registration)
+  const [step4Code, setStep4Code] = useState('');
+  const [step4Error, setStep4Error] = useState<string | null>(null);
+  const [step4Success, setStep4Success] = useState<string | null>(null);
+  const [showPagoMovilBox, setShowPagoMovilBox] = useState(false);
+  const [pagoMovilRef, setPagoMovilRef] = useState('');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2500);
+  };
+
+  const handleValidateStep4Code = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registeredStudent) return;
+    const clean = step4Code.trim().toUpperCase();
+    const VALID_CODES = [
+      'CSB-PRE', 
+      'CSB2026', 
+      'COKITO2026', 
+      'BECA100', 
+      'TEACHERCOKITO', 
+      'MALU2026', 
+      'VIP-BECA', 
+      'COKITO5', 
+      'FRIENDS2026',
+      'COKITO-VIP'
+    ];
+
+    if (VALID_CODES.includes(clean)) {
+      const updated: Student = {
+        ...registeredStudent,
+        status: 'enrolled',
+        xp: registeredStudent.xp + 250,
+        notes: `${registeredStudent.notes || ''} | Validado exitosamente con código post-registro: ${clean}`
+      };
+      setRegisteredStudent(updated);
+      onRegisterComplete(updated, selectedSlotIds);
+      setStep4Success(`¡Código ${clean} Validado Exitosamente! Tu acceso a la plataforma está 100% activo.`);
+      setStep4Error(null);
+      try { confetti({ particleCount: 130, spread: 80, origin: { y: 0.6 } }); } catch {}
+    } else {
+      setStep4Error('Código no válido o no reconocido. Consulta con La Teacher Cokitö o verifica que esté bien escrito.');
+      setStep4Success(null);
+    }
+  };
+
+  const handlePaypalStep4 = () => {
+    try {
+      window.open('https://paypal.me/anateresacsb/5', '_blank');
+    } catch {}
+    if (!registeredStudent) return;
+    const updated: Student = {
+      ...registeredStudent,
+      status: 'enrolled',
+      xp: registeredStudent.xp + 200,
+      notes: `${registeredStudent.notes || ''} | Pase Digital $5 pagado vía PayPal Checkout (anateresa.csb@gmail.com)`
+    };
+    setRegisteredStudent(updated);
+    onRegisterComplete(updated, selectedSlotIds);
+    setStep4Success('¡Pago de $5 registrado con PayPal! Tu Pase Digital ha sido desbloqueado.');
+    try { confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } }); } catch {}
+  };
+
+  const handleReportPagoMovilStep4 = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pagoMovilRef.trim() || !registeredStudent) {
+      alert('Por favor ingresa el número de referencia del Pago Móvil.');
+      return;
+    }
+    const updated: Student = {
+      ...registeredStudent,
+      status: 'enrolled',
+      xp: registeredStudent.xp + 200,
+      notes: `${registeredStudent.notes || ''} | Pase Digital $5 reportado vía Pago Móvil (Ref: ${pagoMovilRef.trim()})`
+    };
+    setRegisteredStudent(updated);
+    onRegisterComplete(updated, selectedSlotIds);
+    setStep4Success(`¡Pago Móvil reportado (Ref: ${pagoMovilRef.trim()})! Tu Pase Digital ha sido activado.`);
+    setShowPagoMovilBox(false);
+    try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch {}
+  };
+
+  const handleCashStep4 = () => {
+    if (!registeredStudent) return;
+    const updated: Student = {
+      ...registeredStudent,
+      status: 'enrolled',
+      xp: registeredStudent.xp + 200,
+      notes: `${registeredStudent.notes || ''} | Pago de $5 confirmado en efectivo con Teacher Cokitö`
+    };
+    setRegisteredStudent(updated);
+    onRegisterComplete(updated, selectedSlotIds);
+    setStep4Success('¡Pago en efectivo acordado con La Teacher! Tu cuenta ha sido activada.');
+    try { confetti({ particleCount: 90, spread: 65, origin: { y: 0.6 } }); } catch {}
+  };
 
   const isKid = age < 18;
   const currentPlan = REGISTRATION_PLANS.find(p => p.id === selectedPlanId) || REGISTRATION_PLANS[0];
@@ -858,26 +961,45 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         </div>
       )}
 
-      {/* STEP 4: Confirmation Screen */}
+      {/* STEP 4: Post-Registration Account Validation Screen */}
       {step === 4 && registeredStudent && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 sm:p-8 animate-fadeIn text-center space-y-6">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 animate-fadeIn space-y-6">
+          
+          {/* Header Status */}
+          <div className="text-center space-y-2">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-md ${
+              registeredStudent.status === 'enrolled' 
+                ? 'bg-emerald-100 text-emerald-600' 
+                : 'bg-amber-100 text-amber-600'
+            }`}>
+              {registeredStudent.status === 'enrolled' ? (
+                <CheckCircle2 className="w-8 h-8" />
+              ) : (
+                <Lock className="w-8 h-8" />
+              )}
+            </div>
 
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full inline-block mb-2">
-              ¡Inscripción Registrada con Éxito!
+            <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${
+              registeredStudent.status === 'enrolled'
+                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                : 'text-amber-800 bg-amber-50 border border-amber-200'
+            }`}>
+              {registeredStudent.status === 'enrolled' 
+                ? '¡Cuenta Validada y Activa!' 
+                : 'Paso Final • Validación de Cuenta Requerida'}
             </span>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Bienvenido(a), {registeredStudent.name}
             </h2>
-            <p className="text-slate-600 text-xs sm:text-sm max-w-lg mx-auto mt-2 leading-relaxed">
-              Tus datos, tu plan de <strong>{currentPlan.title}</strong> y el resultado de tu prueba (<strong>{registeredStudent.placementTestScore}/25 pts</strong>) han quedado registrados directamente en la plataforma.
+
+            <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+              Tus datos y tu prueba diagnóstica (<strong>{registeredStudent.placementTestScore}/25 pts</strong>) han quedado guardados en el sistema con nivel sugerido <strong>{(registeredStudent.levelId || 'level_1').toUpperCase()}</strong>.
             </p>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-md mx-auto text-left text-xs space-y-2">
+          {/* Registration Summary Card */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 max-w-md mx-auto text-xs space-y-2">
             <div className="flex justify-between">
               <span className="text-slate-500">Alumno:</span>
               <strong className="text-slate-900">{registeredStudent.name} {registeredStudent.lastName}</strong>
@@ -887,26 +1009,218 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               <strong className="text-blue-700">{currentPlan.title}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Inversión:</span>
-              <strong className="text-emerald-700">
-                {appliedCoupon ? '100% Bonificado por Código' : `${currentPlan.priceDisplay} ${currentPlan.period}`}
-              </strong>
+              <span className="text-slate-500">Inversión del Plan:</span>
+              <strong className="text-slate-900 font-bold">{currentPlan.priceDisplay} {currentPlan.period}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Nivel Asignado:</span>
-              <strong className="text-slate-900">{(registeredStudent.levelId || 'level_1').toUpperCase()}</strong>
+              <span className="text-slate-500">Estado Actual:</span>
+              <strong className={registeredStudent.status === 'enrolled' ? 'text-emerald-700' : 'text-amber-600'}>
+                {registeredStudent.status === 'enrolled' ? '🟢 Acceso Total Desbloqueado' : '🟡 Modo Fantasma (Pendiente de Validación)'}
+              </strong>
             </div>
           </div>
 
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={onExploreCalendar}
-              className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
-            >
-              Ir a la Agenda y Classroom
-            </button>
-          </div>
+          {/* SCENARIO A: ALREADY ENROLLED */}
+          {registeredStudent.status === 'enrolled' ? (
+            <div className="text-center space-y-4 pt-2 max-w-md mx-auto">
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs font-medium space-y-1">
+                <p className="font-bold text-sm">🎉 ¡Tu cuenta está 100% activa!</p>
+                <p className="text-emerald-700">Tienes acceso a tus libros oficiales, quizzes del Cyber Owl y tu agenda de clases.</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={onExploreCalendar}
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm shadow-md transition-all hover:scale-101 flex items-center justify-center gap-2"
+              >
+                <span>Entrar a mi Classroom y Comenzar</span>
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            /* SCENARIO B: PENDING VALIDATION (Requires Code or Payment) */
+            <div className="space-y-6 max-w-xl mx-auto pt-2">
+              
+              {/* Notification banners */}
+              {step4Success && (
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs font-bold text-center animate-fadeIn">
+                  {step4Success}
+                </div>
+              )}
+              {step4Error && (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold text-center animate-fadeIn">
+                  {step4Error}
+                </div>
+              )}
+
+              {/* OPTION 1: CODE VALIDATION (CSB, Becas, Promociones) */}
+              <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <KeyRound className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-blue-950">
+                      Opción 1: Validar con Código Promocional o Beca CSB
+                    </h4>
+                    <p className="text-[11px] text-blue-800/80">
+                      Si eres docente o personal del Colegio Simón Bolívar o tienes un código de cortesía:
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleValidateStep4Code} className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <input
+                    type="text"
+                    value={step4Code}
+                    onChange={e => setStep4Code(e.target.value)}
+                    placeholder="Ej. CSB-PRE, COKITO2026, BECA100"
+                    className="flex-1 p-3 bg-white border border-blue-200 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-md transition-colors whitespace-nowrap"
+                  >
+                    Validar Código
+                  </button>
+                </form>
+              </div>
+
+              {/* OPTION 2: PAYMENT VALIDATION ($5 USD Pase Digital) */}
+              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                      <Banknote className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900">
+                        Opción 2: Validar con Pago de $5 USD
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Pase Digital Autónomo ($5/mes) o activación de tu paquete
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-base font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                    $5 USD
+                  </span>
+                </div>
+
+                {/* Payment Buttons Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  
+                  {/* PayPal */}
+                  <button
+                    type="button"
+                    onClick={handlePaypalStep4}
+                    className="p-3 bg-[#FFC439] hover:bg-[#F4B41A] text-slate-900 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-transform hover:scale-101"
+                  >
+                    <svg className="w-4 h-4 text-[#003087] fill-current" viewBox="0 0 24 24">
+                      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.786.786 0 0 1 .775-.652h6.812c3.275 0 5.617 1.343 6.074 4.364.28 1.85-.246 3.447-1.565 4.747-1.34 1.32-3.23 2.012-5.618 2.012H8.818l-.946 5.99-.044.254a.64.64 0 0 1-.633.535l-.119.367zm2.493-9.068h1.853c2.25 0 3.79-.824 4.34-2.316.368-.997.23-1.927-.41-2.766-.63-.824-1.748-1.238-3.323-1.238H9.06l-1.49 8.32h2zm.12 7.068h2.008l1.09-6.9h-1.853l-1.245 6.9z" />
+                    </svg>
+                    <span>PayPal ($5)</span>
+                  </button>
+
+                  {/* Pago Móvil */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPagoMovilBox(!showPagoMovilBox)}
+                    className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-transform hover:scale-101"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>Pago Móvil (Bs)</span>
+                  </button>
+
+                  {/* Cash */}
+                  <button
+                    type="button"
+                    onClick={handleCashStep4}
+                    className="p-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-transform hover:scale-101"
+                  >
+                    <Banknote className="w-4 h-4" />
+                    <span>Efectivo ($ USD)</span>
+                  </button>
+                </div>
+
+                {/* Sub-form Pago Móvil if expanded */}
+                {showPagoMovilBox && (
+                  <form onSubmit={handleReportPagoMovilStep4} className="p-4 bg-white border border-emerald-200 rounded-xl space-y-3 animate-fadeIn">
+                    <div className="space-y-1 text-xs text-slate-600">
+                      <div className="flex justify-between">
+                        <span>Banco:</span>
+                        <strong className="text-slate-900">Banco de Venezuela (0102)</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Teléfono:</span>
+                        <div className="flex items-center gap-1">
+                          <strong className="text-slate-900">0412 1234567</strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy('04121234567', 'tel')}
+                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Cédula:</span>
+                        <div className="flex items-center gap-1">
+                          <strong className="text-slate-900">V-12.345.678</strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy('12345678', 'ci')}
+                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between pt-1 border-t border-slate-100">
+                        <span>Monto:</span>
+                        <strong className="text-emerald-700">Equivalente a $5 USD a Tasa BCV</strong>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={pagoMovilRef}
+                        onChange={e => setPagoMovilRef(e.target.value)}
+                        placeholder="Nro. de Referencia (Ej. 849201)"
+                        className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:bg-white focus:outline-hidden"
+                        required
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs whitespace-nowrap"
+                      >
+                        Confirmar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* OPTION 3: GHOST MODE (Explore with locks) */}
+              <div className="pt-2 text-center space-y-2 border-t border-slate-200">
+                <p className="text-xs text-slate-500">
+                  ¿Prefieres ver primero los libros y temas antes de validar?
+                </p>
+                <button
+                  type="button"
+                  onClick={onExploreCalendar}
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors inline-flex items-center gap-1.5"
+                >
+                  <span>👻 Explorar en Modo Fantasma (Vista Previa)</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+            </div>
+          )}
+
         </div>
       )}
 
