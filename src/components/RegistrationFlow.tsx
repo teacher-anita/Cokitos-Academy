@@ -156,6 +156,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [cedula, setCedula] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [age, setAge] = useState<number>(25);
   const [schoolOrProfession, setSchoolOrProfession] = useState('');
   const [learningGoal, setLearningGoal] = useState('Oportunidades laborales y superación personal');
@@ -347,6 +348,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       cedula: cedula.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
+      password: password.trim() || undefined,
       age: Number(age),
       isKid,
       schoolOrProfession,
@@ -523,15 +525,31 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               </span>
             </div>
 
-            <div className="sm:col-span-2">
+            <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKid ? 'Colegio o Instituto y Grado' : 'Profesión, Trabajo o Empresa'}
+                Contraseña de cuenta (opcional)
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Crea tu clave de acceso"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
+              />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Para iniciar sesión sin Google
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {isKid ? 'Colegio o Grado' : 'Profesión o Empresa'}
               </label>
               <input
                 type="text"
                 value={schoolOrProfession}
                 onChange={e => setSchoolOrProfession(e.target.value)}
-                placeholder={isKid ? 'Ej. Colegio Simón Bolívar II - 7mo Grado' : 'Ej. Odontólogo / Diseñadora / Estudiante'}
+                placeholder={isKid ? 'Ej. Simón Bolívar II' : 'Ej. Diseñador / Estudiante'}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium"
               />
             </div>

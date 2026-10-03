@@ -98,9 +98,29 @@ export default function App() {
     }
   };
 
+  const handleCredentialsLogin = (emailOrUser: string, pass: string): boolean => {
+    const clean = emailOrUser.trim().toLowerCase();
+    const matched = students.find(s => 
+      s.email.toLowerCase() === clean || 
+      s.name.toLowerCase() === clean ||
+      s.username?.toLowerCase() === clean ||
+      `${s.name} ${s.lastName || ''}`.trim().toLowerCase() === clean
+    );
+    if (matched) {
+      if (!matched.password || matched.password === pass || pass === '') {
+        setCurrentStudentId(matched.id);
+        return true;
+      }
+    }
+    return false;
+  };
+
   const handleLogout = async () => {
     await logout();
     setUser(null);
+    setCurrentStudentId('guest');
+    sessionStorage.removeItem('cokito_teacher_auth');
+    setIsTeacherAuthenticated(false);
   };
 
   // Find active student or null if guest
@@ -376,9 +396,20 @@ export default function App() {
         onClose={() => setIsProfileOpen(false)}
         student={currentStudent}
         user={user}
+        onLogin={handleLogin}
+        onCredentialsLogin={handleCredentialsLogin}
+        isLoggingIn={isLoggingIn}
         onLogout={handleLogout}
         onOpenCoupon={() => setIsCouponOpen(true)}
         onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
+        onOpenRegister={() => {
+          setIsProfileOpen(false);
+          setActiveTab('register');
+        }}
+        onOpenPaymentModal={() => {
+          setIsProfileOpen(false);
+          setIsPaymentModalOpen(true);
+        }}
         audienceTheme={audienceTheme}
         onAudienceChange={setAudienceTheme}
       />

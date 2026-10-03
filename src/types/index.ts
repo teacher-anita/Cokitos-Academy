@@ -42,6 +42,8 @@ export interface Student {
   cedula?: string;
   email: string;
   phone?: string;
+  username?: string;
+  password?: string;
   age: number;
   isKid: boolean;
   schoolOrProfession: string; // school name if kid, job/profession if adult

@@ -3,7 +3,9 @@ import {
   GoogleAuthProvider, 
   onAuthStateChanged, 
   User, 
-  signOut 
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword 
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
@@ -55,6 +57,16 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
 export const logout = async (): Promise<void> => {
   await signOut(auth);
   cachedAccessToken = null;
+};
+
+export const emailPasswordSignIn = async (email: string, pass: string): Promise<User> => {
+  const cred = await signInWithEmailAndPassword(auth, email, pass);
+  return cred.user;
+};
+
+export const emailPasswordSignUp = async (email: string, pass: string): Promise<User> => {
+  const cred = await createUserWithEmailAndPassword(auth, email, pass);
+  return cred.user;
 };
 
 export const getAccessToken = async (): Promise<string | null> => {
