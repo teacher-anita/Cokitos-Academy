@@ -18,7 +18,10 @@ import {
   Zap,
   HelpCircle,
   Eye,
-  KeyRound
+  KeyRound,
+  Compass,
+  Lightbulb,
+  Globe2
 } from 'lucide-react';
 import { Student, AudienceTheme } from '../types';
 import { PATHWAY_LEVELS, PathwayLevel, PathwayUnit, PathwaySession } from '../data/pathwayData';
@@ -74,31 +77,34 @@ export const LearningPathway: React.FC<LearningPathwayProps> = ({
   };
 
   const handleCopyClassroomTemplate = (unit: PathwayUnit, session: PathwaySession) => {
-    const template = `📌 TÍTULO: [M${activeLevel.module}-N${activeLevel.levelNumber}-U${unit.unitNumber}-${session.sessionCode}] Unit ${unit.unitNumber}: ${unit.title} — ${session.sessionName}
+    const template = `📌 TITLE: [M${activeLevel.module}-N${activeLevel.levelNumber}-U${unit.unitNumber}-${session.sessionCode}] Unit ${unit.unitNumber}: ${unit.title} — ${session.sessionName}
 
-¡Hola a todos! Welcome to your mission with La Teacher Cokitö! 👋✨
+Hello, everyone! Welcome to your mission with La Teacher Cokitö! 👋✨
 
-📖 1. TRABAJO DE CLASE (${activeLevel.book} - ${unit.sbPages}):
+📖 1. CLASSROOM WORK (${activeLevel.book} - ${unit.sbPages}):
 ${session.items.map(it => `• Item ${it.number}: ${it.title} (${it.description})`).join('\n')}
 
-${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria):
-• Completa las páginas: ${session.workbookPages}.
-• Sube la fotografía o escaneo PDF de tus páginas resueltas en esta publicación.` : '📝 2. ACTIVIDAD DE REFUERZO: Practica con tus notas de clase.'}
+${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Required assignment):
+• Complete pages: ${session.workbookPages}.
+• Upload your completed photos or PDF scan here on Google Classroom.` : '📝 2. REINFORCEMENT: Review and practice your class notes.'}
 
-🕹️ 3. QUIZ DE PRÁCTICA:
-• Ingresa a la plataforma y realiza el Quiz de la Unidad para sumar +50 XP a tu racha Cokitö.
+🕹️ 3. INTERACTIVE UNIT QUIZ:
+• Log into the platform and take the Unit Quiz to earn +50 XP for your Cokitö streak!
+
+🦉 SMART OWL CULTURE NOTE:
+${unit.owlCulture.culturalStory}
 
 💡 TIP COKITÖ: ${unit.tipCokito}`;
 
     navigator.clipboard.writeText(template);
-    setCopiedNotice(`¡Plantilla de [${unit.title} - ${session.sessionCode}] copiada para Classroom!`);
+    setCopiedNotice(`Template for [${unit.title} - ${session.sessionCode}] copied for Classroom!`);
     setTimeout(() => setCopiedNotice(null), 3500);
   };
 
   // Check if a unit is unlocked based on XP or role
   const isUnitUnlocked = (unitIndex: number) => {
     if (isTeacher) return true;
-    if (unitIndex === 0) return true; // First unit is always unlocked!
+    if (unitIndex === 0) return true; // First unit is always open!
     const studentXp = currentStudent?.xp || 0;
     const requiredXp = unitIndex * 100;
     return studentXp >= requiredXp;
@@ -117,26 +123,27 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
 
           <div className="space-y-2 max-w-xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20 inline-block">
-              Acceso Exclusivo para Alumnos Matriculados
+              Exclusive Access for Enrolled Students
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Aula Virtual & Pensum Cokitö
+              Virtual Classroom & Cokitö Global Curriculum
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              Actualmente estás explorando en modo <strong>Aspirante / Invitado</strong>. Tienes acceso libre a la <strong>Prueba de Nivel (25 preguntas)</strong>, la <strong>Agenda de Disponibilidad</strong> y los <strong>Retos Cokitö</strong>.
+              You are currently exploring in <strong>Guest / Explorer Mode</strong>. You have free access to the <strong>Placement Test (25 questions)</strong>, the <strong>Shared Schedule</strong>, and the <strong>Daily Cokitö Quests</strong>.
             </p>
           </div>
 
           <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-blue-200 text-left space-y-2">
             <p className="font-bold text-white flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-300" />
-              ¿Qué obtienes en la academia con La Teacher Cokitö?
+              What is included inside the Cokitö Classroom?
             </p>
             <ul className="space-y-1.5 list-disc list-inside text-blue-100">
-              <li>Clases en vivo personalizadas o en grupos reducidos con la Teacher.</li>
-              <li>Alineación al currículo internacional de McGraw-Hill (SuperGoal y MegaGoal).</li>
-              <li>Micro-sesiones de práctica (A, B y C) con 11 ítems pedagógicos claros.</li>
-              <li>Quizzes autocorregibles de fin de unidad y Boss Fights con insignias.</li>
+              <li>Live interactive speaking sessions (Google Meet / Zoom).</li>
+              <li>Structured international communicative syllabus (A1 to C1).</li>
+              <li>Micro-chunked 3-Session system (A, B, C) with 11 pedagogical items.</li>
+              <li>Cyber Owl Culture Corner with general knowledge & etiquette tips.</li>
+              <li>Self-grading Unit Quizzes and Boss Fight Expansion exams.</li>
             </ul>
           </div>
 
@@ -146,19 +153,19 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
               className="w-full sm:w-auto px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-transform hover:scale-102 flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
-              <span>Canjear Código de Invitación / Beca</span>
+              <span>Redeem Invitation / Scholarship Code</span>
             </button>
             <button
               onClick={onOpenPlacementTest}
               className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-colors"
             >
-              Hacer Prueba de Nivel Gratis
+              Start Free Placement Test
             </button>
             <button
               onClick={onOpenRegister}
               className="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-semibold text-xs sm:text-sm transition-colors"
             >
-              Solicitud de Inscripción
+              Official Registration
             </button>
           </div>
         </div>
@@ -166,7 +173,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
         {/* Preview of Modules Locked */}
         <div className="space-y-4">
           <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-            <span>Vista Previa del Pensum Cokitö (Bloqueado)</span>
+            <span>Official Curriculum Preview (Locked)</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -177,15 +184,15 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-500 uppercase">
-                    Módulo {lvl.module}: {lvl.moduleName}
+                    Module {lvl.module}: {lvl.moduleName}
                   </span>
                   <Lock className="w-4 h-4 text-slate-400" />
                 </div>
                 <h4 className="font-black text-slate-800 text-base">{lvl.levelName}</h4>
                 <p className="text-xs text-slate-500">{lvl.book}</p>
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                  <span>{lvl.units.length} Unidades estructuradas</span>
-                  <span>Marco MCER {lvl.cefrEquiv}</span>
+                  <span>{lvl.units.length} Structured Units</span>
+                  <span>CEFR Framework {lvl.cefrEquiv}</span>
                 </div>
               </div>
             ))}
@@ -196,7 +203,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
     );
   }
 
-  // ENROLLED / TEACHER: FULL INTERACTIVE VIRTUAL CLASSROOM
+  // ENROLLED / TEACHER: FULL INTERACTIVE VIRTUAL CLASSROOM (100% ENGLISH IMMERSION)
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 space-y-6 animate-fadeIn">
       
@@ -208,38 +215,56 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
         </div>
       )}
 
-      {/* Student Overview Header */}
+      {/* 1. ENGLISH ONLY ZONE IMMERSIVE BANNER */}
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl px-5 py-3 text-white flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-2.5">
+          <span className="text-lg">🇬🇧 🇺🇸</span>
+          <div>
+            <strong className="text-xs font-black uppercase tracking-wider block">
+              English-Only Immersion Zone
+            </strong>
+            <span className="text-[11px] text-emerald-100">
+              Welcome to the Cokitö Classroom! Speak, read, think, and dream in English.
+            </span>
+          </div>
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2.5 py-1 rounded-full border border-white/30 hidden sm:inline-block">
+          Active Immersion
+        </span>
+      </div>
+
+      {/* 2. CLASSROOM HERO BANNER */}
       <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-3 py-0.5 rounded-full border border-emerald-400/30">
-                {isTeacher ? 'Modo Docente • La Teacher Cokitö' : 'Alumno Matriculado Oficial'}
+                {isTeacher ? 'Teacher Mode • La Teacher Cokitö' : 'Official Enrolled Student'}
               </span>
               <span className="text-xs text-blue-200">
                 {activeLevel.book}
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              {isTeacher ? 'Guía Maestra de Unidades & Pensum' : `Ruta de Aprendizaje: ${currentStudent?.name || 'Alumno'}`}
+              {isTeacher ? 'Master Curriculum & Classroom Hub' : `Learning Pathway: ${currentStudent?.name || 'Student'}`}
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
-              Cada unidad se divide en **3 Sesiones clave (A, B y C)** con los 11 ítems pedagógicos. Completa tus sesiones y quizzes para ganar XP y desbloquear las siguientes unidades.
+              Every unit follows our 3-Session chunking: **Session A** (Vocabulary & Grammar), **Session B** (Pronunciation & Real Talk), and **Session C** (Reading, Writing & Workbook). Complete sessions and quizzes to earn XP!
             </p>
           </div>
 
           {/* Quick Meet / Class info */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 space-y-3 min-w-[240px]">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-blue-200">Próxima Clase:</span>
-              <span className="font-bold text-amber-300">En Vivo</span>
+              <span className="text-blue-200">Next Live Class:</span>
+              <span className="font-bold text-amber-300">Live on Meet</span>
             </div>
             <div className="text-xs font-semibold">
-              <span className="block text-white">Docente: La Teacher Cokitö</span>
+              <span className="block text-white">Teacher: La Teacher Cokitö</span>
               <span className="text-blue-200 text-[11px] block mt-0.5">
                 {currentStudent?.assignedSlots && currentStudent.assignedSlots.length > 0
                   ? currentStudent.assignedSlots.join(', ')
-                  : 'Horario según agenda'}
+                  : 'Flexible scheduled time'}
               </span>
             </div>
             <a
@@ -249,14 +274,14 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
               className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-colors"
             >
               <Video className="w-3.5 h-3.5" />
-              <span>Entrar a Google Meet</span>
+              <span>Join Google Meet</span>
             </a>
           </div>
         </div>
 
         {/* Level Switcher Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 border-t border-white/10 pt-4 text-xs font-bold">
-          <span className="text-slate-400 uppercase text-[10px] tracking-wider shrink-0">Nivel:</span>
+          <span className="text-slate-400 uppercase text-[10px] tracking-wider shrink-0">Level:</span>
           {PATHWAY_LEVELS.map(lvl => (
             <button
               key={lvl.levelId}
@@ -283,22 +308,22 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
           <BookOpen className="w-5 h-5 text-blue-700 shrink-0" />
           <div>
             <strong className="block font-bold">
-              {activeLevel.isIntegratedWorkbook ? 'Formato SuperGoal (Tomo Integrado):' : 'Formato MegaGoal (Volúmenes Separados):'}
+              {activeLevel.isIntegratedWorkbook ? 'SuperGoal Structure (Integrated Volume):' : 'MegaGoal Structure (Separate Volumes):'}
             </strong>
             <span className="text-[11px] opacity-80">
               {activeLevel.isIntegratedWorkbook
-                ? 'El Student Book y el Workbook vienen en el mismo tomo (el Workbook comienza a partir de la página 89).'
-                : 'El Student Book y el Workbook son volúmenes separados para práctica de redacción analítica avanzada.'}
+                ? 'Student Book and Workbook are combined in one volume (Workbook exercises start on page 89).'
+                : 'Student Book and analytical Workbook are separate volumes for advanced critical writing practice.'}
             </span>
           </div>
         </div>
         <span className="text-[11px] font-bold bg-white px-3 py-1 rounded-xl shadow-2xs border border-slate-200">
-          Marco MCER: {activeLevel.cefrEquiv}
+          CEFR Standard: {activeLevel.cefrEquiv}
         </span>
       </div>
 
       {/* Units & Boss Fights Section with XP Lock Progression */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {activeLevel.units.map((unit, uIdx) => {
           const unlocked = isUnitUnlocked(uIdx);
           const reqXp = uIdx * 100;
@@ -318,11 +343,11 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                   </div>
                   <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold text-amber-900">
                     <Lock className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Bloqueado • Requiere {reqXp} XP</span>
+                    <span>Locked • Requires {reqXp} XP</span>
                   </div>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Completa los retos diarios y el quiz de la unidad anterior para acumular los puntos necesarios y desbloquear esta unidad.
+                  Complete daily quests and the previous unit quiz to collect enough XP and unlock this unit.
                 </p>
               </div>
             );
@@ -331,7 +356,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
           return (
             <div
               key={unit.unitNumber}
-              className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-slate-300"
+              className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-slate-300 space-y-0"
             >
               {/* Unit Header */}
               <div className="p-5 sm:p-6 bg-slate-50/80 border-b border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -347,7 +372,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                     {unit.title}
                   </h3>
                   <p className="text-xs text-slate-600">
-                    <strong>Grammar:</strong> {unit.grammarFocus}
+                    <strong>Grammar Focus:</strong> {unit.grammarFocus}
                   </p>
                   <p className="text-[11px] text-slate-500">
                     <strong>Vocabulary:</strong> {unit.vocabularyTheme}
@@ -361,9 +386,69 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                     className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
                   >
                     <Zap className="w-3.5 h-3.5" />
-                    <span>Quiz de Unidad (+50 XP)</span>
+                    <span>Unit Quiz (+50 XP)</span>
                   </button>
                 </div>
+              </div>
+
+              {/* 3. SMART OWL TRIVIA & CULTURE CORNER (CYBER-OWL) */}
+              <div className="p-5 sm:p-6 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white border-b border-indigo-900/60">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xl shadow-md">
+                      🦉🤖
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">
+                        Cokitö Smart Owl Trivia
+                      </span>
+                      <h4 className="text-sm sm:text-base font-black text-white">
+                        {unit.owlCulture.owlTitle}
+                      </h4>
+                    </div>
+                  </div>
+
+                  {unit.owlCulture.externalLink && (
+                    <a
+                      href={unit.owlCulture.externalLink.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-[11px] text-blue-200 font-semibold transition-colors"
+                    >
+                      <span>{unit.owlCulture.externalLink.label}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="bg-white/5 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 space-y-1">
+                    <span className="font-bold text-amber-300 flex items-center gap-1">
+                      <Lightbulb className="w-3.5 h-3.5" />
+                      Did You Know?
+                    </span>
+                    <p className="text-blue-100/90 leading-relaxed text-[11px]">
+                      {unit.owlCulture.didYouKnow}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 space-y-1">
+                    <span className="font-bold text-emerald-300 flex items-center gap-1">
+                      <Globe2 className="w-3.5 h-3.5" />
+                      Cultural Etiquette & Context
+                    </span>
+                    <p className="text-blue-100/90 leading-relaxed text-[11px]">
+                      {unit.owlCulture.culturalStory}
+                    </p>
+                  </div>
+                </div>
+
+                {unit.owlCulture.inOnAtRule && (
+                  <div className="mt-3 p-3 bg-amber-400/10 border border-amber-400/30 rounded-xl text-xs text-amber-200 flex items-center gap-2">
+                    <span className="font-bold shrink-0">🎯 Master Rule:</span>
+                    <span className="text-[11px]">{unit.owlCulture.inOnAtRule}</span>
+                  </div>
+                )}
               </div>
 
               {/* The 3 Sessions: A, B, C (Micro-chunking) */}
@@ -395,7 +480,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                             }`}
                           >
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>{isDone ? 'Lista (+25 XP)' : 'Marcar Lista'}</span>
+                            <span>{isDone ? 'Completed (+25 XP)' : 'Mark Done'}</span>
                           </button>
                         </div>
 
@@ -426,7 +511,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                           <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-600 space-y-0.5">
                             <strong className="block text-slate-800 flex items-center gap-1">
                               <FileText className="w-3 h-3 text-blue-600" />
-                              Workbook de Práctica:
+                              Workbook Homework:
                             </strong>
                             <span>{session.workbookPages}</span>
                           </div>
@@ -439,10 +524,10 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                           <button
                             onClick={() => handleCopyClassroomTemplate(unit, session)}
                             className="w-full py-1.5 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
-                            title="Copiar plantilla formateada para pegar en Google Classroom"
+                            title="Copy ready-to-paste template for Google Classroom"
                           >
                             <Copy className="w-3 h-3" />
-                            <span>Copiar para Classroom</span>
+                            <span>Copy for Classroom</span>
                           </button>
                         </div>
                       )}
@@ -469,7 +554,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="bg-slate-900 text-amber-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                  Boss Fight • Punto de Control
+                  Boss Fight • Milestone Exam
                 </span>
                 <span className="text-xs font-bold text-slate-900">
                   {boss.badgeName}
@@ -492,7 +577,7 @@ ${session.workbookPages ? `📝 2. HOMEWORK / WORKBOOK (Asignación obligatoria)
                   className="px-6 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-transform hover:scale-102 flex items-center gap-2"
                 >
                   <Trophy className="w-4 h-4" />
-                  <span>Realizar Boss Fight</span>
+                  <span>Take Boss Fight Challenge</span>
                 </a>
               )}
             </div>

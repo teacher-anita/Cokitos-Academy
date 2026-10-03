@@ -1,3 +1,15 @@
+export interface OwlCultureCorner {
+  owlTitle: string;
+  topic: string;
+  didYouKnow: string;
+  culturalStory: string;
+  inOnAtRule?: string;
+  externalLink?: {
+    label: string;
+    url: string;
+  };
+}
+
 export interface PathwaySession {
   sessionCode: 'A' | 'B' | 'C';
   sessionName: string;
@@ -32,6 +44,7 @@ export interface PathwayUnit {
   quizQuestions: UnitQuizQuestion[];
   googleFormUrl?: string;
   tipCokito: string;
+  owlCulture: OwlCultureCorner;
 }
 
 export interface PathwayLevel {
@@ -58,15 +71,19 @@ export interface PathwayLevel {
 }
 
 export const PATHWAY_LEVELS: PathwayLevel[] = [
-  // 1. NIVEL I: SuperGoal 1
+  // =========================================================================
+  // MODULE 1: CONQUER YOUR FEAR (NIVELES I, II y III)
+  // =========================================================================
+
+  // 1. LEVEL I: SuperGoal 1 (Beginner A1)
   {
     levelId: 'level_1',
     levelNumber: 1,
-    levelName: 'Nivel I (SuperGoal 1)',
+    levelName: 'Level I • SuperGoal 1',
     series: 'SuperGoal',
-    book: 'Super Goal 1 (Student Book & Workbook Integrado)',
+    book: 'Super Goal 1 (Integrated Student Book & Workbook)',
     module: 1,
-    moduleName: 'Pierde el Miedo',
+    moduleName: 'Conquer Your Fear',
     cefrEquiv: 'A1',
     audience: 'all',
     isIntegratedWorkbook: true,
@@ -77,16 +94,16 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         title: 'EXPANSION Units 1–4: Boss Fight 1',
         badgeName: 'Global Novice 🌍',
         badgeIcon: '🏅',
-        description: 'Language Review integral de las primeras 4 unidades + Chant Along + Reto de consolidación de saludos, números, objetos y países.',
+        description: 'Comprehensive Language Review of Units 1 to 4: Chant Along, greetings, numbers, countries, and classroom objects mastery.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSe-bossfight-1/viewform'
       },
       {
         id: 'boss_m1_2',
         afterUnit: 8,
-        title: 'EXPANSION Units 5–8: Boss Fight Final',
+        title: 'EXPANSION Units 5–8: Graduation Boss Fight',
         badgeName: 'Master Beginner 🏆',
         badgeIcon: '🎓',
-        description: 'Certificación oficial de cierre de Nivel I (SuperGoal 1). Desbloqueo del Nivel II.',
+        description: 'Official Level I Certification Test. Unlocks Level II (SuperGoal 2).',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSe-bossfight-2/viewform'
       }
     ],
@@ -95,82 +112,93 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         unitNumber: 1,
         title: 'Good Morning!',
         bookTitle: 'SuperGoal 1',
-        sbPages: 'Págs. 2 a 9',
-        wbPages: 'Págs. 89 a 92 (Sección final del libro)',
+        sbPages: 'Pages 2 to 9',
+        wbPages: 'Pages 89 to 92 (Integrated at the back of the book)',
         grammarFocus: 'Verb Be (Singular & Plural) • Possessive Adjectives (my, your, his, her)',
-        vocabularyTheme: 'Greetings, Farewells, Titles (Mr., Mrs., Miss, Ms.), Introductions & School Supplies',
-        tipCokito: 'Recuerda que no memorizamos listas de palabras: ¡asociamos sonidos e imágenes a situaciones cotidianas!',
+        vocabularyTheme: 'Greetings, Farewells, Courtesy Titles (Mr., Mrs., Miss, Ms.), School Supplies',
+        tipCokito: 'Never say "Good night" when arriving at a party! Use "Good evening" to say hello at night, and save "Good night" strictly for going to bed or leaving.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-unit1-sg1/viewform',
+        owlCulture: {
+          owlTitle: 'Cyber Owl Trivia: Greetings Around the World',
+          topic: 'Handshakes, Bows & The Anglo-Saxon Rule',
+          didYouKnow: 'In English-speaking countries, people generally do NOT kiss on both cheeks when meeting someone for the first time. A firm, confident handshake with direct eye contact is the standard of polite respect.',
+          culturalStory: 'In British and North American business etiquette, using "Ms." (pronounced /mɪz/) is the most respectful and neutral title for adult women because it does not assume whether she is married or single.',
+          inOnAtRule: 'Time Prepositions: Say "AT 7:00 AM" (precise hour), "IN the morning" (period of the day), but "ON Monday morning" (specific day).',
+          externalLink: {
+            label: 'BBC Learning English: How to Greet Like a Native',
+            url: 'https://www.bbc.co.uk/learningenglish/features/basic-vocabulary'
+          }
+        },
         sessions: [
           {
             sessionCode: 'A',
-            sessionName: 'Sesión A: Vocabulario y Gramática Esencial',
-            itemsRange: 'Ítems 1 a 4',
+            sessionName: 'Session A: Vocabulary & Essential Grammar',
+            itemsRange: 'Items 1 to 4',
             items: [
-              { number: 1, title: 'Listen and Discuss', description: 'Greetings & Farewells a distintas horas (7:00 am, 1:00 pm, 7:00 pm, 8:00 pm).', audioTrack: 'CD 1 • Track 2' },
-              { number: 2, title: 'Pair Work', description: 'Presentaciones personales (Hi, I am... Nice to meet you).', audioTrack: 'CD 1 • Track 3' },
-              { number: 3, title: 'Grammar Focus', description: 'Verb Be (I am, You are, He is, She is) y adjetivos posesivos (my, your, his, her).', audioTrack: undefined },
-              { number: 4, title: 'Language in Context', description: 'Títulos de cortesía (Mr., Mrs., Miss, Ms.) y saludos formales vs informales.' }
+              { number: 1, title: 'Listen and Discuss', description: 'Illustrated greetings throughout the day (7:00 am, 1:00 pm, 7:00 pm, 8:00 pm).', audioTrack: 'CD 1 • Track 2' },
+              { number: 2, title: 'Pair Work', description: 'Personal introductions: "Hi, I am Carlos. Nice to meet you."', audioTrack: 'CD 1 • Track 3' },
+              { number: 3, title: 'Grammar Focus', description: 'Conjugation of Be (I am, You are, He is, She is, We are, They are) & Possessive adjectives.', audioTrack: undefined },
+              { number: 4, title: 'Language in Context', description: 'Formal vs Informal greetings & Courtesy titles (Mr., Mrs., Miss, Ms.).' }
             ]
           },
           {
             sessionCode: 'B',
-            sessionName: 'Sesión B: Audio, Pronunciación y Conversación',
-            itemsRange: 'Ítems 5 a 8',
+            sessionName: 'Session B: Audio, Pronunciation & Real Talk',
+            itemsRange: 'Items 5 to 8',
             items: [
-              { number: 5, title: 'Listening', description: 'Deletreo de nombres, correos y números telefónicos.', audioTrack: 'CD 1 • Track 4' },
-              { number: 6, title: 'Pronunciation', description: 'Entonación ascendente y descendente en preguntas y saludos.', audioTrack: 'CD 1 • Track 5' },
-              { number: 7, title: 'About You', description: 'Formulario personal (First name, Last name, How old are you?).' },
-              { number: 8, title: 'Conversation & Real Talk', description: 'Diálogo con Carlos Rodriguez y Rick Morgan en el aeropuerto.', audioTrack: 'CD 1 • Track 6' }
+              { number: 5, title: 'Listening Comprehension', description: 'Spelling names, telephone numbers, and email addresses.', audioTrack: 'CD 1 • Track 4' },
+              { number: 6, title: 'Pronunciation Guide', description: 'Rising intonation in Yes/No questions vs Falling intonation in Wh-questions.', audioTrack: 'CD 1 • Track 5' },
+              { number: 7, title: 'About You Form', description: 'Completing your personal passport card: First name, Last name, Nationality.' },
+              { number: 8, title: 'Conversation & Real Talk', description: 'Airport encounter between Carlos Rodriguez and Rick Morgan.', audioTrack: 'CD 1 • Track 6' }
             ]
           },
           {
             sessionCode: 'C',
-            sessionName: 'Sesión C: Lectura, Proyecto y Workbook',
-            itemsRange: 'Ítems 9 a 11 + Desbloqueo del Workbook',
-            workbookPages: 'Págs. 89 a 92 (Ejercicios A, B, C, D, E, F y Crucigrama G)',
+            sessionName: 'Session C: Reading, Writing & Workbook Practice',
+            itemsRange: 'Items 9 to 11 + Workbook Practice',
+            workbookPages: 'Pages 89 to 92 (Exercises A, B, C, D, E, F & Crossword G)',
             items: [
-              { number: 9, title: 'Reading: A New Student!', description: 'Lectura comprensiva sobre la llegada de Ali y Ahmed a la escuela.', audioTrack: 'CD 1 • Track 7' },
-              { number: 10, title: 'Writing & Writing Corner', description: 'Mayúsculas en oraciones, nombres propios y signos de interrogación.' },
-              { number: 11, title: 'Form, Meaning & Function', description: 'Útiles escolares (pen, pencil, eraser, scissors, notebook, crayon).' }
+              { number: 9, title: 'Reading: A New Student!', description: 'Short reading about Ali and Ahmed starting at a new international school.', audioTrack: 'CD 1 • Track 7' },
+              { number: 10, title: 'Writing Corner', description: 'Capitalization rules for names, countries, and sentence beginnings.' },
+              { number: 11, title: 'Form, Meaning & Function', description: 'Essential classroom objects: pen, pencil, eraser, notebook, scissors.' }
             ]
           }
         ],
         quizQuestions: [
           {
             id: 1,
-            question: '¿Qué saludo es el más apropiado para las 7:30 PM en un ambiente formal?',
+            question: 'Which greeting is the most appropriate when arriving at a dinner party at 7:30 PM?',
             options: ['Good morning', 'Good afternoon', 'Good evening', 'Good night'],
             correctIndex: 2,
-            explanation: '"Good evening" es el saludo al llegar en la noche. "Good night" se usa únicamente para despedirse antes de dormir.'
+            explanation: '"Good evening" is used as a polite greeting upon arrival in the evening. "Good night" is strictly reserved for saying goodbye or going to sleep.'
           },
           {
             id: 2,
-            question: 'Completa: "This is my friend. _____ name is Carlos."',
+            question: 'Complete the sentence: "This is my classmate. _____ name is Carlos."',
             options: ['Her', 'His', 'Your', 'Their'],
             correctIndex: 1,
-            explanation: 'Para un varón en singular (Carlos), el adjetivo posesivo correcto es "His".'
+            explanation: 'For a singular male person (Carlos), the correct possessive adjective is "His".'
           },
           {
             id: 3,
-            question: 'Selecciona la forma correcta del verbo Be: "We _____ students in Teacher Cokito\'s academy."',
+            question: 'Choose the correct form of the verb Be: "We _____ students in Teacher Cokitö\'s academy."',
             options: ['am', 'is', 'are', 'be'],
             correctIndex: 2,
-            explanation: 'El pronombre "We" (nosotros) se conjuga con "are".'
+            explanation: 'The pronoun "We" is plural and conjugates with "are".'
           },
           {
             id: 4,
-            question: 'En la sección de School Supplies, ¿para qué se utiliza "an eraser"?',
-            options: ['To cut paper', 'To erase pencil marks', 'To paint colors', 'To write in the notebook'],
+            question: 'In the Classroom Supplies section, what tool do you use to erase pencil markings?',
+            options: ['A pen', 'An eraser', 'A highlighter', 'Scissors'],
             correctIndex: 1,
-            explanation: '"Eraser" significa borrador y se utiliza para borrar trazos de lápiz.'
+            explanation: 'An eraser is specifically used to remove pencil writing from paper.'
           },
           {
             id: 5,
-            question: 'En la lectura "A New Student!", ¿de qué ciudad viene Ahmed?',
+            question: 'In the reading "A New Student!", which city is Ahmed from?',
             options: ['Riyadh', 'Dammam', 'Abha', 'Jeddah'],
             correctIndex: 2,
-            explanation: 'Ahmed menciona explícitamente: "I am from Abha".'
+            explanation: 'Ahmed explicitly states in his introduction: "I am from Abha."'
           }
         ]
       },
@@ -178,98 +206,109 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         unitNumber: 2,
         title: 'What Day Is Today?',
         bookTitle: 'SuperGoal 1',
-        sbPages: 'Págs. 10 a 17',
-        wbPages: 'Págs. 93 a 96 (Workbook Integrado)',
+        sbPages: 'Pages 10 to 17',
+        wbPages: 'Pages 93 to 96 (Integrated Workbook)',
         grammarFocus: 'Possessive \'s • Question Words (What, When, How old) • Prepositions of Time (in, on with dates)',
-        vocabularyTheme: 'Days of the week, Months of the year, Numbers 1-100, Ordinal numbers (1st to 100th)',
-        tipCokito: 'Para días de la semana y fechas exactas usa ON (on Monday, on May 4th). Para meses solos usa IN (in May).',
+        vocabularyTheme: 'Days of the week, Months of the year, Numbers 1 to 100, Ordinal numbers (1st to 100th)',
+        tipCokito: 'Master the Golden Rule of Time: Use ON for specific days and dates (on Monday, on May 4th), and use IN for months and years (in May, in 2026).',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-unit2-sg1/viewform',
+        owlCulture: {
+          owlTitle: 'Cyber Owl Trivia: The Gods of the Calendar',
+          topic: 'Why is Wednesday named after an ancient god?',
+          didYouKnow: 'The days of the week in English originate from Norse and Roman mythology! Tuesday comes from Tiw (Norse god of war), Wednesday from Woden/Odin, Thursday from Thor (god of thunder), and Friday from Frigg (goddess of love).',
+          culturalStory: 'In the United States and Canada, the week on calendars begins on SUNDAY, whereas in the United Kingdom, Europe, and Latin America, the calendar begins on MONDAY. Always check international schedules carefully!',
+          inOnAtRule: 'The Pyramid of Time: 🔺 IN (centuries, decades, years, months) ➔ 🔹 ON (days, dates: on Friday, on July 4th) ➔ 🎯 AT (precise time: at 3:00 PM, at noon).',
+          externalLink: {
+            label: 'Britannica: The Fascinating History of Weekdays',
+            url: 'https://www.britannica.com/story/where-do-the-names-of-the-days-of-the-week-come-from'
+          }
+        },
         sessions: [
           {
             sessionCode: 'A',
-            sessionName: 'Sesión A: Días, Meses y Números',
-            itemsRange: 'Ítems 1 a 4',
+            sessionName: 'Session A: Calendar Vocabulary & The Time Pyramid',
+            itemsRange: 'Items 1 to 4',
             items: [
-              { number: 1, title: 'Listen & Discuss: Calendar', description: 'Days of the week (Sunday to Saturday) y Months (January to December).', audioTrack: 'CD 1 • Track 8' },
-              { number: 2, title: 'Pair Work: Dates & Ages', description: 'Preguntar y responder cumpleaños y edades (How old are you?).' },
-              { number: 3, title: 'Grammar: In & On with Dates', description: 'Reglas de "in" para meses y años, "on" para días específicos y fechas.' },
-              { number: 4, title: 'Numbers & Ordinals', description: 'Diferencia entre números cardinales (one, two) y ordinales (first, second, third).' }
+              { number: 1, title: 'Listen & Discuss: The Master Calendar', description: 'Days of the week (Sunday to Saturday) & Months (January to December).', audioTrack: 'CD 1 • Track 8' },
+              { number: 2, title: 'Pair Work: Birthdays & Ages', description: 'Asking and answering birthdays: "When is your birthday? It is in June."', audioTrack: undefined },
+              { number: 3, title: 'Grammar: In & On Prepositions', description: 'Rules for "in" with months/years and "on" with exact dates and days of the week.' },
+              { number: 4, title: 'Cardinal vs Ordinal Numbers', description: 'Pronouncing cardinal (one, two) vs ordinal numbers (1st, 2nd, 3rd, 4th, 21st).' }
             ]
           },
           {
             sessionCode: 'B',
-            sessionName: 'Sesión B: Pronunciación de Ordinales y Conversación',
-            itemsRange: 'Ítems 5 a 8',
+            sessionName: 'Session B: Pronunciation of Ordinals & Real Talk',
+            itemsRange: 'Items 5 to 8',
             items: [
-              { number: 5, title: 'Listening for Dates', description: 'Identificación de días y fechas en conversaciones grabadas.', audioTrack: 'CD 1 • Track 9' },
-              { number: 6, title: 'Pronunciation /θ/', description: 'El sonido interdental /θ/ en "fourth, fifth, tenth, twentieth".' },
-              { number: 7, title: 'About You Form', description: 'Completar tu Information Form con fecha de nacimiento y amigos.' },
-              { number: 8, title: 'Conversation: Special Holidays', description: 'Invitación a eventos y días feriados nacionales.' }
+              { number: 5, title: 'Listening: Event Calendar', description: 'Identifying dates and times in recorded school announcements.', audioTrack: 'CD 1 • Track 9' },
+              { number: 6, title: 'Pronunciation /θ/ Sound', description: 'The voiceless interdental sound /θ/ in "fourth, fifth, tenth, twentieth".', audioTrack: 'CD 1 • Track 10' },
+              { number: 7, title: 'About You Form', description: 'Completing your personal profile with birth dates of family and friends.' },
+              { number: 8, title: 'Conversation: National Holidays', description: 'Talking about vacation days and planning weekend activities.' }
             ]
           },
           {
             sessionCode: 'C',
-            sessionName: 'Sesión C: Redacción, Proyecto y Workbook',
-            itemsRange: 'Ítems 9 a 11 + Desbloqueo del Workbook',
-            workbookPages: 'Págs. 93 a 96',
+            sessionName: 'Session C: Reading, Writing & Workbook Practice',
+            itemsRange: 'Items 9 to 11 + Workbook Practice',
+            workbookPages: 'Pages 93 to 96',
             items: [
-              { number: 9, title: 'Reading: School Clubs & Schedules', description: 'Horarios de clases y asignaturas escolares.' },
-              { number: 10, title: 'Writing: Party Invitation', description: 'Redacción de una tarjeta de invitación a cumpleaños.' },
-              { number: 11, title: 'Project: Birthday Calendar', description: 'Creación del mural de cumpleaños del salón.' }
+              { number: 9, title: 'Reading: School Clubs & Timetables', description: 'Reading schedules of the science club, sports team, and art workshops.' },
+              { number: 10, title: 'Writing: Party Invitation', description: 'Composing a birthday party invitation with date, time, and address.' },
+              { number: 11, title: 'Project: Classroom Birthday Wall', description: 'Designing the official monthly birthday calendar.' }
             ]
           }
         ],
         quizQuestions: [
           {
             id: 1,
-            question: '¿Cuál preposición es la correcta? "Our final English exam is _____ Monday."',
+            question: 'Which preposition correctly completes the sentence? "Our live English class is _____ Wednesday."',
             options: ['in', 'at', 'on', 'to'],
             correctIndex: 2,
-            explanation: 'Con días de la semana siempre se utiliza la preposición "ON".'
+            explanation: 'Days of the week always require the preposition "ON".'
           },
           {
             id: 2,
-            question: '¿Cómo se escribe en palabras el número ordinal 12th?',
+            question: 'How do you spell the ordinal number 12th in English words?',
             options: ['twelfth', 'twelveth', 'twelth', 'twenty'],
             correctIndex: 0,
-            explanation: 'La regla ortográfica cambia la "v" por "f": twelfth.'
+            explanation: 'The letter "v" changes to "f" in the ordinal form: twelfth.'
           },
           {
             id: 3,
-            question: 'Completa: "My mother\'s birthday is _____ September."',
+            question: 'Complete: "My mother\'s birthday is _____ September."',
             options: ['on', 'in', 'at', 'from'],
             correctIndex: 1,
-            explanation: 'Cuando se menciona solo el mes sin día específico, se utiliza "IN".'
+            explanation: 'When mentioning only the month without a specific day number, use "IN".'
           },
           {
             id: 4,
-            question: 'Si hoy es miércoles (Wednesday), ¿qué día fue anteayer?',
-            options: ['Thursday', 'Friday', 'Monday', 'Tuesday'],
-            correctIndex: 2,
-            explanation: 'El día antes de ayer (dos días atrás de miércoles) es Monday (lunes).'
+            question: 'If today is Thursday, what day was the day before yesterday?',
+            options: ['Wednesday', 'Tuesday', 'Friday', 'Monday'],
+            correctIndex: 1,
+            explanation: 'Two days before Thursday is Tuesday.'
           },
           {
             id: 5,
-            question: '¿Qué pregunta se usa para consultar la edad de alguien?',
-            options: ['How are you?', 'How old are you?', 'What is your day?', 'When are you?'],
+            question: 'What is the correct English question to ask someone their age?',
+            options: ['How are you?', 'How old are you?', 'What is your year?', 'When are you?'],
             correctIndex: 1,
-            explanation: '"How old are you?" es la fórmula en inglés para preguntar la edad.'
+            explanation: '"How old are you?" is the standard formula to inquire about someone\'s age.'
           }
         ]
       }
     ]
   },
 
-  // 2. NIVEL II: SuperGoal 2
+  // 2. LEVEL II: SuperGoal 2 (Elementary A1+)
   {
     levelId: 'level_2',
     levelNumber: 2,
-    levelName: 'Nivel II (SuperGoal 2)',
+    levelName: 'Level II • SuperGoal 2',
     series: 'SuperGoal',
-    book: 'Super Goal 2 (Student Book & Workbook Integrado)',
+    book: 'Super Goal 2 (Integrated Student Book & Workbook)',
     module: 1,
-    moduleName: 'Pierde el Miedo',
-    cefrEquiv: 'A2',
+    moduleName: 'Conquer Your Fear',
+    cefrEquiv: 'A1+',
     audience: 'all',
     isIntegratedWorkbook: true,
     bossFights: [
@@ -279,7 +318,7 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         title: 'EXPANSION Units 1–4: Boss Fight 1',
         badgeName: 'Career Pioneer 🛠️',
         badgeIcon: '🚀',
-        description: 'Consolidación de rutinas, profesiones, adjetivos y habilidades con Can/Can\'t.',
+        description: 'Comprehensive review of daily routines, professions, workplaces, and abilities with Can/Can\'t.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-bossfight-sg2-1/viewform'
       }
     ],
@@ -288,98 +327,109 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         unitNumber: 1,
         title: 'What Do You Do?',
         bookTitle: 'SuperGoal 2',
-        sbPages: 'Págs. 2 a 9',
-        wbPages: 'Págs. 89 a 92 (Sección final del libro)',
-        grammarFocus: 'Simple Present Tense (Affirmative & Negative) • Third person singular endings (-s, -es) • Questions with What',
-        vocabularyTheme: 'Occupations: doctor, teacher, pilot, chef, mechanic, reporter, architect, flight attendant',
-        tipCokito: '¡Ojo con la tercera persona! He/She agrega una -s al verbo (He works, She teaches).',
+        sbPages: 'Pages 2 to 9',
+        wbPages: 'Pages 89 to 92 (Integrated Workbook)',
+        grammarFocus: 'Simple Present Tense (Affirmative & Negative) • Third person singular endings (-s, -es, -ies) • Wh- Questions with Do/Does',
+        vocabularyTheme: 'Occupations: doctor, pilot, chef, mechanic, reporter, architect, graphic designer, flight attendant',
+        tipCokito: 'Watch the 3rd person singular in Present Simple! He/She/It verbs must take an -s or -es (He cooks, She teaches, He flies). But in questions with DOES, the verb returns to its base form!',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-unit1-sg2/viewform',
+        owlCulture: {
+          owlTitle: 'Cyber Owl Trivia: The World\'s Most Unusual Dream Jobs',
+          topic: 'Did you know people get paid to slide down waterparks?',
+          didYouKnow: 'There are real professional jobs called "Water Slide Tester", "Golf Ball Diver" (retrieving lost golf balls from lake hazards), and "Professional Sleeper" (testing luxury hotel beds and mattresses).',
+          culturalStory: 'In the US and UK, asking "What do you do?" is one of the most common icebreaker questions at social gatherings. Native speakers usually answer with their role plus company/industry: "I\'m a software engineer at a tech startup."',
+          inOnAtRule: 'Workplaces Prepositions: Say "He works AT a hospital" or "IN a bank", but "ON a farm" or "ON an airplane".',
+          externalLink: {
+            label: 'National Geographic: Extraordinary Careers Around the Globe',
+            url: 'https://www.nationalgeographic.com'
+          }
+        },
         sessions: [
           {
             sessionCode: 'A',
-            sessionName: 'Sesión A: Profesiones y Presente Simple',
-            itemsRange: 'Ítems 1 a 4',
+            sessionName: 'Session A: Occupations & Present Simple Rules',
+            itemsRange: 'Items 1 to 4',
             items: [
-              { number: 1, title: 'Listen & Discuss: Dream Jobs', description: 'Adnan (high-tech designer) y Majid (tennis player). Diálogo ilustrado.', audioTrack: 'CD 1 • Track 2' },
-              { number: 2, title: 'Pair Work', description: 'Preguntar y responder sobre profesiones (What does Majid do? He is a student).', audioTrack: 'CD 1 • Track 3' },
-              { number: 3, title: 'Grammar: Simple Present', description: 'He works, She cooks, They work. Preguntas con What do you do / What does he do?', audioTrack: undefined },
-              { number: 4, title: 'Language in Context', description: 'Lugares de trabajo: in a hospital, for an airline, in an office.' }
+              { number: 1, title: 'Listen & Discuss: Dream Jobs', description: 'Adnan the high-tech animator and Majid the tennis champion.', audioTrack: 'CD 1 • Track 2' },
+              { number: 2, title: 'Pair Work: Inquiring Occupations', description: 'Asking: "What does your father do? He is an architect. Where does he work? In an office."', audioTrack: 'CD 1 • Track 3' },
+              { number: 3, title: 'Grammar: Simple Present Statements', description: 'Third person singular changes (-s, -es, -ies) and negative forms with don\'t / doesn\'t.' },
+              { number: 4, title: 'Language in Context: Workplaces', description: 'Prepositions: for an airline, in an emergency room, at a news agency.' }
             ]
           },
           {
             sessionCode: 'B',
-            sessionName: 'Sesión B: Pronunciación /s/ vs /z/ y Conversación',
-            itemsRange: 'Ítems 5 a 8',
+            sessionName: 'Session B: Pronunciation /s/ vs /z/ & Conversation',
+            itemsRange: 'Items 5 to 8',
             items: [
-              { number: 5, title: 'Listening: Job Identification', description: 'Escuchar a 4 personas y emparejarlas con su lugar de trabajo.', audioTrack: 'CD 1 • Track 4' },
-              { number: 6, title: 'Pronunciation /s/ vs /z/', description: 'Diferencia en las terminaciones verbales: writes /s/ vs drives /z/.', audioTrack: 'CD 1 • Track 5' },
-              { number: 7, title: 'About You: Career Dreams', description: '¿Qué deseas ser en el futuro y por qué?' },
-              { number: 8, title: 'Conversation: Future Plans', description: 'Steve y Adel conversando en la banca sobre diseño web y arquitectura.' }
+              { number: 5, title: 'Listening Comprehension: Workplace Clues', description: 'Listening to 4 professionals describing their daily tasks to guess their jobs.', audioTrack: 'CD 1 • Track 4' },
+              { number: 6, title: 'Pronunciation /s/, /z/, /ɪz/', description: 'Distinguishing third person endings: writes /s/, drives /z/, teaches /ɪz/.', audioTrack: 'CD 1 • Track 5' },
+              { number: 7, title: 'About You: Career Passions', description: 'What profession inspires you most and why?' },
+              { number: 8, title: 'Conversation & Real Talk', description: 'Steve and Adel discussing web development and architecture on a park bench.' }
             ]
           },
           {
             sessionCode: 'C',
-            sessionName: 'Sesión C: Lectura "Follow Your Dream" y Workbook',
-            itemsRange: 'Ítems 9 a 11 + Desbloqueo del Workbook',
-            workbookPages: 'Págs. 89 a 92',
+            sessionName: 'Session C: Reading "Follow Your Dream" & Workbook',
+            itemsRange: 'Items 9 to 11 + Workbook Practice',
+            workbookPages: 'Pages 89 to 92',
             items: [
-              { number: 9, title: 'Reading: Follow Your Dream', description: 'La historia de Omar Hamdan y su sueño de ser futbolista profesional.', audioTrack: 'CD 1 • Track 6' },
-              { number: 10, title: 'Writing: Dream Job Essay', description: 'Uso de "because" para dar razones y "so" para consecuencias.' },
-              { number: 11, title: 'Form, Meaning & Function', description: 'Preguntas con Why y respuestas con Because.' }
+              { number: 9, title: 'Reading: Follow Your Dream', description: 'The inspirational story of 16-year-old Omar Hamdan and his journey in soccer.', audioTrack: 'CD 1 • Track 6' },
+              { number: 10, title: 'Writing: Career Essay', description: 'Using "because" to state reasons and "so" to express consequences.' },
+              { number: 11, title: 'Form, Meaning & Function', description: 'Questions with Why and answers with Because.' }
             ]
           }
         ],
         quizQuestions: [
           {
             id: 1,
-            question: '¿Qué significa la pregunta cotidiana "What do you do?" en inglés?',
-            options: ['¿Qué estás haciendo ahora mismo?', '¿A qué te dedicas / Cuál es tu trabajo?', '¿Qué quieres hacer mañana?', '¿Cómo te sientes?'],
+            question: 'What does the common idiom "What do you do?" mean in English?',
+            options: ['What are you doing right now?', 'What is your job or profession?', 'What do you want to eat?', 'How do you feel?'],
             correctIndex: 1,
-            explanation: '"What do you do?" es el modismo estándar para preguntar la profesión u ocupación.'
+            explanation: '"What do you do?" is the standard idiom meaning "What is your profession / What do you do for a living?".'
           },
           {
             id: 2,
-            question: 'Completa con la tercera persona singular: "Fahd is a pilot. He _____ planes for an airline."',
+            question: 'Choose the correct third-person form: "Fahd is a pilot. He _____ airplanes for an international airline."',
             options: ['fly', 'flys', 'flies', 'flying'],
             correctIndex: 2,
-            explanation: 'Los verbos que terminan en consonante + y cambian a -ies en tercera persona: fly -> flies.'
+            explanation: 'Verbs ending in a consonant + "y" change to "-ies" in third person singular: fly -> flies.'
           },
           {
             id: 3,
-            question: '¿Dónde trabaja un chef?',
-            options: ['in a clinic', 'in an elegant restaurant', 'at the airport', 'in a garage'],
+            question: 'Where does an executive chef usually work?',
+            options: ['In a courtroom', 'In a restaurant kitchen', 'At the airport gate', 'In a hospital pharmacy'],
             correctIndex: 1,
-            explanation: 'Un chef trabaja preparando comida en un restaurante o cocina profesional.'
+            explanation: 'A chef works preparing culinary dishes in a professional kitchen or restaurant.'
           },
           {
             id: 4,
-            question: 'Completa: "He wants to be a doctor _____ he likes to help sick people."',
+            question: 'Complete: "He studies graphic design _____ he loves visual arts."',
             options: ['so', 'because', 'but', 'or'],
             correctIndex: 1,
-            explanation: '"Because" se utiliza para dar la razón o causa.'
+            explanation: '"Because" is used to introduce the cause or reason.'
           },
           {
             id: 5,
-            question: 'En la lectura, ¿cuántos años tiene Omar Hamdan y cuál es su pasión?',
-            options: ['14 años y la tecnología', '16 años y el fútbol', '20 años y la medicina', '18 años y la arquitectura'],
+            question: 'In the reading "Follow Your Dream", how old is Omar and what is his dream?',
+            options: ['14 years old and science', '16 years old and professional football (soccer)', '20 years old and architecture', '18 years old and pilot'],
             correctIndex: 1,
-            explanation: 'El texto indica: "Omar Hamdan lives in Tabuk. He is sixteen years old, and he\'s on the school football team."'
+            explanation: 'The text states: "Omar Hamdan is sixteen years old and plays on the school soccer team."'
           }
         ]
       }
     ]
   },
 
-  // 3. NIVEL III: SuperGoal 3 (Nivel actual de Mariana)
+  // 3. LEVEL III: SuperGoal 3 (Pre-Intermediate A2 • Mariana's Active Level!)
   {
     levelId: 'level_3',
     levelNumber: 3,
-    levelName: 'Nivel III (SuperGoal 3)',
+    levelName: 'Level III • SuperGoal 3',
     series: 'SuperGoal',
-    book: 'Super Goal 3 (Student Book & Workbook Integrado)',
+    book: 'Super Goal 3 (Integrated Student Book & Workbook)',
     module: 1,
-    moduleName: 'Pierde el Miedo',
-    cefrEquiv: 'A2+',
+    moduleName: 'Conquer Your Fear',
+    cefrEquiv: 'A2',
     audience: 'all',
     isIntegratedWorkbook: true,
     bossFights: [
@@ -389,7 +439,7 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         title: 'EXPANSION Units 1–4: Boss Fight 1',
         badgeName: 'Spelling & Grammar Ace ⚡',
         badgeIcon: '👑',
-        description: 'Evaluación de consolidación de Simple Past vs Past Progressive y Comparativos.',
+        description: 'Mastery check of Simple Present vs Present Continuous, past time markers, and travel conversation.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-bossfight-sg3-1/viewform'
       }
     ],
@@ -398,83 +448,101 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         unitNumber: 1,
         title: 'Are You Here on Vacation?',
         bookTitle: 'SuperGoal 3',
-        sbPages: 'Págs. 2 a 9',
-        wbPages: 'Págs. 89 a 92',
-        grammarFocus: 'Short Answers • Simple Present vs. Present Progressive • Travel vocabulary',
-        vocabularyTheme: 'Airport, vacations, nationalities, hotel check-in',
-        tipCokito: 'Distingue lo habitual de lo que pasa ahora: "I live in Caracas" (rutina) vs "I am traveling this week" (en progreso).',
+        sbPages: 'Pages 2 to 9',
+        wbPages: 'Pages 89 to 92 (Integrated Workbook)',
+        grammarFocus: 'Simple Present vs. Present Progressive • Short Answers • Travel & Hospitality Vocabulary',
+        vocabularyTheme: 'Airport customs, hotel check-in, nationalities, business vs leisure travel',
+        tipCokito: 'Distinguish habits from current actions! "I live in Miami" is a permanent routine (Simple Present). "I am staying at the Grand Hotel this week" is a temporary situation happening right now (Present Progressive).',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-unit1-sg3/viewform',
+        owlCulture: {
+          owlTitle: 'Cyber Owl Trivia: Vacation Culture & The Art of Tipping',
+          topic: 'Why do North Americans say "vacation" and the British say "holiday"?',
+          didYouKnow: 'In the United States and Canada, taking time off work or school is called a "vacation". In the UK, Australia, and New Zealand, it is almost always called "going on holiday"!',
+          culturalStory: 'In the United States and Canada, tipping at hotels and restaurants is customary and expected (usually 15% to 20%), whereas in countries like Japan or Iceland, tipping can be considered unusual or even impolite.',
+          inOnAtRule: 'Location Prepositions: Say "ON vacation", "ON a cruise", "ON a business trip", but "AT the hotel" and "AT the airport".',
+          externalLink: {
+            label: 'Travel Etiquette: How to Check In at an International Hotel',
+            url: 'https://www.bbc.co.uk/travel'
+          }
+        },
         sessions: [
           {
             sessionCode: 'A',
-            sessionName: 'Sesión A: Vacaciones y Contrastes de Tiempos',
-            itemsRange: 'Ítems 1 a 4',
+            sessionName: 'Session A: Travel Encounters & Contrast of Tenses',
+            itemsRange: 'Items 1 to 4',
             items: [
-              { number: 1, title: 'Listen & Discuss: Vacation Spot', description: 'Diálogo de turistas en el hotel y aeropuerto.', audioTrack: 'CD 1 • Track 2' },
-              { number: 2, title: 'Pair Work', description: 'Are you traveling for business or pleasure?' },
-              { number: 3, title: 'Grammar Focus', description: 'Simple Present vs Present Progressive con expresiones temporales.' },
-              { number: 4, title: 'Language in Context', description: 'Preguntas con "Are you here on vacation?"' }
+              { number: 1, title: 'Listen & Discuss: Hotel Reception', description: 'Tourists arriving at the hotel lobby: traveling for business or pleasure?', audioTrack: 'CD 1 • Track 2' },
+              { number: 2, title: 'Pair Work: Travel Scenarios', description: 'Asking: "Are you here on vacation? Yes, I am. Where are you staying?"', audioTrack: undefined },
+              { number: 3, title: 'Grammar Focus: Simple Present vs Present Continuous', description: 'Contrasting habitual routines with temporary actions in progress right now.' },
+              { number: 4, title: 'Language in Context', description: 'Hotel check-in questions, room keys, and passport verification.' }
             ]
           },
           {
             sessionCode: 'B',
-            sessionName: 'Sesión B: Pronunciación y Conversación en el Hotel',
-            itemsRange: 'Ítems 5 a 8',
+            sessionName: 'Session B: Listening, Pronunciation & Real Talk',
+            itemsRange: 'Items 5 to 8',
             items: [
-              { number: 5, title: 'Listening', description: 'Identificación de motivos de viaje y destinos.', audioTrack: 'CD 1 • Track 3' },
-              { number: 6, title: 'Pronunciation', description: 'Contracciones en respuestas cortas.' },
-              { number: 7, title: 'About You', description: 'Tus últimas vacaciones y destinos soñados.' },
-              { number: 8, title: 'Conversation & Real Talk', description: 'Check-in en el mostrador del hotel.' }
+              { number: 5, title: 'Listening Comprehension', description: 'Identifying traveler flight numbers, departure gates, and destinations.', audioTrack: 'CD 1 • Track 3' },
+              { number: 6, title: 'Pronunciation: Contractions in Short Answers', description: 'Notice that affirmative short answers CANNOT be contracted (Yes, I am — NEVER "Yes, I\'m").', audioTrack: 'CD 1 • Track 4' },
+              { number: 7, title: 'About You: Your Dream Destination', description: 'Discussing your most memorable vacation and places on your travel bucket list.' },
+              { number: 8, title: 'Conversation & Real Talk', description: 'Polite front-desk dialogue between the hotel clerk and guest.' }
             ]
           },
           {
             sessionCode: 'C',
-            sessionName: 'Sesión C: Lectura y Workbook',
-            itemsRange: 'Ítems 9 a 11 + Workbook',
-            workbookPages: 'Págs. 89 a 92',
+            sessionName: 'Session C: Reading, Travel Writing & Workbook',
+            itemsRange: 'Items 9 to 11 + Workbook Practice',
+            workbookPages: 'Pages 89 to 92',
             items: [
-              { number: 9, title: 'Reading: Tourist Hotspots', description: 'Lectura sobre las atracciones más famosas del mundo.' },
-              { number: 10, title: 'Writing: Travel Blog Post', description: 'Escribir una postal o post de blog de viaje.' },
-              { number: 11, title: 'Workbook Unlocking', description: 'Resolución de ejercicios prácticos de la unidad 1.' }
+              { number: 9, title: 'Reading: World Famous Tourist Attractions', description: 'Exploring iconic landmarks and global travel trends.', audioTrack: 'CD 1 • Track 5' },
+              { number: 10, title: 'Writing: Travel Postcard or Blog Entry', description: 'Writing a short travel postcard to a friend describing hotel amenities.' },
+              { number: 11, title: 'Workbook Unlocking: Unit 1 Practice', description: 'Solving crossword and vocabulary exercises in the workbook section.' }
             ]
           }
         ],
         quizQuestions: [
           {
             id: 1,
-            question: '¿Cuál oración describe una acción que está ocurriendo en este momento?',
-            options: ['I live in Miami.', 'I am sitting at the airport right now.', 'I fly every summer.', 'I like vacations.'],
+            question: 'Which sentence correctly describes an action happening at this exact moment?',
+            options: ['I live in Caracas.', 'I am sitting at the airport gate right now.', 'I fly every summer.', 'I like vacations.'],
             correctIndex: 1,
-            explanation: '"I am sitting... right now" utiliza el Present Progressive para una acción en el instante del habla.'
+            explanation: '"I am sitting... right now" uses the Present Progressive for an action occurring in the instant of speaking.'
           },
           {
             id: 2,
-            question: 'Completa: "Are you here on vacation?" — "Yes, _____."',
-            options: ['I am', 'I do', 'I have', 'I was'],
+            question: 'Complete the short answer correctly: "Are you here on vacation?" — "Yes, _____."',
+            options: ['I am', 'I\'m', 'I do', 'I was'],
             correctIndex: 0,
-            explanation: 'A preguntas con el verbo Be ("Are you...?"), se responde afirmativamente "Yes, I am".'
+            explanation: 'Affirmative short answers with Be CANNOT be contracted: always say "Yes, I am", never "Yes, I\'m".'
           },
           {
             id: 3,
-            question: 'En un hotel, ¿qué significa "check-in"?',
-            options: ['Pagar la cuenta al irse', 'Registrarse a la llegada', 'Pedir comida a la habitación', 'Llamar al taxi'],
+            question: 'In hospitality and airport terminology, what is "check-in"?',
+            options: ['Paying the final bill when leaving', 'The formal registration process upon arrival', 'Ordering room service food', 'Calling for a taxi cab'],
             correctIndex: 1,
-            explanation: '"Check-in" es el proceso de registro formal a la llegada de un hotel o aeropuerto.'
+            explanation: '"Check-in" is the standard procedure of registering and receiving your room keys or boarding pass upon arrival.'
+          },
+          {
+            id: 4,
+            question: 'Choose the correct preposition: "She is currently _____ vacation with her family."',
+            options: ['in', 'at', 'on', 'to'],
+            correctIndex: 2,
+            explanation: 'The fixed prepositional phrase in English is always "ON vacation".'
           }
         ]
       }
     ]
   },
 
-  // 4. NIVEL VII: MegaGoal 1 (Módulo 3)
+  // 4. LEVEL VII: MegaGoal 1 (Intermediate B1+ • Module 3 Preview)
   {
     levelId: 'level_7',
     levelNumber: 7,
-    levelName: 'Nivel VII (MegaGoal 1)',
+    levelName: 'Level VII • MegaGoal 1',
     series: 'MegaGoal',
-    book: 'Mega Goal 1 (Student Book & Workbook por Separado)',
+    book: 'Mega Goal 1 (Independent Student Book & Separate Workbook)',
     module: 3,
-    moduleName: 'Piensa en Inglés',
+    moduleName: 'Think in English',
     cefrEquiv: 'B1+',
     audience: 'adults',
     isIntegratedWorkbook: false,
@@ -485,7 +553,7 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         title: 'EXPANSION Units 1–3: Boss Fight 1',
         badgeName: 'Visionary Thinker 🔮',
         badgeIcon: '💎',
-        description: 'Debate de tecnología: The Computer and the Internet: Good or Bad? + Chant Along + Present Perfect Progressive.',
+        description: 'Technology debate: The Internet — Good or Bad? + Chant Along + Present Perfect Progressive.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-bossfight-mg1-1/viewform'
       }
     ],
@@ -494,69 +562,80 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         unitNumber: 1,
         title: 'Big Changes',
         bookTitle: 'MegaGoal 1',
-        sbPages: 'Págs. 6 a 19',
-        wbPages: 'Págs. 1 a 10 (Libro de ejercicios separado)',
+        sbPages: 'Pages 6 to 19',
+        wbPages: 'Pages 1 to 10 (Separate Workbook volume)',
         grammarFocus: 'Simple Present vs. Present Progressive • Simple Past vs. Present Perfect • Past Progressive with When',
         vocabularyTheme: 'Historical milestones: Space Race, Communications Revolution, Global Issues',
-        tipCokito: 'Usa Simple Past para eventos concluidos (en 1957) y Present Perfect para experiencias que continúan hoy.',
+        tipCokito: 'Use Simple Past for completed past events with a specific time (in 1957). Use Present Perfect for experiences with no specific time or events that continue into the present.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-unit1-mg1/viewform',
+        owlCulture: {
+          owlTitle: 'Cyber Owl Trivia: The Satellite That Started the Space Age',
+          topic: 'How Sputnik 1 changed global telecommunications forever',
+          didYouKnow: 'On October 4, 1957, the Soviet Union launched Sputnik 1, the first artificial satellite in history. It was the size of a beach ball and beeped signals for 21 days!',
+          culturalStory: 'Between 1892 and 1954, over 12 million immigrants entered the United States through Ellis Island in New York Harbor, seeking new opportunities and freedom.',
+          inOnAtRule: 'Historical Dates: Say "IN the 20th century", "IN 1969", but "ON July 20, 1969" (exact day).',
+          externalLink: {
+            label: 'NASA History: The Apollo 11 Moon Landing Milestone',
+            url: 'https://www.nasa.gov'
+          }
+        },
         sessions: [
           {
             sessionCode: 'A',
-            sessionName: 'Sesión A: Eventos Mundiales y Contrastes Temporales',
-            itemsRange: 'Ítems 1 a 4',
+            sessionName: 'Session A: World Milestones & Temporal Contrasts',
+            itemsRange: 'Items 1 to 4',
             items: [
-              { number: 1, title: 'Listen & Discuss: World Milestones', description: 'The Space Race (Sputnik 1 y Apollo 11), The Communications Revolution (Telstar).', audioTrack: 'CD 1 • Track 7' },
-              { number: 2, title: 'Pair Work: Global Issues', description: 'Global warming, pollution, security, fresh water, unemployment.', audioTrack: 'CD 1 • Track 8' },
-              { number: 3, title: 'Grammar: Past vs. Present Perfect', description: 'The Russians launched Sputnik in 1957 vs. Many countries have launched satellites.', audioTrack: undefined },
-              { number: 4, title: 'Language in Context: Biographical Timeline', description: 'Entrevistar a tu compañero sobre sus orígenes y cómo ha cambiado su vida.' }
+              { number: 1, title: 'Listen & Discuss: Milestones', description: 'The Space Race, Telstar satellite, and global environmental issues.', audioTrack: 'CD 1 • Track 7' },
+              { number: 2, title: 'Pair Work: Global Challenges', description: 'Discussing pollution, fresh water access, and global warming.', audioTrack: 'CD 1 • Track 8' },
+              { number: 3, title: 'Grammar: Past vs Present Perfect', description: 'Contrasting finished past events (in 1957) with ongoing historical impacts.' },
+              { number: 4, title: 'Language in Context: Biographical Timeline', description: 'Interviewing a partner about how their life has transformed over the years.' }
             ]
           },
           {
             sessionCode: 'B',
-            sessionName: 'Sesión B: Ellis Island, Pronunciación y Real Talk',
-            itemsRange: 'Ítems 5 a 8',
+            sessionName: 'Session B: Ellis Island & Real Talk in Action',
+            itemsRange: 'Items 5 to 8',
             items: [
-              { number: 5, title: 'Listening: Immigrants at Ellis Island', description: 'La historia de los 12 millones de inmigrantes entre 1892 y 1954.', audioTrack: 'CD 1 • Track 9' },
-              { number: 6, title: 'Pronunciation: Sentence Stress', description: 'Énfasis tonal en sustantivos y verbos principales.', audioTrack: 'CD 1 • Track 10' },
-              { number: 7, title: 'About You: Inmigración y Familia', description: 'Preguntas sobre raíces familiares y viajes.' },
-              { number: 8, title: 'Conversation & Real Talk', description: 'Samir y Hans en Berlín. Expresiones: in fact, you see, by the way, fit in.', audioTrack: 'CD 1 • Track 11' }
+              { number: 5, title: 'Listening Comprehension: Immigrant Stories', description: 'Audio accounts of families arriving at Ellis Island in New York.', audioTrack: 'CD 1 • Track 9' },
+              { number: 6, title: 'Pronunciation: Sentence Stress', description: 'Stressing content words (nouns, main verbs) while reducing structure words.', audioTrack: 'CD 1 • Track 10' },
+              { number: 7, title: 'About You: Family Roots', description: 'Questions on family origins, immigration, and cultural heritage.' },
+              { number: 8, title: 'Conversation & Real Talk', description: 'Samir and Hans in Berlin. Key idioms: in fact, you see, by the way, fit in.', audioTrack: 'CD 1 • Track 11' }
             ]
           },
           {
             sessionCode: 'C',
-            sessionName: 'Sesión C: Saudi Vision 2030, Redacción y Self Reflection',
-            itemsRange: 'Ítems 9 a 13 + Workbook',
-            workbookPages: 'Workbook Págs. 1 a 10',
+            sessionName: 'Session C: Saudi Vision 2030, Essay & Self-Reflection',
+            itemsRange: 'Items 9 to 13 + Separate Workbook',
+            workbookPages: 'Workbook Pages 1 to 10',
             items: [
-              { number: 9, title: 'Reading: Progress Towards the Future', description: 'Transformación de infraestructuras y economía sostenible.', audioTrack: 'CD 1 • Track 12' },
-              { number: 10, title: 'Writing: How the Internet Changed the World', description: 'Redacción de un ensayo comparando el pasado con el presente digital.' },
-              { number: 11, title: 'Form, Meaning & Function', description: 'Past progressive con when (Hans was walking when he saw Samir).' },
-              { number: 12, title: 'Self Reflection Checklist', description: 'Autoevaluación de competencias de la unidad 1.' }
+              { number: 9, title: 'Reading: Progress Towards the Future', description: 'Examining sustainable development and technological modernizations.', audioTrack: 'CD 1 • Track 12' },
+              { number: 10, title: 'Writing: How the Internet Changed the World', description: 'Writing an argumentative essay comparing analog and digital eras.' },
+              { number: 11, title: 'Form, Meaning & Function', description: 'Past progressive interrupted by Simple Past with "when".' },
+              { number: 12, title: 'Self-Reflection Competency Checklist', description: 'Unit self-evaluation checklist to rate your mastery before the teacher review.' }
             ]
           }
         ],
         quizQuestions: [
           {
             id: 1,
-            question: '¿Qué tiempo verbal se utiliza para un hecho que ocurrió en una fecha específica y ya terminó (ej. en 1969)?',
+            question: 'Which tense is required for an event that took place at an exact, completed past date (e.g. in 1969)?',
             options: ['Present Perfect', 'Simple Past', 'Future Progressive', 'Present Continuous'],
             correctIndex: 1,
-            explanation: 'Cuando el tiempo está especificado y concluido (en 1969), se utiliza Simple Past (The Americans landed on the moon in 1969).'
+            explanation: 'When the time is specific and finished (in 1969), Simple Past is strictly used: "The astronauts landed on the moon in 1969."'
           },
           {
             id: 2,
-            question: 'En la sección de Real Talk de la Unidad 1, ¿qué significa la frase "by the way"?',
-            options: ['Por cierto / Cambiando de tema', 'En realidad / De hecho', 'Encajar en un grupo', 'Tener suerte'],
+            question: 'In the Real Talk section of Unit 1, what does the idiom "by the way" mean?',
+            options: ['To change the subject or introduce a new thought', 'In fact or actually', 'To adapt into a group', 'To be very lucky'],
             correctIndex: 0,
-            explanation: '"By the way" se utiliza para introducir un nuevo tema en la conversación (Por cierto...).'
+            explanation: '"By the way" is used in spoken English to introduce a fresh topic or side comment.'
           },
           {
             id: 3,
-            question: 'Completa con la estructura de interrupción en pasado: "Hans _____ to college when he _____ Samir."',
+            question: 'Complete the sentence with past interruption: "Hans _____ to campus when he _____ Samir."',
             options: ['walked / was seeing', 'was walking / saw', 'is walking / sees', 'walked / saw'],
             correctIndex: 1,
-            explanation: 'La acción larga en progreso va en Past Progressive (was walking) y la interrupción en Simple Past (saw).'
+            explanation: 'The longer ongoing action uses Past Continuous (was walking) and the sudden interruption takes Simple Past (saw).'
           }
         ]
       }

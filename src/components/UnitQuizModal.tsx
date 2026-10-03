@@ -69,10 +69,10 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
         <div className="p-5 bg-gradient-to-r from-blue-900 via-indigo-950 to-blue-900 text-white flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full font-sans">
-              Práctica Asincrónica de Unidad
+              Interactive Unit Practice Quiz
             </span>
             <h3 className="font-black text-lg text-white mt-1">
-              Quiz: Unit {unit.unitNumber} - {unit.title}
+              Unit {unit.unitNumber}: {unit.title}
             </h3>
           </div>
           <button
@@ -88,8 +88,8 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
           <div className="p-6 space-y-5">
             {/* Progress */}
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>Pregunta {currentIdx + 1} de {unit.quizQuestions.length}</span>
-              <span className="text-emerald-600 font-bold">Aciertos: {correctCount}</span>
+              <span>Question {currentIdx + 1} of {unit.quizQuestions.length}</span>
+              <span className="text-emerald-600 font-bold">Score: {correctCount} correct</span>
             </div>
 
             {/* Question */}
@@ -145,7 +145,7 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
                   : 'bg-amber-50 border-amber-200 text-amber-950'
               }`}>
                 <span className="font-bold block">
-                  {selectedOption === currentQ.correctIndex ? '¡Excelente trabajo!' : 'Tip Pedagógico Cokito:'}
+                  {selectedOption === currentQ.correctIndex ? 'Excellent Job! 🎉' : 'Tip Cokitö Insight:'}
                 </span>
                 <p className="text-slate-700 leading-relaxed">
                   {currentQ.explanation}
@@ -156,14 +156,14 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
             {/* Google Form Link Notice */}
             {unit.googleFormUrl && (
               <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100">
-                <span>¿Deseas enviar tus respuestas formales en Google Forms?</span>
+                <span>Would you prefer to submit on the official Google Form?</span>
                 <a
                   href={unit.googleFormUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline flex items-center gap-1 font-semibold"
                 >
-                  <span>Formulario Oficial</span>
+                  <span>Teacher\'s Form</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -178,7 +178,7 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
                   disabled={selectedOption === null}
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors disabled:opacity-50"
                 >
-                  Comprobar Respuesta
+                  Verify Answer
                 </button>
               ) : (
                 <button
@@ -186,7 +186,7 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
                   onClick={handleNext}
                   className="flex items-center gap-1.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors"
                 >
-                  <span>{isLastQuestion ? 'Finalizar Quiz (+50 XP)' : 'Siguiente Pregunta'}</span>
+                  <span>{isLastQuestion ? 'Complete Quiz (+50 XP)' : 'Next Question'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
@@ -201,13 +201,13 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
 
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full inline-block mb-1">
-                ¡Quiz de Unidad Completado!
+                Unit Quiz Completed!
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                Puntaje: {correctCount} de {unit.quizQuestions.length}
+                Score: {correctCount} of {unit.quizQuestions.length}
               </h3>
               <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                Has sumado <strong>+50 XP</strong> a tu racha semanal. Puedes repetir el ejercicio cuando desees para repasar antes de tu siguiente clase en vivo.
+                You have earned <strong>+50 XP</strong> for your Cokitö weekly league! You can review or retake this quiz anytime before your next live class.
               </p>
             </div>
 
@@ -217,14 +217,14 @@ export const UnitQuizModal: React.FC<UnitQuizModalProps> = ({
                 onClick={handleRestart}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl"
               >
-                Repetir Quiz
+                Retake Quiz
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md"
               >
-                Volver a la Unidad
+                Return to Classroom
               </button>
             </div>
           </div>

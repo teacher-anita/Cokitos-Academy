@@ -125,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
               Retos Cokitö
             </button>
 
-            {/* AULA VIRTUAL & RUTA */}
+            {/* CLASSROOM & RUTA */}
             <button
               onClick={() => onTabChange('pathway')}
               className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
@@ -135,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Aula Virtual</span>
+              <span>Classroom</span>
               {!isEnrolled && <Lock className="w-3 h-3 text-amber-500" />}
             </button>
 
@@ -318,7 +318,7 @@ export const Header: React.FC<HeaderProps> = ({
               activeTab === 'pathway' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600'
             }`}
           >
-            <span>Aula Virtual</span>
+            <span>Classroom</span>
             {!isEnrolled && <Lock className="w-2.5 h-2.5 text-amber-400" />}
           </button>
           {activeRole === 'teacher' && (

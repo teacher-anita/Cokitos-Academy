@@ -64,7 +64,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <p className="text-sm sm:text-lg text-blue-100/90 leading-relaxed font-normal">
             {isKids
               ? 'Lecciones dinámicas de 30 a 45 minutos diseñadas para mantener la atención, celebrar cada pequeño logro y hablar desde la primera clase.'
-              : 'Alineado al currículo internacional McGraw-Hill (SuperGoal y MegaGoal), con micro-bloques de 3 sesiones por unidad, quizzes interactivos y clases en vivo.'}
+              : 'Currículo internacional comunicativo en 12 niveles progresivos, con micro-bloques de 3 sesiones por unidad, quizzes interactivos y clases en vivo.'}
           </p>
 
           {/* Core Feature Badges */}
@@ -350,9 +350,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center mx-auto">
               <Clock className="w-6 h-6" />
             </div>
-            <h4 className="font-black text-slate-900 text-sm">Alineado a McGraw-Hill</h4>
+            <h4 className="font-black text-slate-900 text-sm">Estándar Internacional CEFR</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Plan curricular estructurado con los objetivos de las series internacionales SuperGoal y MegaGoal de McGraw-Hill Education.
+              Plan curricular estructurado desde nivel A1 hasta C1, enfocado en fluidez comunicativa y confianza para hablar.
             </p>
           </div>
 

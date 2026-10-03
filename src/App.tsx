@@ -307,7 +307,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 text-center">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 La Teacher Cokitö • Programa Curricular Alineado al estándar SuperGoal & MegaGoal</p>
+          <p>© 2026 La Teacher Cokitö • Programa Curricular Internacional de Inmersión y Fluidez</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-emerald-600 font-semibold">
               <ShieldCheck className="w-4 h-4" />

@@ -1,6 +1,6 @@
 {
-  "name": "La Teacher Cokitö - Academia & Aula Virtual",
-  "description": "Plataforma integral de inglés con La Teacher Cokitö: aprendizaje adaptativo, currículo McGraw-Hill (SuperGoal y MegaGoal), agenda compartida, retos diarios y aula virtual.",
+  "name": "La Teacher Cokitö - Academia & Classroom Virtual",
+  "description": "Plataforma integral de inglés con La Teacher Cokitö: aprendizaje adaptativo, currículo internacional comunicativo, agenda compartida, retos diarios y Classroom virtual.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
