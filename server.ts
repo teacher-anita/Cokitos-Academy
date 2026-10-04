@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -7,6 +8,9 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+// Serve static audio files
+app.use('/audio', express.static(path.join(process.cwd(), 'public/audio')));
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({

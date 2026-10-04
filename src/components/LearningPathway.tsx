@@ -27,6 +27,7 @@ import {
 import { Student, AudienceTheme } from '../types';
 import { PATHWAY_LEVELS, PathwayLevel, PathwayUnit, PathwaySession } from '../data/pathwayData';
 import { UnitQuizModal } from './UnitQuizModal';
+import { UnitOneMasterClass } from './UnitOneMasterClass';
 
 interface LearningPathwayProps {
   currentStudent: Student | null;
@@ -60,6 +61,9 @@ export const LearningPathway: React.FC<LearningPathwayProps> = ({
 
   // Selected Unit for Quiz
   const [quizUnit, setQuizUnit] = useState<PathwayUnit | null>(null);
+
+  // Selected Master Unit View (Unit 1 Master Experience)
+  const [selectedMasterUnit, setSelectedMasterUnit] = useState<number | null>(1);
 
   // Completed sessions tracking in local state
   const [completedSessions, setCompletedSessions] = useState<Record<string, boolean>>({});
@@ -208,6 +212,20 @@ ${unit.owlCulture.culturalStory}
     );
   }
 
+  // If Unit 1 Master Class is active, render the full immersive workspace!
+  if (selectedMasterUnit === 1) {
+    return (
+      <div className="max-w-7xl mx-auto py-6 px-4 space-y-4">
+        <UnitOneMasterClass
+          currentStudent={currentStudent}
+          activeRole={activeRole}
+          onAwardXp={onAwardXp}
+          onClose={() => setSelectedMasterUnit(null)}
+        />
+      </div>
+    );
+  }
+
   // ENROLLED / TEACHER: FULL INTERACTIVE VIRTUAL CLASSROOM (100% ENGLISH IMMERSION)
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 space-y-6 animate-fadeIn">
@@ -219,6 +237,31 @@ ${unit.owlCulture.culturalStory}
           <span>{copiedNotice}</span>
         </div>
       )}
+
+      {/* 0. UNIT 1 MASTER CLASS BANNER */}
+      <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-3xl p-5 text-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg border border-amber-300">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">☀️</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="bg-slate-950 text-amber-300 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                Super Goal 1 • Unidad 1 Activa
+              </span>
+              <span className="text-xs font-black">"Good Morning!"</span>
+            </div>
+            <p className="text-xs text-slate-900 mt-0.5 font-medium">
+              6 Tracks de Audio CD1 • Workbook digitalizado (Pág. 89–92) • Self-Reflection (Pág. 125) • 3 Clases en Vivo
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setSelectedMasterUnit(1)}
+          className="px-6 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 shrink-0 flex items-center gap-2"
+        >
+          <Sparkles className="w-4 h-4 text-amber-400" />
+          <span>Abrir Aula Interactiva Unidad 1</span>
+        </button>
+      </div>
 
       {/* 1. ENGLISH ONLY ZONE IMMERSIVE BANNER */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl px-5 py-3 text-white flex items-center justify-between shadow-md">
@@ -386,6 +429,15 @@ ${unit.owlCulture.culturalStory}
 
                 {/* Action Buttons for this Unit */}
                 <div className="flex items-center gap-2 flex-wrap">
+                  {unit.unitNumber === 1 && activeLevel.levelId === 'level_1' && (
+                    <button
+                      onClick={() => setSelectedMasterUnit(1)}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black shadow-md transition-all active:scale-95"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-blue-900" />
+                      <span>Abrir Aula Interactiva Unidad 1</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => setQuizUnit(unit)}
                     className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
