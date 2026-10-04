@@ -117,11 +117,11 @@ ${unit.owlCulture.culturalStory}
     return studentXp >= requiredXp;
   };
 
-  // IF NOT ENROLLED AND NOT TEACHER: LOCKED PREVIEW
+  // IF NOT ENROLLED AND NOT TEACHER: LOCKED PREVIEW (GUEST SEES CURRICULAR OVERVIEW / GHOST MODE)
   if (!isEnrolled) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fadeIn">
-        
+
         {/* Paywall Banner: Ghost Mode / Visión Fantasma */}
         <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-slate-800 shadow-xl text-center space-y-5">
           <div className="w-16 h-16 rounded-3xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center mx-auto shadow-md">
@@ -212,7 +212,7 @@ ${unit.owlCulture.culturalStory}
     );
   }
 
-  // If Unit 1 Master Class is active, render the full immersive workspace!
+  // ENROLLED / TEACHER: If Unit 1 Master Class is active, render the full immersive workspace!
   if (selectedMasterUnit === 1) {
     return (
       <div className="max-w-7xl mx-auto py-6 px-4 space-y-4">

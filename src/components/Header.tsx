@@ -262,7 +262,24 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
               
-              {/* 6. Teacher Portal (Emoji on left, Lock on RIGHT) */}
+              {/* 6. Laboratorio (Language Practice Lab • 100 Drills) */}
+              <button
+                onClick={() => onTabChange('lab')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'lab'
+                    ? 'bg-white text-emerald-700 shadow-xs font-bold ring-1 ring-emerald-300'
+                    : 'hover:text-slate-900'
+                }`}
+                title="Laboratorio de Práctica • 100 Ejercicios Interactivos"
+              >
+                <span className="text-sm">🧪</span>
+                <span>Laboratorio</span>
+                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                  100
+                </span>
+              </button>
+
+              {/* 7. Teacher Portal (Emoji on left, Lock on RIGHT) */}
               <button
                 onClick={() => onTabChange('teacher')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
@@ -316,7 +333,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* 3. Classroom (Lock on RIGHT) */}
           <button
             onClick={() => onTabChange('pathway')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] relative ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
               activeTab === 'pathway'
                 ? 'text-indigo-600 font-bold bg-indigo-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
@@ -333,10 +350,28 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Classroom</span>
           </button>
 
-          {/* 4. Retos */}
+          {/* 4. Laboratorio (100 Drills) */}
+          <button
+            onClick={() => onTabChange('lab')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
+              activeTab === 'lab'
+                ? 'text-emerald-600 font-bold bg-emerald-50/80 scale-102'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <div className="relative">
+              <span className="text-base">🧪</span>
+              <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-emerald-600 text-white rounded-full text-[8px] font-black">
+                100
+              </span>
+            </div>
+            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Lab</span>
+          </button>
+
+          {/* 5. Retos */}
           <button
             onClick={() => onTabChange('duolingo')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] ${
               activeTab === 'duolingo'
                 ? 'text-emerald-600 font-bold bg-emerald-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
@@ -346,10 +381,10 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Retos</span>
           </button>
 
-          {/* 5. Agenda */}
+          {/* 6. Agenda */}
           <button
             onClick={() => onTabChange('calendar')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] ${
               activeTab === 'calendar'
                 ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
@@ -359,10 +394,10 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
           </button>
 
-          {/* 6. Teacher (Lock on RIGHT) */}
+          {/* 7. Teacher (Lock on RIGHT) */}
           <button
             onClick={() => onTabChange('teacher')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] relative ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
               activeTab === 'teacher'
                 ? 'text-blue-900 font-bold bg-blue-100/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'

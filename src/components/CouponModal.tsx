@@ -26,14 +26,14 @@ export const CouponModal: React.FC<CouponModalProps> = ({
     e.preventDefault();
     setErrorMsg(null);
 
-    const cleanCode = code.trim().toUpperCase();
+    const cleanCode = code.trim().toUpperCase().replace(/\s+/g, '');
 
     if (!name.trim() || !email.trim()) {
       setErrorMsg('Por favor completa tu nombre y correo electrónico.');
       return;
     }
 
-    if (cleanCode === 'CSB2026') {
+    if (cleanCode === 'CSB2026' || cleanCode.includes('CSB2026')) {
       const redeemedStudent: Student = {
         id: `csb_${Date.now()}`,
         name: name.trim(),

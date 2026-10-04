@@ -23,16 +23,19 @@ import {
   Smile,
   ShieldCheck,
   Music,
-  FolderOpen
+  FolderOpen,
+  Compass
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types';
+import { UnitOneLessonsView } from './UnitOneLessonsView';
 
 interface UnitOneMasterClassProps {
   currentStudent: Student | null;
   activeRole: 'student' | 'teacher';
   onAwardXp: (studentId: string, amount: number) => void;
   onClose?: () => void;
+  onGoToLab?: () => void;
 }
 
 // Audio Tracks definitions directly from McGraw-Hill SuperGoal 1 (All 7 Official CD1 MP3s)
@@ -183,12 +186,13 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
   currentStudent,
   activeRole,
   onAwardXp,
-  onClose
+  onClose,
+  onGoToLab
 }) => {
   const isTeacher = activeRole === 'teacher';
 
   // Navigation tab inside Unit 1
-  const [activeUnitTab, setActiveUnitTab] = useState<'overview' | 'sessions' | 'audio' | 'workbook' | 'reflection' | 'resources'>('overview');
+  const [activeUnitTab, setActiveUnitTab] = useState<'lessons' | 'overview' | 'sessions' | 'audio' | 'workbook' | 'reflection' | 'resources'>('lessons');
 
   // Pilar 1: Virtual Live Sessions Tracking (3 sessions for Unit 1)
   const [completedLiveSessions, setCompletedLiveSessions] = useState<Record<string, boolean>>(() => {
@@ -385,7 +389,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 Super Goal 1 • Unit 1
               </span>
               <span className="bg-white/10 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full border border-white/20">
-                Páginas 2 a 9 (Student Book) & 89 a 92 (Workbook)
+                Pages 2–9 (Student Book) & 89–92 (Workbook)
               </span>
               <span className="bg-emerald-400/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">
                 Beginner A1
@@ -397,7 +401,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
             </h1>
             
             <p className="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
-              Domina los saludos formales e informales, presentaciones personales, el verbo <em>be</em> en presente simple, adjetivos posesivos y el vocabulario de útiles escolares.
+              Master formal and informal greetings, personal introductions, the verb <em>be</em> in the simple present, possessive adjectives, and school supplies vocabulary.
             </p>
 
             {/* Mastery Bar */}
@@ -405,9 +409,9 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-blue-200 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  Progreso Curricular de la Unidad:
+                  Curricular Mastery Progress:
                 </span>
-                <span className="text-amber-300 font-mono">{overallUnitProgress}% Completado</span>
+                <span className="text-amber-300 font-mono">{overallUnitProgress}% Completed</span>
               </div>
               <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/20">
                 <div 
@@ -427,14 +431,14 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95"
             >
               <Video className="w-4 h-4 text-white" />
-              <span>Entrar a Clase en Vivo (Meet)</span>
+              <span>Join Live Class (Google Meet)</span>
             </a>
             {onClose && (
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold transition-colors"
               >
-                Volver a la Ruta de Aprendizaje
+                Back to Learning Pathway
               </button>
             )}
           </div>
@@ -444,8 +448,20 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
         <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      {/* 2. TAB NAVIGATION BAR (THE 5 CORE PILLARS) */}
+      {/* 2. TAB NAVIGATION BAR (THE CORE PILLARS) */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 text-xs font-bold">
+        <button
+          onClick={() => setActiveUnitTab('lessons')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all ${
+            activeUnitTab === 'lessons'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>📖 Virtual Teacher Lessons (pp. 2–9)</span>
+        </button>
+
         <button
           onClick={() => setActiveUnitTab('overview')}
           className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all ${
@@ -454,8 +470,8 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <BookOpen className="w-4 h-4" />
-          <span>Resumen & Guía de Estudio</span>
+          <Compass className="w-4 h-4" />
+          <span>Overview & Study Plan</span>
         </button>
 
         <button
@@ -467,7 +483,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           }`}
         >
           <Video className="w-4 h-4" />
-          <span>Las 3 Clases en Vivo ({Object.values(completedLiveSessions).filter(Boolean).length}/3)</span>
+          <span>Live Google Meet Classes ({Object.values(completedLiveSessions).filter(Boolean).length}/3)</span>
         </button>
 
         <button
@@ -479,7 +495,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           }`}
         >
           <Music className="w-4 h-4" />
-          <span>Laboratorio de Audios (CD1 Tracks 2–7)</span>
+          <span>Audio Lab (CD1 Tracks 1–7)</span>
         </button>
 
         <button
@@ -491,7 +507,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Workbook Interactivo (Pág. 89–92)</span>
+          <span>Interactive Workbook (pp. 89–92)</span>
         </button>
 
         <button
@@ -503,7 +519,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           }`}
         >
           <Award className="w-4 h-4" />
-          <span>Self-Reflection Oficial (Pág. 125)</span>
+          <span>Official Self-Reflection (p. 125)</span>
         </button>
 
         <button
@@ -515,11 +531,24 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           }`}
         >
           <Download className="w-4 h-4" />
-          <span>PDFs & Descargas</span>
+          <span>Resources & Downloads</span>
         </button>
       </div>
 
       {/* 3. TAB CONTENT */}
+
+      {/* TAB 0: VIRTUAL TEACHER LESSONS & EXPLANATIONS (STUDENT BOOK PP. 2-9) */}
+      {activeUnitTab === 'lessons' && (
+        <UnitOneLessonsView
+          currentStudent={currentStudent}
+          onAwardXp={onAwardXp}
+          onPlayTrack={(trackIdx) => {
+            handlePlayAudioTrack(trackIdx);
+            setActiveUnitTab('audio');
+          }}
+          onGoToLab={onGoToLab}
+        />
+      )}
 
       {/* TAB 1: OVERVIEW */}
       {activeUnitTab === 'overview' && (
@@ -530,7 +559,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-blue-600" />
-                  Estructura Oficial de la Unidad 1
+                  Official Unit 1 Syllabus & Structure
                 </h3>
                 <span className="text-xs font-semibold text-slate-500">McGraw-Hill Super Goal 1</span>
               </div>
@@ -538,25 +567,25 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 space-y-1.5">
                   <strong className="text-blue-900 font-bold block uppercase tracking-wider text-[11px]">
-                    1. Funciones Comunicativas
+                    1. Communicative Functions
                   </strong>
                   <ul className="space-y-1 text-slate-700 list-disc list-inside">
-                    <li>Saludar formal e informalmente (Good morning, Hello, Hi).</li>
-                    <li>Despedirse con cortesía (Goodbye, Take care, See you later).</li>
-                    <li>Presentarse a sí mismo y presentar a otros (My name's..., This is...).</li>
-                    <li>Nombrar e interactuar con útiles escolares.</li>
+                    <li>Greet people formally and informally (Good morning, Hello, Hi).</li>
+                    <li>Say goodbye politely (Goodbye, Take care, See you later, Good night).</li>
+                    <li>Introduce yourself and others (My name is..., This is...).</li>
+                    <li>Identify and talk about school supplies.</li>
                   </ul>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-100 space-y-1.5">
                   <strong className="text-amber-900 font-bold block uppercase tracking-wider text-[11px]">
-                    2. Enfoque Gramatical
+                    2. Grammar Focus
                   </strong>
                   <ul className="space-y-1 text-slate-700 list-disc list-inside">
-                    <li>Verbo <strong>be</strong>: <em>I'm, You're, He's, She's, We're, They're</em>.</li>
-                    <li>Adjetivos Posesivos: <strong>my, your, his, her</strong>.</li>
-                    <li>Títulos de Cortesía: <strong>Mr., Mrs., Miss, Ms.</strong></li>
-                    <li>Entonación en preguntas WH y de sí/no.</li>
+                    <li>Verb <strong>be</strong>: <em>I'm, You're, He's, She's, We're, They're</em>.</li>
+                    <li>Possessive Adjectives: <strong>my, your, his, her</strong>.</li>
+                    <li>Titles of Courtesy: <strong>Mr., Mrs., Miss, Ms.</strong></li>
+                    <li>Falling intonation in WH-questions and rising intonation in greetings.</li>
                   </ul>
                 </div>
               </div>
@@ -566,10 +595,10 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 <span className="text-2xl shrink-0">🦉</span>
                 <div className="space-y-1">
                   <strong className="font-black text-purple-900 block uppercase tracking-wider text-[11px]">
-                    Tip Cokitö para la Vida Real:
+                    Tip Cokitö for Real Life:
                   </strong>
                   <p className="leading-relaxed">
-                    ¡Cuidado con decir <em>"Good night"</em> al llegar a una fiesta de noche! En inglés, para saludar de noche siempre decimos <strong>"Good evening"</strong>. La expresión <strong>"Good night"</strong> se reserva exclusivamente para despedirse o irse a dormir.
+                    Never say <em>"Good night"</em> when arriving at an evening party or dinner! In English, to say hello at night, always use <strong>"Good evening"</strong>. The expression <strong>"Good night"</strong> is strictly reserved for leaving or going to bed.
                   </p>
                 </div>
               </div>
@@ -580,17 +609,17 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-bold text-slate-900 text-base">
-                    Ejercicios del Workbook Listos para Resolver
+                    Interactive Workbook Ready to Practice
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Páginas 89 a 92 digitalizadas con autocorrección en tiempo real.
+                    Official pages 89 to 92 digitized with instant feedback and score tracking.
                   </p>
                 </div>
                 <button
                   onClick={() => setActiveUnitTab('workbook')}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
                 >
-                  <span>Ir al Workbook</span>
+                  <span>Go to Workbook</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -602,29 +631,29 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
               <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Checklist de Completación
+                Unit Completion Checklist
               </h4>
 
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="font-medium text-slate-700">Clases Virtuales Asistidas:</span>
+                  <span className="font-medium text-slate-700">Live Virtual Classes Attended:</span>
                   <span className="font-bold text-blue-600">{Object.values(completedLiveSessions).filter(Boolean).length} / 3</span>
                 </div>
 
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="font-medium text-slate-700">Audios Escuchados:</span>
-                  <span className="font-bold text-purple-600">6 Tracks de CD1</span>
+                  <span className="font-medium text-slate-700">Audio Tracks Mastered:</span>
+                  <span className="font-bold text-purple-600">7 CD1 Tracks</span>
                 </div>
 
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="font-medium text-slate-700">Workbook Interactivo:</span>
-                  <span className="font-bold text-emerald-600">6 Ejercicios</span>
+                  <span className="font-medium text-slate-700">Interactive Workbook:</span>
+                  <span className="font-bold text-emerald-600">6 Exercises</span>
                 </div>
 
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="font-medium text-slate-700">Self-Reflection Enviada:</span>
+                  <span className="font-medium text-slate-700">Self-Reflection Status:</span>
                   <span className={`font-bold ${isReflectionSaved ? 'text-emerald-600' : 'text-amber-600'}`}>
-                    {isReflectionSaved ? '✓ Completada' : 'Pendiente'}
+                    {isReflectionSaved ? '✓ Completed' : 'Pending'}
                   </span>
                 </div>
               </div>
@@ -633,22 +662,22 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 onClick={() => setActiveUnitTab('reflection')}
                 className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-bold transition-colors shadow-2xs"
               >
-                Completar Mi Self-Reflection (+100 XP)
+                Complete My Self-Reflection (+100 XP)
               </button>
             </div>
 
             {/* Download summary box */}
             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-200 rounded-3xl p-5 space-y-3 text-xs">
-              <strong className="text-blue-950 font-bold block">Archivos Oficiales de la Unidad:</strong>
+              <strong className="text-blue-950 font-bold block">Official Unit Materials:</strong>
               <p className="text-slate-600 text-[11px] leading-relaxed">
-                Descarga el Student Book (Pág. 2-9) y el Workbook (Pág. 89-92) para seguir las clases en tu tablet o computadora.
+                Download the Student Book (pages 2–9) and Workbook (pages 89–92) to follow along in class on your computer or tablet.
               </p>
               <button
                 onClick={() => setActiveUnitTab('resources')}
                 className="w-full py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 hover:bg-blue-700 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Ver Centro de Descargas</span>
+                <span>View Resource Center</span>
               </button>
             </div>
           </div>
@@ -661,13 +690,13 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full inline-block mb-1">
-                Estructura Pedagógica de 3 Sesiones
+                3-Session Curricular Structure
               </span>
               <h3 className="text-xl font-black text-slate-900">
-                Las 3 Clases en Vivo con Teacher Cokitö
+                Live Google Meet Classes with Teacher Cokitö
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Para completar la Unidad 1 de forma óptima, el alumno recibe 3 sesiones guiadas de 60 minutos en Google Meet.
+                To master Unit 1 effectively, each student participates in three 60-minute interactive live sessions on Google Meet.
               </p>
             </div>
             
@@ -678,7 +707,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2 shrink-0 transition-colors"
             >
               <Video className="w-4 h-4" />
-              <span>Abrir Google Meet</span>
+              <span>Open Google Meet</span>
             </a>
           </div>
 
@@ -700,17 +729,17 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <strong className="text-sm font-bold text-slate-900">
-                        Sesión 1: Greetings, Farewells & Introductions
+                        Session 1: Greetings, Farewells & Introductions
                       </strong>
                       <span className="text-[10px] font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">
-                        Páginas 2 a 3
+                        Pages 2 to 3
                       </span>
                     </div>
                     <p className="text-xs text-slate-600">
-                      Pronunciación de saludos matutinos, vespertinos y nocturnos. Práctica en parejas de cómo presentarse y presentar a un amigo.
+                      Pronunciation of morning, afternoon, and evening greetings. Pair work on introducing yourself and meeting new friends.
                     </p>
                     <span className="text-[11px] text-slate-400 block">
-                      Audios vinculados: CD1 Track 2 & Track 3
+                      Linked Audios: CD1 Track 2 & Track 3
                     </span>
                   </div>
                 </div>
@@ -723,7 +752,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  {completedLiveSessions.s1 ? '✓ Clase Impartida' : 'Marcar como Completada'}
+                  {completedLiveSessions.s1 ? '✓ Class Completed' : 'Mark as Completed'}
                 </button>
               </div>
             </div>
@@ -745,17 +774,17 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <strong className="text-sm font-bold text-slate-900">
-                        Sesión 2: Grammar Lab (Verb 'Be' & Possessives) + Listening
+                        Session 2: Grammar Lab (Verb 'Be' & Possessives) + Listening
                       </strong>
                       <span className="text-[10px] font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">
-                        Páginas 4 a 5
+                        Pages 4 to 5
                       </span>
                     </div>
                     <p className="text-xs text-slate-600">
-                      Estructura de oraciones con <em>I am, You are, He is, She is</em> y contracciones. Ejercicios de escucha y entonación de preguntas.
+                      Sentence structures with <em>I am, You are, He is, She is</em> and contractions. Listening exercises and question intonation.
                     </p>
                     <span className="text-[11px] text-slate-400 block">
-                      Audios vinculados: CD1 Track 4 & Track 5
+                      Linked Audios: CD1 Track 4 & Track 5
                     </span>
                   </div>
                 </div>
@@ -768,7 +797,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  {completedLiveSessions.s2 ? '✓ Clase Impartida' : 'Marcar como Completada'}
+                  {completedLiveSessions.s2 ? '✓ Class Completed' : 'Mark as Completed'}
                 </button>
               </div>
             </div>
@@ -790,17 +819,17 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <strong className="text-sm font-bold text-slate-900">
-                        Sesión 3: Conversation, Reading & School Supplies Mastery
+                        Session 3: Conversation, Reading & School Supplies Mastery
                       </strong>
                       <span className="text-[10px] font-semibold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md">
-                        Páginas 6 a 9
+                        Pages 6 to 9
                       </span>
                     </div>
                     <p className="text-xs text-slate-600">
-                      Lectura guiada de <em>"A New Student!"</em>, conversación de Rick y Carlos en el aeropuerto, y vocabulario práctico de útiles escolares.
+                      Guided reading of <em>"A New Student!"</em>, Rick and Carlos airport dialogue, and essential school supplies vocabulary.
                     </p>
                     <span className="text-[11px] text-slate-400 block">
-                      Audios vinculados: CD1 Track 6 & Track 7
+                      Linked Audios: CD1 Track 6 & Track 7
                     </span>
                   </div>
                 </div>
@@ -813,7 +842,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  {completedLiveSessions.s3 ? '✓ Clase Impartida' : 'Marcar como Completada'}
+                  {completedLiveSessions.s3 ? '✓ Class Completed' : 'Mark as Completed'}
                 </button>
               </div>
             </div>
@@ -821,30 +850,30 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
         </div>
       )}
 
-      {/* TAB 3: AUDIO LAB (ALL 6 CD1 TRACKS FROM TEXTBOOK) */}
+      {/* TAB 3: AUDIO LAB (ALL 7 OFFICIAL CD1 TRACKS) */}
       {activeUnitTab === 'audio' && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6 animate-fadeIn">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 px-3 py-0.5 rounded-full inline-block mb-1">
-                Audio CD1 Oficial • Super Goal 1
+                Official CD1 Audio • Super Goal 1
               </span>
               <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
                 <Music className="w-5 h-5 text-purple-600" />
-                Laboratorio de Audios y Pronunciación Nativa
+                Audio Lab & Native Pronunciation Studio
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Escucha los diálogos originales de la Unidad 1 y practica tu pronunciación con el reproductor interactivo.
+                Listen to the authentic textbook dialogues and improve your listening skills with the interactive studio player.
               </p>
             </div>
 
             {/* Playback Speed Controls */}
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
-              <span className="text-slate-500 text-[10px] px-2">Velocidad:</span>
+              <span className="text-slate-500 text-[10px] px-2">Speed:</span>
               {[0.75, 1, 1.25].map(speed => (
                 <button
                   key={speed}
-                  onClick={() => setPlaybackSpeed(speed)}
+                  onClick={() => handleSpeedChange(speed)}
                   className={`px-2.5 py-1 rounded-lg transition-colors ${
                     playbackSpeed === speed ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
@@ -859,7 +888,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
             {/* Track Selector List */}
             <div className="space-y-2">
               <strong className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
-                Selecciona la Pista:
+                Select Audio Track:
               </strong>
               {UNIT_1_AUDIO_TRACKS.map((t, idx) => (
                 <button
@@ -931,7 +960,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleReplay}
-                      title="Reiniciar Pista"
+                      title="Restart Track"
                       className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-colors"
                     >
                       <RotateCcw className="w-4 h-4" />
@@ -948,12 +977,12 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                       {isPlayingAudio ? (
                         <>
                           <Pause className="w-4 h-4" />
-                          <span>Pausar</span>
+                          <span>Pause</span>
                         </>
                       ) : (
                         <>
                           <Play className="w-4 h-4 ml-0.5" />
-                          <span>Reproducir MP3</span>
+                          <span>Play MP3</span>
                         </>
                       )}
                     </button>
@@ -965,7 +994,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   <div className="flex items-center justify-between text-[11px] font-mono text-slate-300">
                     <span>{formatTime(currentTime)}</span>
                     <span className="text-amber-400 font-bold">
-                      {isPlayingAudio ? '▶ Reproduciendo Audio Original de Estudio' : 'En Pausa'}
+                      {isPlayingAudio ? '▶ Playing Official Studio Track' : 'Paused'}
                     </span>
                     <span>{formatTime(duration)}</span>
                   </div>
@@ -1007,7 +1036,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                     className="px-3 py-1.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Bajar este MP3</span>
+                    <span>Download this MP3</span>
                   </a>
 
                   <a
@@ -1017,12 +1046,12 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                     className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-blue-200 hover:text-white rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-colors"
                   >
                     <FolderOpen className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Ver Carpeta en Drive</span>
+                    <span>Open Drive Folder</span>
                   </a>
                 </div>
 
                 <span className="text-amber-300 font-bold text-[11px]">
-                  Audio Original de Estudio • McGraw-Hill
+                  Authentic Studio Audio • McGraw-Hill Education
                 </span>
               </div>
             </div>
@@ -1036,110 +1065,110 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-3 py-0.5 rounded-full inline-block mb-1">
-                Super Goal 1 Workbook • Páginas 89 a 92
+                Super Goal 1 Workbook • Pages 89 to 92
               </span>
               <h3 className="text-xl font-black text-slate-900">
-                Workbook Interactivo con Autocorrección
+                Interactive Workbook with Instant Feedback
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Resuelve los ejercicios del cuaderno de trabajo directamente en pantalla. Cada acierto suma XP a tu perfil.
+                Complete the exercises from your workbook directly on your screen. Earn +150 XP upon finishing.
               </p>
             </div>
             
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1.5 rounded-xl border border-amber-200">
-                +150 XP al completar
+                +150 XP on completion
               </span>
             </div>
           </div>
 
-          {/* EXERCISE A: Greetings Comics (Pág. 89) */}
+          {/* EXERCISE A: Greetings Comics (Page 89) */}
           <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <strong className="text-sm font-bold text-slate-900 block">
-                  A. Write the correct expression in each picture (Page 89)
+                  A. Write the correct expression in each picture. (Page 89)
                 </strong>
                 <p className="text-xs text-slate-500">
-                  Expresiones disponibles: <em>Good morning • Good afternoon • Good evening • Good night • Goodbye • Nice to meet you • Hi. How are you?</em>
+                  Expressions in the box: <em>Good morning • Good afternoon • Good evening • Good night • Goodbye • Nice to meet you • Hi. How are you?</em>
                 </p>
               </div>
               <span className="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
-                6 Viñetas
+                6 Comic Scenes
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
               <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-400 block">1. Despidiéndose al salir:</span>
+                <span className="font-bold text-slate-500 block">1. Leaving and waving goodbye:</span>
                 <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-blue-900">
                   <option value="goodbye">Goodbye / Bye. Take care.</option>
                   <option value="good_morning">Good morning.</option>
                   <option value="nice">Nice to meet you.</option>
                 </select>
-                <span className="text-[11px] text-emerald-600 font-bold block">✓ Respuesta correcta</span>
+                <span className="text-[11px] text-emerald-600 font-bold block">✓ Correct expression</span>
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-400 block">2. Encuentro entre dos amigas:</span>
+                <span className="font-bold text-slate-500 block">2. Two friends meeting on the street:</span>
                 <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-blue-900">
                   <option value="hi_how">Hi. How are you? (Fine, thanks.)</option>
                   <option value="goodbye">Goodbye</option>
                   <option value="night">Good night</option>
                 </select>
-                <span className="text-[11px] text-emerald-600 font-bold block">✓ Respuesta correcta</span>
+                <span className="text-[11px] text-emerald-600 font-bold block">✓ Correct expression</span>
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-400 block">3. Saludo a la maestra en la mañana:</span>
+                <span className="font-bold text-slate-500 block">3. Greeting the teacher in the morning:</span>
                 <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-blue-900">
                   <option value="good_morning">Good morning.</option>
                   <option value="good_night">Good night.</option>
                   <option value="bye">Bye.</option>
                 </select>
-                <span className="text-[11px] text-emerald-600 font-bold block">✓ Respuesta correcta</span>
+                <span className="text-[11px] text-emerald-600 font-bold block">✓ Correct expression</span>
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-400 block">4. "Asma, this is Mona!":</span>
+                <span className="font-bold text-slate-500 block">4. Introducing a friend ("Asma, this is Mona!"):</span>
                 <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-blue-900">
                   <option value="nice">Nice to meet you.</option>
                   <option value="good_night">Good night.</option>
                   <option value="bye">Goodbye.</option>
                 </select>
-                <span className="text-[11px] text-emerald-600 font-bold block">✓ Respuesta correcta</span>
+                <span className="text-[11px] text-emerald-600 font-bold block">✓ Correct expression</span>
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-400 block">5. Encuentro de noche en la calle:</span>
+                <span className="font-bold text-slate-500 block">5. Meeting someone in the evening (7:00 pm):</span>
                 <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-blue-900">
                   <option value="good_evening">Good evening.</option>
                   <option value="good_morning">Good morning.</option>
                   <option value="night">Good night.</option>
                 </select>
-                <span className="text-[11px] text-emerald-600 font-bold block">✓ Respuesta correcta</span>
+                <span className="text-[11px] text-emerald-600 font-bold block">✓ Correct expression</span>
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-400 block">6. Al ir a dormir de noche:</span>
+                <span className="font-bold text-slate-500 block">6. Saying good night before sleeping (8:00 pm):</span>
                 <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-blue-900">
                   <option value="good_night">Good night.</option>
                   <option value="good_morning">Good morning.</option>
                   <option value="afternoon">Good afternoon.</option>
                 </select>
-                <span className="text-[11px] text-emerald-600 font-bold block">✓ Respuesta correcta</span>
+                <span className="text-[11px] text-emerald-600 font-bold block">✓ Correct expression</span>
               </div>
             </div>
           </div>
 
-          {/* EXERCISE B: Complete with verb 'be' (Pág. 90) */}
+          {/* EXERCISE B: Complete with verb 'be' (Page 90) */}
           <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
             <div>
               <strong className="text-sm font-bold text-slate-900 block">
-                B. Complete the sentences. Use the correct form of the verb <em>be</em> (Page 90)
+                B. Complete the sentences. Use the correct form of the verb <em>be</em>. (Page 90)
               </strong>
               <p className="text-xs text-slate-500">
-                Escribe <strong>am</strong>, <strong>is</strong> o <strong>are</strong> en cada espacio:
+                Write <strong>am</strong>, <strong>is</strong>, or <strong>are</strong> in each blank:
               </p>
             </div>
 
@@ -1166,19 +1195,19 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
             </div>
           </div>
 
-          {/* EXERCISE F: Unscramble the Words & Secret Word (Pág. 92) */}
+          {/* EXERCISE F: Unscramble the Words & Secret Word (Page 92) */}
           <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white space-y-4 shadow-md">
             <div className="flex items-center justify-between">
               <div>
                 <strong className="text-sm font-bold text-amber-300 block">
-                  F. Unscramble the words & find the secret word! (Page 92)
+                  F. Unscramble the words. Write the letters in the boxes. Find the secret word! (Page 92)
                 </strong>
                 <p className="text-xs text-blue-200">
-                  Ordena las letras para descubrir las palabras de la Unidad 1.
+                  Rearrange the letters to spell vocabulary words from Unit 1.
                 </p>
               </div>
               <span className="text-xs bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full">
-                Juego Mental
+                Word Puzzle
               </span>
             </div>
 
@@ -1208,55 +1237,55 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
             <div className="p-4 bg-amber-400/20 border border-amber-400/40 rounded-2xl flex items-center justify-between text-xs">
               <span className="font-bold text-amber-200">🌟 The secret word is: <strong>GREETINGS</strong></span>
               <span className="bg-amber-400 text-slate-950 font-black px-2.5 py-0.5 rounded-lg text-[10px]">
-                ¡Completado!
+                ✓ Solved!
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 5: SELF-REFLECTION OFICIAL (PAGE 125) */}
+      {/* TAB 5: OFFICIAL SELF-REFLECTION (PAGE 125) */}
       {activeUnitTab === 'reflection' && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-8 animate-fadeIn">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 px-3 py-0.5 rounded-full inline-block mb-1">
-                Página 125 Oficial • McGraw-Hill Super Goal 1
+                Official Page 125 • McGraw-Hill Super Goal 1
               </span>
               <h3 className="text-xl font-black text-slate-900">
-                Unit 1 Self Reflection: Mi Autoevaluación
+                Unit 1 Self Reflection: Self-Assessment
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Evalúa honestamente lo que dominas y lo que deseas repasar antes de pasar a la Unidad 2.
+                Evaluate your progress honestly and identify what you can do well versus what you need to study more before moving to Unit 2.
               </p>
             </div>
 
             <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1.5 rounded-xl border border-amber-200">
-              {isReflectionSaved ? '✓ Enviada (+100 XP)' : '+100 XP al guardar'}
+              {isReflectionSaved ? '✓ Saved (+100 XP)' : '+100 XP on save'}
             </span>
           </div>
 
           {/* Unit 1 Checklist Table */}
           <div className="space-y-4">
             <strong className="text-sm font-bold text-slate-900 block">
-              Unit 1 Checklist: ¿Qué tan bien lograste cada objetivo?
+              Unit 1 Checklist: How well can you perform each goal?
             </strong>
 
             <div className="border border-slate-200 rounded-3xl overflow-hidden text-xs">
               <div className="grid grid-cols-12 bg-slate-100 p-3 font-bold text-slate-700 border-b border-slate-200">
-                <div className="col-span-6">Objetivo de Aprendizaje</div>
+                <div className="col-span-6">Unit 1 Checklist Goals</div>
                 <div className="col-span-2 text-center">I can do this very well</div>
                 <div className="col-span-2 text-center">I can do this quite well</div>
-                <div className="col-span-2 text-center">I need to practice more</div>
+                <div className="col-span-2 text-center">I need to study/practice more</div>
               </div>
 
               {[
-                { id: 'greet_people', label: 'Greet people (Good morning, Hello, Hi)' },
-                { id: 'say_goodbye', label: 'Say goodbye (See you later, Good night, Bye)' },
-                { id: 'introduce_myself', label: 'Introduce myself and others (My name is..., This is...)' },
-                { id: 'verb_be', label: 'Use the verb be (am, is, are, contractions)' },
-                { id: 'possessive_adj', label: 'Use possessive adjectives (my, your, his, her)' },
-                { id: 'school_supplies', label: 'Talk about school supplies (pen, notebook, scissors, eraser)' }
+                { id: 'greet_people', label: 'greet people' },
+                { id: 'say_goodbye', label: 'say goodbye' },
+                { id: 'introduce_myself', label: 'introduce myself and others' },
+                { id: 'verb_be', label: 'use the verb be' },
+                { id: 'possessive_adj', label: 'use the possessive adjectives my, your, his, her' },
+                { id: 'school_supplies', label: 'talk about school supplies' }
               ].map(item => (
                 <div key={item.id} className="grid grid-cols-12 p-3 border-b border-slate-100 items-center hover:bg-slate-50">
                   <div className="col-span-6 font-medium text-slate-800">{item.label}</div>
@@ -1295,7 +1324,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               My five favorite new words from Unit 1:
             </strong>
             <p className="text-xs text-slate-500">
-              Escribe tus 5 palabras favoritas aprendidas en esta unidad:
+              Type your 5 favorite English words learned in this unit:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
               {favWords.map((word, idx) => (
@@ -1317,6 +1346,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 value={likedText}
                 onChange={e => setLikedText(e.target.value)}
                 rows={3}
+                placeholder="What activities, dialogues, or topics did you enjoy most?"
                 className="w-full p-3 border border-slate-200 rounded-2xl bg-white"
               />
             </div>
@@ -1326,9 +1356,23 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 value={difficultText}
                 onChange={e => setDifficultText(e.target.value)}
                 rows={3}
+                placeholder="What grammar points or vocabulary words do you need to review?"
                 className="w-full p-3 border border-slate-200 rounded-2xl bg-white"
               />
             </div>
+          </div>
+
+          {/* Unit 1 Support Guidance directly from Page 125 */}
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-900 space-y-1.5">
+            <strong className="font-black block uppercase tracking-wider text-[11px]">
+              If you're still not sure about something from Unit 1:
+            </strong>
+            <ul className="list-disc list-inside space-y-0.5 text-slate-700 text-[11px]">
+              <li>Read through the unit again in your Student Book.</li>
+              <li>Listen to the audio tracks in the Audio Lab.</li>
+              <li>Study the grammar and functions from the unit again.</li>
+              <li>Ask your teacher for help during your live Google Meet sessions!</li>
+            </ul>
           </div>
 
           <div className="flex justify-end pt-2">
@@ -1337,7 +1381,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               className="flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-colors"
             >
               <Award className="w-4 h-4" />
-              <span>Guardar Mi Self-Reflection Oficial (+100 XP)</span>
+              <span>Save Official Self-Reflection (+100 XP)</span>
             </button>
           </div>
         </div>
@@ -1348,13 +1392,13 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6 animate-fadeIn">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full inline-block mb-1">
-              Material Oficial Digitalizado
+              Official Digital Curriculum
             </span>
             <h3 className="text-xl font-black text-slate-900">
-              Centro de Descargas de la Unidad 1
+              Unit 1 Download & Resource Center
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Descarga o visualiza tus archivos oficiales para tenerlos siempre a mano en cualquier dispositivo.
+              Download or preview your official textbooks and audio resources to practice on any device.
             </p>
           </div>
 
@@ -1370,7 +1414,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                     Student Book • Unit 1 (Pages 2–9)
                   </strong>
                   <span className="text-[11px] text-slate-500 block">
-                    Lecturas, cómics de saludos, diálogo de Carlos & Rick y vocabulario.
+                    Readings, comic dialogues, Carlos & Rick conversation, and vocabulary.
                   </span>
                 </div>
               </div>
@@ -1381,7 +1425,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
-                  <span>Ver en Plataforma</span>
+                  <span>View in Platform</span>
                 </button>
               </div>
             </div>
@@ -1397,7 +1441,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                     Workbook • Unit 1 (Pages 89–92)
                   </strong>
                   <span className="text-[11px] text-slate-500 block">
-                    Ejercicios del cuaderno de trabajo: Verbo be, posesivos y crucigrama.
+                    Workbook practice activities: Verb be, possessives, and word puzzles.
                   </span>
                 </div>
               </div>
@@ -1408,7 +1452,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                   className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Abrir Interactivo</span>
+                  <span>Open Interactive Workbook</span>
                 </button>
               </div>
             </div>
@@ -1421,10 +1465,10 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 </div>
                 <div>
                   <strong className="text-sm font-bold text-amber-950 block">
-                    Audio Track List Oficial (CD1)
+                    Official Audio Track List (CD1)
                   </strong>
                   <span className="text-[11px] text-slate-500 block">
-                    Tracks 2, 3, 4, 5, 6 y 7 vinculados a la Unidad 1.
+                    Tracks 1, 2, 3, 4, 5, 6, and 7 aligned with Unit 1.
                   </span>
                 </div>
               </div>
@@ -1434,7 +1478,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <Music className="w-3.5 h-3.5" />
-                <span>Abrir Reproductor</span>
+                <span>Open Audio Studio</span>
               </button>
             </div>
 
@@ -1446,16 +1490,16 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 </div>
                 <div>
                   <strong className="text-sm font-bold text-emerald-950 block">
-                    Scope & Sequence (Curriculo Completo)
+                    Scope & Sequence (Full Curriculum Map)
                   </strong>
                   <span className="text-[11px] text-slate-500 block">
-                    Mapa de las 8 unidades de Super Goal 1 y las 2 Expansion Units.
+                    Full roadmap of the 8 Super Goal 1 units and the 2 Expansion units.
                   </span>
                 </div>
               </div>
 
               <div className="p-2.5 bg-white rounded-xl border border-emerald-200 text-center font-bold text-emerald-800">
-                8 Unidades + 2 Expansions (A1 Completo)
+                8 Units + 2 Expansion Reviews (CEFR A1)
               </div>
             </div>
           </div>

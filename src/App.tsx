@@ -18,6 +18,7 @@ import { CouponModal } from './components/CouponModal';
 import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { TeacherGate } from './components/TeacherGate';
 import { StudentProfileModal } from './components/StudentProfileModal';
+import { LanguageLab } from './components/LanguageLab';
 import { Student, ScheduleSlot, AudienceTheme } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
 import { initAuth, googleSignIn, logout } from './services/firebaseAuth';
@@ -48,8 +49,17 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   const [slots, setSlots] = useState<ScheduleSlot[]>(() => getLocalSlots());
 
-  // Current active student selector (Defaults to 'guest' for phone visitors to test paywall!)
-  const [currentStudentId, setCurrentStudentId] = useState<string>('guest');
+  // Current active student selector (Persisted in localStorage so refreshing maintains the active student/ticket!)
+  const [currentStudentId, setCurrentStudentId] = useState<string>(() => {
+    const saved = localStorage.getItem('cokito_active_student_id');
+    return saved || 'student_ana_sandoval';
+  });
+
+  useEffect(() => {
+    if (currentStudentId) {
+      localStorage.setItem('cokito_active_student_id', currentStudentId);
+    }
+  }, [currentStudentId]);
 
   // Real-time Firestore Sync
   useEffect(() => {
@@ -162,8 +172,10 @@ export default function App() {
   };
 
   const handleApplyCoupon = async (redeemedStudent: Student) => {
-    await saveStudent(redeemedStudent);
+    setStudents(prev => [redeemedStudent, ...prev.filter(s => s.id !== redeemedStudent.id)]);
     setCurrentStudentId(redeemedStudent.id);
+    localStorage.setItem('cokito_active_student_id', redeemedStudent.id);
+    await saveStudent(redeemedStudent);
     setActiveTab('pathway');
   };
 
@@ -366,7 +378,17 @@ export default function App() {
           />
         )}
 
-        {/* TAB 6: TEACHER COKITÖ DASHBOARD (Protected Gate) */}
+        {/* TAB 6: LABORATORIO DE PRÁCTICA (Language Practice Lab • 100 Drills) */}
+        {activeTab === 'lab' && (
+          <LanguageLab
+            currentStudent={currentStudent}
+            activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
+            onAwardXp={handleAwardXp}
+            onGoToClassroom={() => setActiveTab('pathway')}
+          />
+        )}
+
+        {/* TAB 7: TEACHER COKITÖ DASHBOARD (Protected Gate) */}
         {activeTab === 'teacher' && (
           isTeacherAuthenticated ? (
             <TeacherDashboard
