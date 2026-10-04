@@ -12,11 +12,12 @@ import {
   User as UserIcon 
 } from 'lucide-react';
 import { User } from 'firebase/auth';
-import { AudienceTheme, Student } from '../types';
+import { AudienceTheme, Student, StaffRole } from '../types';
 
 interface HeaderProps {
   user: User | null;
   isTeacherAuthenticated: boolean;
+  staffRole?: StaffRole | null;
   onTeacherLogout: () => void;
   audienceTheme: AudienceTheme;
   onAudienceChange: (theme: AudienceTheme) => void;
@@ -38,6 +39,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   user,
   isTeacherAuthenticated,
+  staffRole,
   onTeacherLogout,
   audienceTheme,
   onAudienceChange,
@@ -279,18 +281,20 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
 
-              {/* 7. Teacher Portal (Emoji on left, Lock on RIGHT) */}
+              {/* 7. Teacher / Directora Portal (Emoji on left, Lock on RIGHT) */}
               <button
                 onClick={() => onTabChange('teacher')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                   activeTab === 'teacher'
-                    ? 'bg-blue-900 text-white shadow-xs font-bold'
+                    ? staffRole === 'principal'
+                      ? 'bg-amber-400 text-slate-950 shadow-md font-black ring-1 ring-amber-500'
+                      : 'bg-blue-900 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:text-blue-900 hover:bg-slate-200/60'
                 }`}
-                title="Acceso restringido para La Teacher"
+                title={staffRole === 'principal' ? 'Despacho Directora Waky' : 'Acceso restringido para La Teacher'}
               >
-                <span className="text-sm">👩‍🏫</span>
-                <span>Teacher</span>
+                <span className="text-sm">{staffRole === 'principal' ? '👑' : '👩‍🏫'}</span>
+                <span>{staffRole === 'principal' ? 'Directora (Waky)' : 'Teacher'}</span>
                 <Lock className={`w-3.5 h-3.5 shrink-0 ml-0.5 ${isTeacherAuthenticated ? 'text-emerald-400' : 'text-amber-500'}`} />
               </button>
 
@@ -394,24 +398,28 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
           </button>
 
-          {/* 7. Teacher (Lock on RIGHT) */}
+          {/* 7. Teacher / Directora (Lock on RIGHT) */}
           <button
             onClick={() => onTabChange('teacher')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
               activeTab === 'teacher'
-                ? 'text-blue-900 font-bold bg-blue-100/80 scale-102'
+                ? staffRole === 'principal'
+                  ? 'text-amber-950 font-black bg-amber-200/80 scale-102'
+                  : 'text-blue-900 font-bold bg-blue-100/80 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <div className="relative">
-              <span className="text-base">👩‍🏫</span>
+              <span className="text-base">{staffRole === 'principal' ? '👑' : '👩‍🏫'}</span>
               <span className={`absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full border border-white flex items-center justify-center ${
                 isTeacherAuthenticated ? 'bg-emerald-500' : 'bg-amber-500'
               }`}>
                 <Lock className="w-2 h-2 text-white" />
               </span>
             </div>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Teacher</span>
+            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">
+              {staffRole === 'principal' ? 'Directora' : 'Teacher'}
+            </span>
           </button>
 
         </div>

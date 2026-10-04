@@ -57,8 +57,10 @@ export interface Student {
   preferredTimeSlot: string; // "Mañanas", "Tardes", "Noches", "Sábados"
   
   // Level Assignment
-  levelId?: string; // Assigned by Teacher Cokito!
-  status: 'pending_evaluation' | 'enrolled' | 'completed';
+  levelId?: string; // Assigned by Teacher Cokito or Principal Waky!
+  teacherId?: string; // Assigned Teacher
+  teacherName?: string;
+  status: 'pending_evaluation' | 'enrolled' | 'completed' | 'paused';
   placementTestScore?: number; // 0-25
   placementTestDiagnosis?: string;
   placementTestDate?: string;
@@ -145,3 +147,22 @@ export interface PlacementQuestion {
   correctAnswer: string; // option letter like "a" or exact word like "bring"
   explanation: string;
 }
+
+export type StaffRole = 'principal' | 'teacher';
+
+export interface Teacher {
+  id: string;
+  name: string;
+  lastName?: string;
+  email: string;
+  phone?: string;
+  avatar: string;
+  specialty: string;
+  levelsAssigned: string[];
+  assignedDays: ('Lunes' | 'Martes' | 'Miércoles' | 'Jueves' | 'Viernes' | 'Sábado')[];
+  workingHours: string;
+  status: 'active' | 'leave' | 'inactive';
+  hourlyRate?: number;
+  bio?: string;
+}
+

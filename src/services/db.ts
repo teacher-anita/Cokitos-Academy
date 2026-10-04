@@ -8,12 +8,14 @@ import {
   updateDoc 
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { Student, ScheduleSlot } from '../types';
+import { Student, ScheduleSlot, Teacher } from '../types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from '../data/curriculumData';
+import { INITIAL_TEACHERS } from '../data/teachersData';
 
 const STORAGE_KEYS = {
   STUDENTS: 'cokito_students_data_v3',
-  SLOTS: 'cokito_slots_data_v3'
+  SLOTS: 'cokito_slots_data_v3',
+  TEACHERS: 'cokito_teachers_data_v1'
 };
 
 // 1. SAVE STUDENT (Local + Firestore Cloud)
@@ -105,5 +107,84 @@ export function getLocalSlots(): ScheduleSlot[] {
     return raw ? JSON.parse(raw) : INITIAL_SCHEDULE_SLOTS;
   } catch {
     return INITIAL_SCHEDULE_SLOTS;
+  }
+}
+
+// 6. DELETE STUDENT (Local + Cloud)
+export async function deleteStudent(studentId: string): Promise<void> {
+  try {
+    const local = getLocalStudents();
+    const filtered = local.filter(s => s.id !== studentId);
+    localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(filtered));
+  } catch {}
+
+  try {
+    const docRef = doc(db, 'students', studentId);
+    await setDoc(docRef, { status: 'inactive' }, { merge: true });
+  } catch (e) {
+    console.warn('Could not sync student deletion to Firestore:', e);
+  }
+}
+
+// 7. TEACHERS MANAGEMENT (Local + Cloud)
+export function getLocalTeachers(): Teacher[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.TEACHERS);
+    return raw ? JSON.parse(raw) : INITIAL_TEACHERS;
+  } catch {
+    return INITIAL_TEACHERS;
+  }
+}
+
+export async function saveTeacher(teacher: Teacher): Promise<void> {
+  try {
+    const local = getLocalTeachers();
+    const filtered = local.filter(t => t.id !== teacher.id);
+    localStorage.setItem(STORAGE_KEYS.TEACHERS, JSON.stringify([teacher, ...filtered]));
+  } catch {}
+
+  try {
+    const docRef = doc(db, 'teachers', teacher.id);
+    await setDoc(docRef, teacher, { merge: true });
+  } catch (e) {
+    console.warn('Could not sync teacher to Firestore:', e);
+  }
+}
+
+export async function deleteTeacher(teacherId: string): Promise<void> {
+  try {
+    const local = getLocalTeachers();
+    const filtered = local.filter(t => t.id !== teacherId);
+    localStorage.setItem(STORAGE_KEYS.TEACHERS, JSON.stringify(filtered));
+  } catch {}
+}
+
+export function subscribeToTeachers(callback: (teachers: Teacher[]) => void): () => void {
+  callback(getLocalTeachers());
+
+  try {
+    const teachersCol = collection(db, 'teachers');
+    const unsubscribe = onSnapshot(
+      teachersCol,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const cloudTeachers: Teacher[] = [];
+          snapshot.forEach((d) => cloudTeachers.push(d.data() as Teacher));
+          callback(cloudTeachers);
+          try {
+            localStorage.setItem(STORAGE_KEYS.TEACHERS, JSON.stringify(cloudTeachers));
+          } catch {}
+        } else {
+          for (const t of INITIAL_TEACHERS) {
+            setDoc(doc(db, 'teachers', t.id), t).catch(() => null);
+          }
+        }
+      },
+      (err) => console.warn('Teachers subscription note:', err.message)
+    );
+    return unsubscribe;
+  } catch (err) {
+    console.warn('Could not setup teachers onSnapshot:', err);
+    return () => {};
   }
 }

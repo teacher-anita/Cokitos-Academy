@@ -19,10 +19,22 @@ import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { TeacherGate } from './components/TeacherGate';
 import { StudentProfileModal } from './components/StudentProfileModal';
 import { LanguageLab } from './components/LanguageLab';
-import { Student, ScheduleSlot, AudienceTheme } from './types';
+import { PrincipalDashboard } from './components/PrincipalDashboard';
+import { Student, ScheduleSlot, AudienceTheme, Teacher, StaffRole } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
+import { INITIAL_TEACHERS } from './data/teachersData';
 import { initAuth, googleSignIn, logout } from './services/firebaseAuth';
-import { saveStudent, saveSlots, subscribeToStudents, getLocalSlots } from './services/db';
+import { 
+  saveStudent, 
+  deleteStudent,
+  saveSlots, 
+  subscribeToStudents, 
+  getLocalSlots,
+  saveTeacher,
+  deleteTeacher,
+  subscribeToTeachers,
+  getLocalTeachers 
+} from './services/db';
 import { ShieldCheck } from 'lucide-react';
 import { CyberOwlChatbot } from './components/CyberOwlChatbot';
 
@@ -36,9 +48,16 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  // Teacher Authentication state (Private to Teacher Cokitö: User Coquito / PIN 3223 or Google)
+  // Staff Authentication role: 'principal' (The Principal Waky) | 'teacher' (Coquito) | null
+  const [staffRole, setStaffRole] = useState<StaffRole | null>(() => {
+    const saved = sessionStorage.getItem('cokito_staff_role');
+    if (saved === 'principal' || saved === 'teacher') return saved;
+    return sessionStorage.getItem('cokito_teacher_auth') === 'true' ? 'principal' : null;
+  });
+
+  // Teacher Authentication state
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('cokito_teacher_auth') === 'true';
+    return sessionStorage.getItem('cokito_teacher_auth') === 'true' || !!sessionStorage.getItem('cokito_staff_role');
   });
 
   // Auth State
@@ -47,6 +66,7 @@ export default function App() {
 
   // Real-time Database State (Firestore + Local fallback)
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [teachers, setTeachers] = useState<Teacher[]>(() => getLocalTeachers());
   const [slots, setSlots] = useState<ScheduleSlot[]>(() => getLocalSlots());
 
   // Current active student selector (Persisted in localStorage so refreshing maintains the active student/ticket!)
@@ -61,13 +81,23 @@ export default function App() {
     }
   }, [currentStudentId]);
 
-  // Real-time Firestore Sync
+  // Real-time Firestore Sync for Students
   useEffect(() => {
     const unsubStudents = subscribeToStudents((latestStudents) => {
       setStudents(latestStudents);
     });
     return () => {
       if (typeof unsubStudents === 'function') unsubStudents();
+    };
+  }, []);
+
+  // Real-time Firestore Sync for Teachers
+  useEffect(() => {
+    const unsubTeachers = subscribeToTeachers((latestTeachers) => {
+      setTeachers(latestTeachers);
+    });
+    return () => {
+      if (typeof unsubTeachers === 'function') unsubTeachers();
     };
   }, []);
 
@@ -79,7 +109,9 @@ export default function App() {
         if (currentUser) {
           if (currentUser.email === 'anateresa.csb@gmail.com' || currentUser.email?.includes('anateresa')) {
             setIsTeacherAuthenticated(true);
+            setStaffRole('principal');
             sessionStorage.setItem('cokito_teacher_auth', 'true');
+            sessionStorage.setItem('cokito_staff_role', 'principal');
           } else {
             // If registered student matches this Google account email, auto-switch to their profile
             const matched = students.find(s => s.email.toLowerCase() === currentUser.email?.toLowerCase());
@@ -232,6 +264,31 @@ export default function App() {
     }
   };
 
+  const handleDeleteStudent = async (studentId: string) => {
+    setStudents(prev => prev.filter(s => s.id !== studentId));
+    await deleteStudent(studentId);
+  };
+
+  const handleAddStudent = async (newStudent: Student) => {
+    setStudents(prev => [newStudent, ...prev.filter(s => s.id !== newStudent.id)]);
+    await saveStudent(newStudent);
+  };
+
+  const handleUpdateTeacher = async (teacher: Teacher) => {
+    setTeachers(prev => prev.map(t => t.id === teacher.id ? teacher : t));
+    await saveTeacher(teacher);
+  };
+
+  const handleAddTeacher = async (teacher: Teacher) => {
+    setTeachers(prev => [teacher, ...prev.filter(t => t.id !== teacher.id)]);
+    await saveTeacher(teacher);
+  };
+
+  const handleDeleteTeacher = async (teacherId: string) => {
+    setTeachers(prev => prev.filter(t => t.id !== teacherId));
+    await deleteTeacher(teacherId);
+  };
+
   const handlePaymentSuccess = async (method: string, reference: string) => {
     // If student exists, upgrade them to enrolled with digital pass
     if (currentStudent && currentStudent.id !== 'guest') {
@@ -293,9 +350,12 @@ export default function App() {
       <Header
         user={user}
         isTeacherAuthenticated={isTeacherAuthenticated}
+        staffRole={staffRole}
         onTeacherLogout={() => {
           setIsTeacherAuthenticated(false);
+          setStaffRole(null);
           sessionStorage.removeItem('cokito_teacher_auth');
+          sessionStorage.removeItem('cokito_staff_role');
           setActiveTab('landing');
         }}
         audienceTheme={audienceTheme}
@@ -388,29 +448,67 @@ export default function App() {
           />
         )}
 
-        {/* TAB 7: TEACHER COKITÖ DASHBOARD (Protected Gate) */}
+        {/* TAB 7: TEACHER / RECTORÍA PORTAL (Protected Gate) */}
         {activeTab === 'teacher' && (
           isTeacherAuthenticated ? (
-            <TeacherDashboard
-              students={students}
-              slots={slots}
-              onUpdateStudent={handleUpdateStudent}
-              onUpdateSlots={handleUpdateSlots}
-              onOpenOptimizer={() => setIsOptimizerOpen(true)}
-              onLogoutTeacher={() => {
-                setIsTeacherAuthenticated(false);
-                sessionStorage.removeItem('cokito_teacher_auth');
-                setActiveTab('landing');
-              }}
-            />
+            staffRole === 'principal' ? (
+              <PrincipalDashboard
+                students={students}
+                teachers={teachers}
+                slots={slots}
+                onUpdateStudent={handleUpdateStudent}
+                onDeleteStudent={handleDeleteStudent}
+                onAddStudent={handleAddStudent}
+                onUpdateTeacher={handleUpdateTeacher}
+                onDeleteTeacher={handleDeleteTeacher}
+                onAddTeacher={handleAddTeacher}
+                onUpdateSlots={handleUpdateSlots}
+                onSwitchView={(role) => {
+                  if (role === 'teacher') {
+                    setStaffRole('teacher');
+                    sessionStorage.setItem('cokito_staff_role', 'teacher');
+                  } else if (role === 'student') {
+                    setActiveTab('landing');
+                  }
+                }}
+                onLogout={() => {
+                  setIsTeacherAuthenticated(false);
+                  setStaffRole(null);
+                  sessionStorage.removeItem('cokito_teacher_auth');
+                  sessionStorage.removeItem('cokito_staff_role');
+                  setActiveTab('landing');
+                }}
+              />
+            ) : (
+              <TeacherDashboard
+                students={students}
+                slots={slots}
+                onUpdateStudent={handleUpdateStudent}
+                onUpdateSlots={handleUpdateSlots}
+                onOpenOptimizer={() => setIsOptimizerOpen(true)}
+                onLogoutTeacher={() => {
+                  setIsTeacherAuthenticated(false);
+                  setStaffRole(null);
+                  sessionStorage.removeItem('cokito_teacher_auth');
+                  sessionStorage.removeItem('cokito_staff_role');
+                  setActiveTab('landing');
+                }}
+                onSwitchToPrincipal={() => {
+                  setStaffRole('principal');
+                  sessionStorage.setItem('cokito_staff_role', 'principal');
+                }}
+              />
+            )
           ) : (
             <TeacherGate
               user={user}
               onLoginWithGoogle={handleLogin}
               isLoggingIn={isLoggingIn}
-              onAuthenticated={() => {
+              onAuthenticated={(role) => {
                 setIsTeacherAuthenticated(true);
+                setStaffRole(role);
                 sessionStorage.setItem('cokito_teacher_auth', 'true');
+                sessionStorage.setItem('cokito_staff_role', role);
               }}
               onBackToStudent={() => setActiveTab('landing')}
             />

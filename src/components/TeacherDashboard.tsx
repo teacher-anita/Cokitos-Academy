@@ -15,6 +15,7 @@ interface TeacherDashboardProps {
   onUpdateSlots?: (updatedSlots: ScheduleSlot[]) => void;
   onOpenOptimizer: () => void;
   onLogoutTeacher?: () => void;
+  onSwitchToPrincipal?: () => void;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
@@ -23,7 +24,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   onUpdateStudent,
   onUpdateSlots,
   onOpenOptimizer,
-  onLogoutTeacher
+  onLogoutTeacher,
+  onSwitchToPrincipal
 }) => {
   // Navigation tab
   const [activeDashboardTab, setActiveDashboardTab] = useState<'classrooms' | 'applicants' | 'students'>('classrooms');
@@ -258,9 +260,18 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {onSwitchToPrincipal && (
+            <button
+              onClick={onSwitchToPrincipal}
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-colors border border-amber-300"
+              title="Volver al Despacho de Directora Principal Waky"
+            >
+              <span>👑 Despacho Directora Waky</span>
+            </button>
+          )}
           <button
             onClick={onOpenOptimizer}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md transition-colors"
           >
             <span>Estructura Recomendada</span>
           </button>
