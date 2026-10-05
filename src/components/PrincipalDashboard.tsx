@@ -30,10 +30,17 @@ import {
   Award,
   Video,
   X,
-  Check
+  Check,
+  Coffee,
+  Smartphone,
+  MessageCircle,
+  TrendingUp,
+  Gift
 } from 'lucide-react';
 import { Student, Teacher, ScheduleSlot, EnglishLevel } from '../types';
 import { ENGLISH_LEVELS } from '../data/curriculumData';
+import { TeachersLounge } from './TeachersLounge';
+import { OFFICIAL_PAGO_MOVIL, getBcvExchangeRate, setBcvExchangeRateOverride, convertUsdToBs } from '../services/currencyService';
 
 interface PrincipalDashboardProps {
   students: Student[];
@@ -65,7 +72,84 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
   onLogout
 }) => {
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'students' | 'teachers' | 'classrooms' | 'financials'>('teachers');
+  const [activeTab, setActiveTab] = useState<'students' | 'teachers' | 'classrooms' | 'payments' | 'lounge'>('payments');
+
+  // BCV Rate Management (Waky Control)
+  const [currentBcvRate, setCurrentBcvRate] = useState<number>(() => getBcvExchangeRate());
+  const [isEditingBcvRate, setIsEditingBcvRate] = useState(false);
+  const [bcvRateInput, setBcvRateInput] = useState<string>(() => getBcvExchangeRate().toString());
+  const [bcvRateSavedNotice, setBcvRateSavedNotice] = useState(false);
+
+  const handleSaveBcvRate = (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseFloat(bcvRateInput);
+    if (!isNaN(val) && val > 0) {
+      setBcvExchangeRateOverride(val);
+      setCurrentBcvRate(val);
+      setIsEditingBcvRate(false);
+      setBcvRateSavedNotice(true);
+      setTimeout(() => setBcvRateSavedNotice(false), 2500);
+    }
+  };
+
+  // Payment Management Tab State
+  const [paymentSubFilter, setPaymentSubFilter] = useState<'pending' | 'trials' | 'deposits' | 'all'>('pending');
+  const [approvingStudent, setApprovingStudent] = useState<Student | null>(null);
+  const [approvalSlotId, setApprovalSlotId] = useState<string>('');
+  const [approvalTeacherId, setApprovalTeacherId] = useState<string>('');
+  const [approvalNotice, setApprovalNotice] = useState<string | null>(null);
+
+  // Quick Approval Handler
+  const handleApprovePayment = (student: Student, slotId?: string, teacherId?: string) => {
+    const isDeposit = student.depositAmountUsd === 5 && student.plan !== 'basic';
+    const chosenTeacher = teachers.find(t => t.id === teacherId);
+    
+    let updatedSlots = [...(student.assignedSlots || [])];
+    if (slotId && !updatedSlots.includes(slotId)) {
+      updatedSlots.push(slotId);
+      // Update schedule slots
+      if (onUpdateSlots) {
+        const nextSlots = slots.map(s => {
+          if (s.id === slotId) {
+            const currentEnrolled = s.enrolledStudents || [];
+            if (!currentEnrolled.some(e => e.studentId === student.id)) {
+              return {
+                ...s,
+                enrolledStudents: [
+                  ...currentEnrolled,
+                  {
+                    studentId: student.id,
+                    studentName: `${student.name} ${student.lastName || ''}`.trim(),
+                    levelId: student.levelId || 'level_1',
+                    avatar: student.avatar,
+                    email: student.email
+                  }
+                ],
+                status: 'booked' as const
+              };
+            }
+          }
+          return s;
+        });
+        onUpdateSlots(nextSlots);
+      }
+    }
+
+    const updated: Student = {
+      ...student,
+      status: 'enrolled',
+      paymentStatus: isDeposit ? 'deposit_5_paid' : 'fully_paid',
+      teacherId: teacherId || student.teacherId,
+      teacherName: chosenTeacher ? `Teacher ${chosenTeacher.name}` : student.teacherName,
+      assignedSlots: updatedSlots,
+      notes: `${student.notes || ''} | Pago verificado y aprobado por Directora Waky el ${new Date().toLocaleDateString('es-VE')}`
+    };
+
+    onUpdateStudent(updated);
+    setApprovingStudent(null);
+    setApprovalNotice(`¡Pago de ${student.name} aprobado y matrícula activada exitosamente!`);
+    setTimeout(() => setApprovalNotice(null), 3500);
+  };
 
   // Search & Filters
   const [studentSearch, setStudentSearch] = useState('');
@@ -484,6 +568,35 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
       {/* 3. TABS NAVIGATION */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 text-xs font-bold">
         <button
+          onClick={() => setActiveTab('payments')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all relative ${
+            activeTab === 'payments'
+              ? 'bg-slate-900 text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Smartphone className="w-4 h-4 text-emerald-400" />
+          <span>Gestión de Pagos & Matrícula</span>
+          {students.filter(s => s.paymentStatus === 'pending_approval' || (s.status === 'pending_evaluation' && s.pagoMovilRef)).length > 0 && (
+            <span className="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs animate-pulse">
+              🔔 {students.filter(s => s.paymentStatus === 'pending_approval' || (s.status === 'pending_evaluation' && s.pagoMovilRef)).length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('lounge')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all ${
+            activeTab === 'lounge'
+              ? 'bg-amber-700 text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Coffee className="w-4 h-4 text-amber-500" />
+          <span>☕ Teacher's Lounge & Cartelera</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('teachers')}
           className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all ${
             activeTab === 'teachers'
@@ -838,6 +951,413 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* 5. TAB CONTENT: GESTIÓN DE PAGOS Y MATRÍCULA (WAKY RECTORÍA) */}
+      {activeTab === 'payments' && (
+        <div className="space-y-6 animate-fadeIn">
+          {approvalNotice && (
+            <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-2xl text-xs font-bold flex items-center gap-2 animate-fadeIn shadow-xs">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>{approvalNotice}</span>
+            </div>
+          )}
+
+          {/* Top Row: Rate Management & Bank Account Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            {/* Box 1: BCV Exchange Rate Control */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Tasa Oficial de Cambio (BCV)
+                </span>
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md font-bold border border-emerald-200">
+                  Activa
+                </span>
+              </div>
+
+              {isEditingBcvRate ? (
+                <form onSubmit={handleSaveBcvRate} className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={bcvRateInput}
+                      onChange={e => setBcvRateInput(e.target.value)}
+                      className="flex-1 p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-black text-slate-900"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingBcvRate(false)}
+                      className="px-2 py-2 text-slate-400 hover:text-slate-600 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">Actualiza el cálculo automático en Bs para todos los alumnos.</span>
+                </form>
+              ) : (
+                <div className="flex items-baseline justify-between">
+                  <div>
+                    <div className="text-2xl font-black text-slate-900">
+                      Bs. {currentBcvRate.toFixed(2)}
+                    </div>
+                    <span className="text-[11px] text-slate-400">por 1.00 USD</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setBcvRateInput(currentBcvRate.toString());
+                      setIsEditingBcvRate(true);
+                    }}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Modificar</span>
+                  </button>
+                </div>
+              )}
+
+              {bcvRateSavedNotice && (
+                <p className="text-[11px] text-emerald-600 font-bold animate-fadeIn">✓ Tasa actualizada exitosamente</p>
+              )}
+            </div>
+
+            {/* Box 2: Official Account Provincial */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-1.5 text-xs md:col-span-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Cuenta Oficial de Recepción (Pago Móvil)
+                </span>
+                <span className="text-[11px] font-bold text-blue-700">Directora Waky</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 font-medium">
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block text-[10px]">Banco:</span>
+                  <strong className="text-slate-900">{OFFICIAL_PAGO_MOVIL.bankName} ({OFFICIAL_PAGO_MOVIL.bankCode})</strong>
+                </div>
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block text-[10px]">Cédula:</span>
+                  <strong className="text-slate-900">{OFFICIAL_PAGO_MOVIL.cedula}</strong>
+                </div>
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block text-[10px]">Teléfono:</span>
+                  <strong className="text-slate-900">{OFFICIAL_PAGO_MOVIL.phone}</strong>
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-500 pt-1 flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Comunidad WhatsApp Welcome Lounge vinculada para preinscripciones.</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Subfilter Buttons */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
+            <button
+              onClick={() => setPaymentSubFilter('pending')}
+              className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                paymentSubFilter === 'pending'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Por Validar ({students.filter(s => s.paymentStatus === 'pending_approval' || (s.status === 'pending_evaluation' && s.pagoMovilRef)).length})</span>
+            </button>
+
+            <button
+              onClick={() => setPaymentSubFilter('trials')}
+              className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                paymentSubFilter === 'trials'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Gift className="w-3.5 h-3.5" />
+              <span>Pases de Cortesía 24h ({students.filter(s => s.paymentStatus === 'trial_24h').length})</span>
+            </button>
+
+            <button
+              onClick={() => setPaymentSubFilter('deposits')}
+              className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                paymentSubFilter === 'deposits'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <DollarSign className="w-3.5 h-3.5" />
+              <span>Reservas $5 / Saldo Pendiente ({students.filter(s => s.paymentStatus === 'deposit_5_paid' || (s.balanceDueUsd && s.balanceDueUsd > 0)).length})</span>
+            </button>
+
+            <button
+              onClick={() => setPaymentSubFilter('all')}
+              className={`px-4 py-2 rounded-xl transition-all ${
+                paymentSubFilter === 'all'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <span>Todos los Alumnos</span>
+            </button>
+          </div>
+
+          {/* Student Payment Cards / Table */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">
+                  Bandeja de Conciliación Bancaria y Activación de Cupos
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Verifica el comprobante con tu aplicación de Banco Provincial y aprueba con un solo clic para abrir el acceso del alumno.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-100">
+                  <tr>
+                    <th className="py-3 px-4">Alumno</th>
+                    <th className="py-3 px-4">Plan & Modalidad</th>
+                    <th className="py-3 px-4">Datos de Pago Móvil</th>
+                    <th className="py-3 px-4">Estado Actual</th>
+                    <th className="py-3 px-4 text-right">Decisión de Directora</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {students
+                    .filter(s => {
+                      if (paymentSubFilter === 'pending') {
+                        return s.paymentStatus === 'pending_approval' || (s.status === 'pending_evaluation' && s.pagoMovilRef);
+                      }
+                      if (paymentSubFilter === 'trials') return s.paymentStatus === 'trial_24h';
+                      if (paymentSubFilter === 'deposits') return s.paymentStatus === 'deposit_5_paid' || (s.balanceDueUsd && s.balanceDueUsd > 0);
+                      return true;
+                    })
+                    .map(st => {
+                      const isPending = st.paymentStatus === 'pending_approval' || (st.status === 'pending_evaluation' && st.pagoMovilRef);
+                      const isTrial = st.paymentStatus === 'trial_24h';
+
+                      return (
+                        <tr key={st.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <img
+                                src={st.avatar}
+                                alt={st.name}
+                                className="w-10 h-10 rounded-full border border-slate-200 object-cover"
+                              />
+                              <div>
+                                <strong className="text-slate-900 block font-semibold">{st.name} {st.lastName || ''}</strong>
+                                <span className="text-xs text-slate-400 block">{st.email}</span>
+                                <span className="text-[11px] text-slate-500">{st.phone || 'Sin WhatsApp'}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-4">
+                            <span className="font-bold text-blue-900 block capitalize">{st.plan}</span>
+                            <span className="text-xs text-slate-500 block capitalize">
+                              {st.modality} • {st.groupSize === 'individual' ? '1 a 1' : 'Grupal'}
+                            </span>
+                            {st.preferredTimeSlot && (
+                              <span className="text-[10px] text-slate-400 block mt-0.5">
+                                Preferencia: {st.preferredTimeSlot}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-4">
+                            {st.pagoMovilRef ? (
+                              <div className="space-y-0.5">
+                                <span className="font-black text-slate-900 block text-xs">
+                                  Ref: {st.pagoMovilRef}
+                                </span>
+                                <span className="text-[11px] text-slate-600 block">
+                                  {st.pagoMovilBank || 'Banco emisor'} • {st.pagoMovilAmountBs ? `Bs. ${st.pagoMovilAmountBs}` : '$5 USD'}
+                                </span>
+                                <span className="text-[10px] text-slate-400 block">
+                                  {st.pagoMovilDate ? new Date(st.pagoMovilDate).toLocaleDateString() : 'Fecha reciente'}
+                                </span>
+                              </div>
+                            ) : isTrial ? (
+                              <span className="text-[11px] text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded-md inline-block">
+                                ⏱️ Pase de Cortesía 24h
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 italic text-xs">Sin reporte de referencia</span>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-block ${
+                              st.status === 'enrolled' && st.paymentStatus !== 'trial_24h'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : isTrial
+                                ? 'bg-amber-100 text-amber-800'
+                                : isPending
+                                ? 'bg-blue-100 text-blue-900 animate-pulse'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}>
+                              {st.status === 'enrolled' && st.paymentStatus !== 'trial_24h'
+                                ? '🟢 Matriculado / Activo'
+                                : isTrial
+                                ? '🎁 Modo Cortesía'
+                                : isPending
+                                ? '🔔 Por Conciliar'
+                                : '🟡 Modo Guest'}
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* WhatsApp Contact */}
+                              {st.phone && (
+                                <a
+                                  href={`https://wa.me/${st.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${st.name}! Te saluda la Directora Waky de Cokits Academy. Te escribo con respecto a tu inscripción y confirmación de horario en la academia.`)}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-colors"
+                                  title="Escribir por WhatsApp"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+
+                              {/* Approve Button */}
+                              {st.status !== 'enrolled' || isTrial ? (
+                                <button
+                                  onClick={() => {
+                                    setApprovingStudent(st);
+                                    setApprovalSlotId(st.assignedSlots?.[0] || '');
+                                    setApprovalTeacherId(st.teacherId || '');
+                                  }}
+                                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition-colors flex items-center gap-1"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Aprobar Pago & Activar</span>
+                                </button>
+                              ) : (
+                                <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Al día
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Modal for Approving Student with Slot & Teacher Assignment */}
+          {approvingStudent && (
+            <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="font-black text-slate-900 text-base">
+                      Aprobar Matrícula: {approvingStudent.name} {approvingStudent.lastName || ''}
+                    </h3>
+                    <p className="text-xs text-slate-400">Conciliación bancaria de Banco Provincial</p>
+                  </div>
+                  <button onClick={() => setApprovingStudent(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Referencia reportada:</span>
+                    <strong className="text-slate-900">{approvingStudent.pagoMovilRef || 'Depósito manual'}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Banco de origen:</span>
+                    <strong className="text-slate-900">{approvingStudent.pagoMovilBank || 'No especificado'}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Monto transferido:</span>
+                    <strong className="text-emerald-700 font-bold">{approvingStudent.pagoMovilAmountBs ? `Bs. ${approvingStudent.pagoMovilAmountBs}` : '$5 USD'}</strong>
+                  </div>
+                </div>
+
+                {/* Teacher and Slot assignment */}
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Profesor Asignado:</label>
+                    <select
+                      value={approvalTeacherId}
+                      onChange={e => setApprovalTeacherId(e.target.value)}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold"
+                    >
+                      <option value="">Teacher Cokitö (General)</option>
+                      {teachers.map(t => (
+                        <option key={t.id} value={t.id}>Teacher {t.name} {t.lastName || ''} ({t.specialty})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Salón / Horario Confirmado por Waky:</label>
+                    <select
+                      value={approvalSlotId}
+                      onChange={e => setApprovalSlotId(e.target.value)}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold"
+                    >
+                      <option value="">A convenir / Asincrónico</option>
+                      {slots.slice(0, 15).map(s => (
+                        <option key={s.id} value={s.id}>{s.day} {s.startTime} - {s.classroomTitle || 'Aula Regular'}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setApprovingStudent(null)}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApprovePayment(approvingStudent, approvalSlotId, approvalTeacherId)}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Confirmar Conciliación & Activar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 6. TAB CONTENT: TEACHER'S LOUNGE (SALA DE PROFESORES Y STAFF HUB) */}
+      {activeTab === 'lounge' && (
+        <div className="space-y-6 animate-fadeIn">
+          <TeachersLounge
+            currentStaffRole="principal"
+            staffName="Directora Waky"
+            staffAvatar="👑"
+            students={students}
+            teachers={teachers}
+            slots={slots}
+          />
         </div>
       )}
 

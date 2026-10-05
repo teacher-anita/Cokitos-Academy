@@ -119,12 +119,12 @@ ${unit.owlCulture.culturalStory}
     return studentXp >= requiredXp;
   };
 
-  // IF NOT ENROLLED AND NOT TEACHER: LOCKED PREVIEW (GUEST SEES CURRICULAR OVERVIEW / GHOST MODE)
+  // IF NOT ENROLLED AND NOT TEACHER: LOCKED PREVIEW (GUEST SEES CURRICULAR OVERVIEW / GUEST MODE)
   if (!isEnrolled) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fadeIn">
 
-        {/* Paywall Banner: Ghost Mode / Visión Fantasma */}
+        {/* Paywall Banner: Guest Mode / Modo Invitado */}
         <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-slate-800 shadow-xl text-center space-y-5">
           <div className="w-16 h-16 rounded-3xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center mx-auto shadow-md">
             <Lock className="w-8 h-8" />
@@ -132,26 +132,26 @@ ${unit.owlCulture.culturalStory}
 
           <div className="space-y-2 max-w-xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/30 inline-block">
-              👻 Visión Fantasma • Modo Vista Previa
+              🔒 Modo Guest • Vista Previa de Invitado
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
               Virtual Classroom & Pensum Oficial Cokitö
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              Estás explorando en <strong>Modo Fantasma</strong>. Puedes ver todos los niveles, módulos y la metodología. Para activar tu cuenta e interactuar con el <strong>Cyber Owl</strong>, audios nativos y agendar tus clases en vivo, valida tus $5 o ingresa tu código:
+              Estás navegando en <strong>Modo Guest</strong>. Como invitado puedes explorar los títulos de los niveles y módulos. <strong>La descarga de libros y guías oficiales en PDF, las pistas de audio, los quizzes y las clases en vivo están estrictamente reservados para alumnos afiliados.</strong> Para desbloquear todo el material, valida tu afiliación de $5 o ingresa tu código de beca:
             </p>
           </div>
 
           <div className="p-4 sm:p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-blue-200 text-left space-y-2.5">
             <p className="font-bold text-white flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>¿Qué desbloqueas con tu Pase Validado?</span>
+              <span>¿Qué desbloqueas con tu Afiliación Oficial?</span>
             </p>
             <ul className="space-y-1.5 list-disc list-inside text-blue-100">
-              <li><strong>Live Speaking Sessions:</strong> Clases en vivo en grupos reducidos o 1 a 1 sin juzgarte.</li>
-              <li><strong>Pensum Oficial Completo:</strong> 12 niveles progresivos (SuperGoal y MegaGoal).</li>
-              <li><strong>Cyber Owl Interactive Quizzes:</strong> Evaluaciones autocorregibles con rachas de XP.</li>
-              <li><strong>Smart Owl Culture Corner:</strong> Modismos, pronunciación y curiosidades.</li>
+              <li><strong>Descarga de Libros & Guías (PDF):</strong> Material oficial completo de cada unidad y Workbook.</li>
+              <li><strong>Audios Nativos MP3:</strong> Tracks de pronunciación fonética y listening de McGraw-Hill.</li>
+              <li><strong>Live Speaking Sessions:</strong> Clases en vivo en grupos reducidos con La Teacher Cokitö.</li>
+              <li><strong>Cyber Owl Interactive Quizzes:</strong> Evaluaciones autocorregibles con acumulación de XP.</li>
             </ul>
           </div>
 

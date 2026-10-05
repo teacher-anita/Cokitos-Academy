@@ -153,7 +153,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                         : 'bg-amber-100 text-amber-800 border-amber-300'
                     }`}>
-                      {isEnrolled ? '🟢 Alumno Oficial Activo' : '🟡 Modo Fantasma (Sin Validar)'}
+                      {isEnrolled ? '🟢 Alumno Oficial Activo' : '🟡 Modo Guest (Pendiente de Afiliación)'}
                     </span>
                     <span className="text-[10px] font-bold text-slate-600 bg-slate-200/80 px-2 py-0.5 rounded-full">
                       {(student?.levelId || 'SuperGoal 1').toUpperCase()}

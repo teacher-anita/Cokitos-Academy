@@ -56,6 +56,18 @@ export interface Student {
   groupSize: GroupSize;
   preferredTimeSlot: string; // "Mañanas", "Tardes", "Noches", "Sábados"
   
+  // Payment & Trial Status (Waky Review Workflow)
+  paymentStatus?: 'pending_approval' | 'trial_24h' | 'deposit_5_paid' | 'fully_paid' | 'scholarship';
+  trialExpiresAt?: number; // timestamp when 24h trial ends
+  paymentMethod?: 'pagomovil' | 'paypal' | 'cash' | 'coupon' | 'trial_24h';
+  pagoMovilRef?: string;
+  pagoMovilBank?: string;
+  pagoMovilAmountBs?: number;
+  pagoMovilDate?: string;
+  depositAmountUsd?: number; // e.g. 5 USD
+  balanceDueUsd?: number;    // e.g. remaining balance for private classes or group
+  preferredSlotId?: string;
+  
   // Level Assignment
   levelId?: string; // Assigned by Teacher Cokito or Principal Waky!
   teacherId?: string; // Assigned Teacher
@@ -79,6 +91,39 @@ export interface Student {
   };
   notes: string;
   assignedSlots: string[]; // e.g. ['Lunes-16:00', 'Miercoles-16:00']
+}
+
+export interface TeacherAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  authorName: string; // e.g. "Directora Waky"
+  authorRole: 'principal' | 'head_teacher';
+  priority: 'urgent' | 'important' | 'info';
+  createdAt: string;
+  targetAudience?: 'all' | 'teachers';
+}
+
+export interface LoungeMessage {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorRole: 'principal' | 'teacher';
+  avatar: string;
+  text: string;
+  timestamp: string;
+  reactions?: Record<string, number>; // e.g. { '☕': 4, '👏': 3 }
+}
+
+export interface TeacherAttendanceLog {
+  id: string;
+  slotId: string;
+  teacherId: string;
+  teacherName: string;
+  date: string;
+  unitCovered: number;
+  summaryNotes: string;
+  attendedStudentIds: string[];
 }
 
 export type SlotType = 'individual' | 'group' | 'institutional_csb';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -25,12 +25,15 @@ import {
   Lock,
   Banknote,
   ExternalLink,
-  Copy
+  Copy,
+  MessageCircle,
+  Gift
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student, ScheduleSlot, ClassModality, GroupSize, AudienceTheme } from '../types';
 import { PlacementQuizModal } from './PlacementQuizModal';
 import { generateEmailTemplate, sendGmailEmail } from '../services/gmailNotifier';
+import { OFFICIAL_PAGO_MOVIL, convertUsdToBs, getBcvExchangeRate, fetchLiveBcvRate } from '../services/currencyService';
 
 interface RegistrationFlowProps {
   slots: ScheduleSlot[];
@@ -186,12 +189,22 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredStudent, setRegisteredStudent] = useState<Student | null>(null);
 
+  // BCV Exchange Rate State
+  const [bcvRate, setBcvRate] = useState<number>(() => getBcvExchangeRate());
+  useEffect(() => {
+    fetchLiveBcvRate().then(rate => setBcvRate(rate));
+  }, []);
+
   // Step 4 Validation State (post-registration)
   const [step4Code, setStep4Code] = useState('');
   const [step4Error, setStep4Error] = useState<string | null>(null);
   const [step4Success, setStep4Success] = useState<string | null>(null);
   const [showPagoMovilBox, setShowPagoMovilBox] = useState(false);
   const [pagoMovilRef, setPagoMovilRef] = useState('');
+  const [pagoMovilBank, setPagoMovilBank] = useState('Banco de Venezuela');
+  const [payFullPrivate, setPayFullPrivate] = useState(false);
+  const [isTrialActivated, setIsTrialActivated] = useState(false);
+  const [pagoMovilSubmitted, setPagoMovilSubmitted] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const handleCopy = (text: string, key: string) => {
@@ -221,6 +234,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       const updated: Student = {
         ...registeredStudent,
         status: 'enrolled',
+        paymentStatus: 'scholarship',
         xp: registeredStudent.xp + 250,
         notes: `${registeredStudent.notes || ''} | Validado exitosamente con código post-registro: ${clean}`
       };
@@ -242,46 +256,83 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
     if (!registeredStudent) return;
     const updated: Student = {
       ...registeredStudent,
-      status: 'enrolled',
-      xp: registeredStudent.xp + 200,
-      notes: `${registeredStudent.notes || ''} | Pase Digital $5 pagado vía PayPal Checkout (anateresa.csb@gmail.com)`
+      status: 'pending_evaluation',
+      paymentStatus: 'pending_approval',
+      paymentMethod: 'paypal',
+      depositAmountUsd: 5,
+      xp: registeredStudent.xp + 100,
+      notes: `${registeredStudent.notes || ''} | Pago de $5 reportado vía PayPal Checkout (anateresa.csb@gmail.com)`
     };
     setRegisteredStudent(updated);
     onRegisterComplete(updated, selectedSlotIds);
-    setStep4Success('¡Pago de $5 registrado con PayPal! Tu Pase Digital ha sido desbloqueado.');
+    setPagoMovilSubmitted(true);
+    setStep4Success('¡Pago reportado vía PayPal! La Directora Waky está verificando la transacción.');
     try { confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } }); } catch {}
   };
 
-  const handleReportPagoMovilStep4 = (e: React.FormEvent) => {
+  // Handler for reporting Pago Móvil: Keeps in pending until Waky approves!
+  const handleReportPagoMovilStep4 = (e: React.FormEvent, calculatedDueUsd: number, calculatedBs: number) => {
     e.preventDefault();
     if (!pagoMovilRef.trim() || !registeredStudent) {
       alert('Por favor ingresa el número de referencia del Pago Móvil.');
       return;
     }
+    const isDeposit = calculatedDueUsd === 5 && selectedPlanId !== 'digital_5';
+    const remaining = isDeposit ? (currentPlan.priceNumber - 5) : 0;
+
     const updated: Student = {
       ...registeredStudent,
-      status: 'enrolled',
-      xp: registeredStudent.xp + 200,
-      notes: `${registeredStudent.notes || ''} | Pase Digital $5 reportado vía Pago Móvil (Ref: ${pagoMovilRef.trim()})`
+      status: 'pending_evaluation',
+      paymentStatus: 'pending_approval',
+      paymentMethod: 'pagomovil',
+      pagoMovilRef: pagoMovilRef.trim(),
+      pagoMovilBank,
+      pagoMovilAmountBs: calculatedBs,
+      depositAmountUsd: calculatedDueUsd,
+      balanceDueUsd: remaining,
+      pagoMovilDate: new Date().toISOString(),
+      notes: `${registeredStudent.notes || ''} | Pago Móvil Ref: ${pagoMovilRef.trim()} (${pagoMovilBank}) por Bs. ${calculatedBs} ($${calculatedDueUsd} USD). ${isDeposit ? 'Apartado de cupo con $5 (Saldo restante pendiente).' : 'Pago total reportado.'}`
     };
     setRegisteredStudent(updated);
     onRegisterComplete(updated, selectedSlotIds);
-    setStep4Success(`¡Pago Móvil reportado (Ref: ${pagoMovilRef.trim()})! Tu Pase Digital ha sido activado.`);
+    setPagoMovilSubmitted(true);
+    setStep4Success(`¡Comprobante Nro. ${pagoMovilRef.trim()} enviado a Dirección! La Directora Waky está validando tu transferencia.`);
     setShowPagoMovilBox(false);
     try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch {}
+  };
+
+  // Handler for 24-hour courtesy trial (Retention: No student left behind!)
+  const handleActivateTrial24h = () => {
+    if (!registeredStudent) return;
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+    const updated: Student = {
+      ...registeredStudent,
+      status: 'enrolled',
+      paymentStatus: 'trial_24h',
+      trialExpiresAt: expiresAt,
+      notes: `${registeredStudent.notes || ''} | 🎁 Pase de Cortesía de 24 Horas Activado el ${new Date().toLocaleDateString()}`
+    };
+    setRegisteredStudent(updated);
+    setIsTrialActivated(true);
+    onRegisterComplete(updated, selectedSlotIds);
+    setStep4Success('🎁 ¡Pase de Cortesía de 24 Horas Activado! Explora la plataforma y únete al Welcome Lounge de WhatsApp.');
+    try { confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } }); } catch {}
   };
 
   const handleCashStep4 = () => {
     if (!registeredStudent) return;
     const updated: Student = {
       ...registeredStudent,
-      status: 'enrolled',
-      xp: registeredStudent.xp + 200,
-      notes: `${registeredStudent.notes || ''} | Pago de $5 confirmado en efectivo con Teacher Cokitö`
+      status: 'pending_evaluation',
+      paymentStatus: 'pending_approval',
+      paymentMethod: 'cash',
+      depositAmountUsd: 5,
+      notes: `${registeredStudent.notes || ''} | Pago en efectivo acordado con La Teacher Cokitö`
     };
     setRegisteredStudent(updated);
     onRegisterComplete(updated, selectedSlotIds);
-    setStep4Success('¡Pago en efectivo acordado con La Teacher! Tu cuenta ha sido activada.');
+    setPagoMovilSubmitted(true);
+    setStep4Success('¡Pago en efectivo acordado! Tu cupo ha quedado reservado.');
     try { confetti({ particleCount: 90, spread: 65, origin: { y: 0.6 } }); } catch {}
   };
 
@@ -1164,268 +1215,475 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         </div>
       )}
 
-      {/* STEP 4: Post-Registration Account Validation Screen */}
-      {step === 4 && registeredStudent && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 animate-fadeIn space-y-6">
-          
-          {/* Header Status */}
-          <div className="text-center space-y-2">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-md ${
-              registeredStudent.status === 'enrolled' 
-                ? 'bg-emerald-100 text-emerald-600' 
-                : 'bg-amber-100 text-amber-600'
-            }`}>
-              {registeredStudent.status === 'enrolled' ? (
-                <CheckCircle2 className="w-8 h-8" />
-              ) : (
-                <Lock className="w-8 h-8" />
-              )}
-            </div>
+        {/* STEP 4: Post-Registration Account Validation Screen */}
+        {step === 4 && registeredStudent && (() => {
+          const isDigital = selectedPlanId === 'digital_5';
+          const isGroup = selectedPlanId !== 'digital_5' && selectedGroupSize !== 'individual';
+          const isPrivate = selectedPlanId !== 'digital_5' && selectedGroupSize === 'individual';
+          const calculatedDueUsd = isDigital ? 5 : (isGroup ? 5 : (payFullPrivate ? currentPlan.priceNumber : 5));
+          const step4Conversion = convertUsdToBs(calculatedDueUsd, bcvRate);
 
-            <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${
-              registeredStudent.status === 'enrolled'
-                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                : 'text-amber-800 bg-amber-50 border border-amber-200'
-            }`}>
-              {registeredStudent.status === 'enrolled' 
-                ? '¡Cuenta Validada y Activa!' 
-                : 'Paso Final • Validación de Cuenta Requerida'}
-            </span>
+          return (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 animate-fadeIn space-y-6">
+              
+              {/* Header Status */}
+              <div className="text-center space-y-2">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-md ${
+                  registeredStudent.paymentStatus === 'trial_24h'
+                    ? 'bg-amber-100 text-amber-700'
+                    : registeredStudent.status === 'enrolled' 
+                    ? 'bg-emerald-100 text-emerald-600' 
+                    : pagoMovilSubmitted || registeredStudent.paymentStatus === 'pending_approval'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-amber-100 text-amber-600'
+                }`}>
+                  {registeredStudent.paymentStatus === 'trial_24h' ? (
+                    <Gift className="w-8 h-8" />
+                  ) : registeredStudent.status === 'enrolled' ? (
+                    <CheckCircle2 className="w-8 h-8" />
+                  ) : pagoMovilSubmitted || registeredStudent.paymentStatus === 'pending_approval' ? (
+                    <Clock className="w-8 h-8" />
+                  ) : (
+                    <Lock className="w-8 h-8" />
+                  )}
+                </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Bienvenido(a), {registeredStudent.name}
-            </h2>
+                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${
+                  registeredStudent.paymentStatus === 'trial_24h'
+                    ? 'text-amber-800 bg-amber-50 border border-amber-300'
+                    : registeredStudent.status === 'enrolled'
+                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                    : pagoMovilSubmitted || registeredStudent.paymentStatus === 'pending_approval'
+                    ? 'text-blue-800 bg-blue-50 border border-blue-200'
+                    : 'text-amber-800 bg-amber-50 border border-amber-200'
+                }`}>
+                  {registeredStudent.paymentStatus === 'trial_24h'
+                    ? '🎁 Pase de Cortesía de 24 Horas Activo'
+                    : registeredStudent.status === 'enrolled' 
+                    ? '¡Cuenta Validada y Activa!' 
+                    : pagoMovilSubmitted || registeredStudent.paymentStatus === 'pending_approval'
+                    ? 'Comprobante en Revisión por la Directora Waky'
+                    : 'Paso Final • Validación de Cuenta Requerida'}
+                </span>
 
-            <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-              Tus datos y tu prueba diagnóstica (<strong>{registeredStudent.placementTestScore}/25 pts</strong>) han quedado guardados en el sistema con nivel sugerido <strong>{(registeredStudent.levelId || 'level_1').toUpperCase()}</strong>.
-            </p>
-          </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Bienvenido(a), {registeredStudent.name}
+                </h2>
 
-          {/* Registration Summary Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 max-w-md mx-auto text-xs space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Alumno:</span>
-              <strong className="text-slate-900">{registeredStudent.name} {registeredStudent.lastName}</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Plan Seleccionado:</span>
-              <strong className="text-blue-700">{currentPlan.title}</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Inversión del Plan:</span>
-              <strong className="text-slate-900 font-bold">{currentPlan.priceDisplay} {currentPlan.period}</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Estado Actual:</span>
-              <strong className={registeredStudent.status === 'enrolled' ? 'text-emerald-700' : 'text-amber-600'}>
-                {registeredStudent.status === 'enrolled' ? '🟢 Acceso Total Desbloqueado' : '🟡 Modo Fantasma (Pendiente de Validación)'}
-              </strong>
-            </div>
-          </div>
-
-          {/* SCENARIO A: ALREADY ENROLLED */}
-          {registeredStudent.status === 'enrolled' ? (
-            <div className="text-center space-y-4 pt-2 max-w-md mx-auto">
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs font-medium space-y-1">
-                <p className="font-bold text-sm">🎉 ¡Tu cuenta está 100% activa!</p>
-                <p className="text-emerald-700">Tienes acceso a tus libros oficiales, quizzes del Cyber Owl y tu agenda de clases.</p>
+                <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+                  Tus datos y tu prueba diagnóstica (<strong>{registeredStudent.placementTestScore}/25 pts</strong>) han quedado guardados en el sistema con nivel sugerido <strong>{(registeredStudent.levelId || 'level_1').toUpperCase()}</strong>.
+                </p>
               </div>
 
-              <button
-                type="button"
-                onClick={onExploreCalendar}
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm shadow-md transition-all hover:scale-101 flex items-center justify-center gap-2"
-              >
-                <span>Entrar a mi Classroom y Comenzar</span>
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          ) : (
-            /* SCENARIO B: PENDING VALIDATION (Requires Code or Payment) */
-            <div className="space-y-6 max-w-xl mx-auto pt-2">
-              
-              {/* Notification banners */}
-              {step4Success && (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs font-bold text-center animate-fadeIn">
-                  {step4Success}
+              {/* Registration Summary Card */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 max-w-md mx-auto text-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Alumno:</span>
+                  <strong className="text-slate-900">{registeredStudent.name} {registeredStudent.lastName}</strong>
                 </div>
-              )}
-              {step4Error && (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold text-center animate-fadeIn">
-                  {step4Error}
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Plan Seleccionado:</span>
+                  <strong className="text-blue-700">{currentPlan.title}</strong>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Modalidad:</span>
+                  <strong className="text-slate-800 capitalize">
+                    {isDigital ? 'Autónomo Asincrónico' : `${selectedModality} • ${selectedGroupSize === 'individual' ? 'Clase 1 a 1' : 'Grupal'}`}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Monto del Plan:</span>
+                  <strong className="text-slate-900 font-bold">{currentPlan.priceDisplay} {currentPlan.period}</strong>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-slate-200">
+                  <span className="text-slate-500">Estado de Cuenta:</span>
+                  <strong className={
+                    registeredStudent.paymentStatus === 'trial_24h' ? 'text-amber-700' :
+                    registeredStudent.status === 'enrolled' ? 'text-emerald-700' :
+                    pagoMovilSubmitted ? 'text-blue-700' : 'text-amber-600'
+                  }>
+                    {registeredStudent.paymentStatus === 'trial_24h' ? '🎁 Modo Cortesía (24h)' :
+                     registeredStudent.status === 'enrolled' ? '🟢 Acceso Total Desbloqueado' :
+                     pagoMovilSubmitted ? '🔵 Pago en Conciliación Bancaria' : '🟡 Modo Guest (Pendiente de Aprobación)'}
+                  </strong>
+                </div>
+              </div>
 
-              {/* OPTION 1: CODE VALIDATION (CSB, Becas, Promociones) */}
-              <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
-                    <KeyRound className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-blue-950">
-                      Opción 1: Validar con Código Promocional o Beca CSB
-                    </h4>
-                    <p className="text-[11px] text-blue-800/80">
-                      Si eres docente o personal del Colegio Simón Bolívar o tienes un código de cortesía:
+              {/* SCENARIO A: 24-HOUR TRIAL OR ACTIVE ENROLLED */}
+              {(registeredStudent.status === 'enrolled' || registeredStudent.paymentStatus === 'trial_24h') ? (
+                <div className="text-center space-y-4 pt-2 max-w-md mx-auto">
+                  <div className={`p-4 rounded-2xl text-xs font-medium space-y-2 ${
+                    registeredStudent.paymentStatus === 'trial_24h'
+                      ? 'bg-amber-50 border border-amber-200 text-amber-950'
+                      : 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                  }`}>
+                    <p className="font-bold text-sm">
+                      {registeredStudent.paymentStatus === 'trial_24h'
+                        ? '🎁 ¡Tu Pase de Cortesía de 24 Horas está Activo!'
+                        : '🎉 ¡Tu cuenta está 100% activa!'}
+                    </p>
+                    <p className="leading-relaxed">
+                      {registeredStudent.paymentStatus === 'trial_24h'
+                        ? 'Explora el campus, haz tus primeros quizzes y audios. Recuerda completar tu pago antes de que expiren las 24 horas para asegurar tu cupo definitivo.'
+                        : 'Tienes acceso a tus libros oficiales, quizzes del Cyber Owl y tu agenda de clases.'}
                     </p>
                   </div>
-                </div>
 
-                <form onSubmit={handleValidateStep4Code} className="flex flex-col sm:flex-row gap-2 pt-1">
-                  <input
-                    type="text"
-                    value={step4Code}
-                    onChange={e => setStep4Code(e.target.value)}
-                    placeholder="Ej. CSB-PRE, COKITO2026, BECA100"
-                    className="flex-1 p-3 bg-white border border-blue-200 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-md transition-colors whitespace-nowrap"
+                  {/* Welcome Lounge WhatsApp button */}
+                  <a
+                    href={OFFICIAL_PAGO_MOVIL.whatsappWelcomeLoungeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-101"
                   >
-                    Validar Código
-                  </button>
-                </form>
-              </div>
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Unirme al Welcome Lounge en WhatsApp</span>
+                  </a>
 
-              {/* OPTION 2: PAYMENT VALIDATION ($5 USD Pase Digital) */}
-              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                      <Banknote className="w-4 h-4" />
+                  <button
+                    type="button"
+                    onClick={onExploreCalendar}
+                    className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm shadow-md transition-all hover:scale-101 flex items-center justify-center gap-2"
+                  >
+                    <span>Entrar a mi Classroom y Comenzar</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : pagoMovilSubmitted || registeredStudent.paymentStatus === 'pending_approval' ? (
+                /* SCENARIO B: PAYMENT SUBMITTED - WAITING FOR WAKY TO APPROVE IN BANK */
+                <div className="space-y-5 max-w-md mx-auto pt-2 text-center">
+                  <div className="p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl text-blue-950 space-y-2 text-xs">
+                    <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md">
+                      <Clock className="w-6 h-6" />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-black text-slate-900">
-                        Opción 2: Validar con Pago de $5 USD
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        Pase Digital Autónomo ($5/mes) o activación de tu paquete
-                      </p>
+                    <h4 className="font-black text-sm text-blue-900">
+                      ¡Comprobante Recibido por la Dirección!
+                    </h4>
+                    <p className="text-blue-800 leading-relaxed">
+                      La <strong>Directora Waky</strong> está validando tu referencia bancaria en Banco Provincial. En cuanto sea conciliada, se desbloqueará tu acceso completo.
+                    </p>
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-blue-200 font-semibold text-[11px] text-blue-900">
+                      Referencia reportada: <strong>{registeredStudent.pagoMovilRef || pagoMovilRef}</strong>
                     </div>
                   </div>
-                  <span className="text-base font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                    $5 USD
-                  </span>
-                </div>
 
-                {/* Payment Buttons Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  {/* Crucial Welcome Lounge WhatsApp Community Button */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-slate-600 font-medium">
+                      Mientras la Directora valida tu cupo, únete a nuestra comunidad oficial:
+                    </p>
+                    <a
+                      href={OFFICIAL_PAGO_MOVIL.whatsappWelcomeLoungeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full py-4 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-101"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span>👉 Entrar al Welcome Lounge en WhatsApp</span>
+                    </a>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={onExploreCalendar}
+                      className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <span>🔒 Explorar la estructura en Modo Guest</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* SCENARIO C: PENDING VALIDATION (Requires Code or Payment) */
+                <div className="space-y-6 max-w-xl mx-auto pt-2">
                   
-                  {/* PayPal */}
-                  <button
-                    type="button"
-                    onClick={handlePaypalStep4}
-                    className="p-3 bg-[#FFC439] hover:bg-[#F4B41A] text-slate-900 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-transform hover:scale-101"
-                  >
-                    <svg className="w-4 h-4 text-[#003087] fill-current" viewBox="0 0 24 24">
-                      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.786.786 0 0 1 .775-.652h6.812c3.275 0 5.617 1.343 6.074 4.364.28 1.85-.246 3.447-1.565 4.747-1.34 1.32-3.23 2.012-5.618 2.012H8.818l-.946 5.99-.044.254a.64.64 0 0 1-.633.535l-.119.367zm2.493-9.068h1.853c2.25 0 3.79-.824 4.34-2.316.368-.997.23-1.927-.41-2.766-.63-.824-1.748-1.238-3.323-1.238H9.06l-1.49 8.32h2zm.12 7.068h2.008l1.09-6.9h-1.853l-1.245 6.9z" />
-                    </svg>
-                    <span>PayPal ($5)</span>
-                  </button>
+                  {/* Notification banners */}
+                  {step4Success && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs font-bold text-center animate-fadeIn">
+                      {step4Success}
+                    </div>
+                  )}
+                  {step4Error && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold text-center animate-fadeIn">
+                      {step4Error}
+                    </div>
+                  )}
 
-                  {/* Pago Móvil */}
-                  <button
-                    type="button"
-                    onClick={() => setShowPagoMovilBox(!showPagoMovilBox)}
-                    className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-transform hover:scale-101"
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    <span>Pago Móvil (Bs)</span>
-                  </button>
-
-                  {/* Cash */}
-                  <button
-                    type="button"
-                    onClick={handleCashStep4}
-                    className="p-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-transform hover:scale-101"
-                  >
-                    <Banknote className="w-4 h-4" />
-                    <span>Efectivo ($ USD)</span>
-                  </button>
-                </div>
-
-                {/* Sub-form Pago Móvil if expanded */}
-                {showPagoMovilBox && (
-                  <form onSubmit={handleReportPagoMovilStep4} className="p-4 bg-white border border-emerald-200 rounded-xl space-y-3 animate-fadeIn">
-                    <div className="space-y-1 text-xs text-slate-600">
-                      <div className="flex justify-between">
-                        <span>Banco:</span>
-                        <strong className="text-slate-900">Banco de Venezuela (0102)</strong>
+                  {/* OPTION 1: CODE VALIDATION (CSB, Becas, Promociones) */}
+                  <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                        <KeyRound className="w-4 h-4" />
                       </div>
-                      <div className="flex justify-between">
-                        <span>Teléfono:</span>
-                        <div className="flex items-center gap-1">
-                          <strong className="text-slate-900">0412 1234567</strong>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('04121234567', 'tel')}
-                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cédula:</span>
-                        <div className="flex items-center gap-1">
-                          <strong className="text-slate-900">V-12.345.678</strong>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('12345678', 'ci')}
-                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between pt-1 border-t border-slate-100">
-                        <span>Monto:</span>
-                        <strong className="text-emerald-700">Equivalente a $5 USD a Tasa BCV</strong>
+                      <div>
+                        <h4 className="text-sm font-black text-blue-950">
+                          Opción 1: Validar con Código Promocional o Beca CSB
+                        </h4>
+                        <p className="text-[11px] text-blue-800/80">
+                          Si eres docente o personal del Colegio Simón Bolívar o tienes un código de cortesía:
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <form onSubmit={handleValidateStep4Code} className="flex flex-col sm:flex-row gap-2 pt-1">
                       <input
                         type="text"
-                        value={pagoMovilRef}
-                        onChange={e => setPagoMovilRef(e.target.value)}
-                        placeholder="Nro. de Referencia (Ej. 849201)"
-                        className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:bg-white focus:outline-hidden"
-                        required
+                        value={step4Code}
+                        onChange={e => setStep4Code(e.target.value)}
+                        placeholder="Ej. CSB-PRE, COKITO2026, BECA100"
+                        className="flex-1 p-3 bg-white border border-blue-200 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                       />
                       <button
                         type="submit"
-                        className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs whitespace-nowrap"
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-md transition-colors whitespace-nowrap"
                       >
-                        Confirmar
+                        Validar Código
                       </button>
-                    </div>
-                  </form>
-                )}
-              </div>
+                    </form>
+                  </div>
 
-              {/* OPTION 3: GHOST MODE (Explore with locks) */}
-              <div className="pt-2 text-center space-y-2 border-t border-slate-200">
-                <p className="text-xs text-slate-500">
-                  ¿Prefieres ver primero los libros y temas antes de validar?
-                </p>
-                <button
-                  type="button"
-                  onClick={onExploreCalendar}
-                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors inline-flex items-center gap-1.5"
-                >
-                  <span>👻 Explorar en Modo Fantasma (Vista Previa)</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+                  {/* OPTION 2: PAYMENT VALIDATION (PAGO MÓVIL BANCO PROVINCIAL O DIVISAS) */}
+                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Smartphone className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900">
+                            Opción 2: Pago Móvil Oficial (Banco Provincial)
+                          </h4>
+                          <p className="text-[11px] text-slate-500">
+                            {isDigital ? 'Pase Digital Autónomo ($5/mes)' :
+                             isGroup ? 'Reserva de Cupo Grupal ($5 USD deducible de la mensualidad)' :
+                             'Reserva de cupo o pago de clases privadas'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <span className="text-base font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 inline-block">
+                          ${calculatedDueUsd} USD
+                        </span>
+                        <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
+                          Tasa BCV: Bs. {bcvRate.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Private Class Toggle (Pay $5 deposit vs pay full) */}
+                    {isPrivate && (
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 text-xs">
+                        <span className="font-bold text-slate-800 block">Modalidad de Pago para Clases Privadas:</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPayFullPrivate(false)}
+                            className={`p-2.5 rounded-lg border text-left transition-all ${
+                              !payFullPrivate 
+                                ? 'bg-emerald-50 border-emerald-400 font-bold text-emerald-950 shadow-2xs' 
+                                : 'bg-slate-50 border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <span className="block font-black text-emerald-700">⭐ Apartar con $5 USD</span>
+                            <span className="text-[10px] block opacity-80">Paga la diferencia (${currentPlan.priceNumber - 5}) antes de iniciar</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setPayFullPrivate(true)}
+                            className={`p-2.5 rounded-lg border text-left transition-all ${
+                              payFullPrivate 
+                                ? 'bg-emerald-50 border-emerald-400 font-bold text-emerald-950 shadow-2xs' 
+                                : 'bg-slate-50 border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <span className="block font-black text-slate-900">Totalidad (${currentPlan.priceNumber} USD)</span>
+                            <span className="text-[10px] block opacity-80">Mes completo de clases cancelado</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Group Class Rule Explanation */}
+                    {isGroup && (
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
+                        💡 <strong>Reserva de Cupo Grupal ($5 USD):</strong> Para grupos conformados, hoy solo abonas $5 USD (o su equivalente en Bs) para apartar tu lugar. <strong>Este monto se deducirá al 100% de tu primera mensualidad</strong> una vez que la Directora Waky confirme y cierre tu grupo y tarifa final.
+                      </div>
+                    )}
+
+                    {/* Bank Details Card */}
+                    <div className="p-4 bg-white border border-emerald-200 rounded-xl space-y-2 text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Banco Receptor:</span>
+                        <div className="flex items-center gap-1">
+                          <strong className="text-slate-900">{OFFICIAL_PAGO_MOVIL.bankName} ({OFFICIAL_PAGO_MOVIL.bankCode})</strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(OFFICIAL_PAGO_MOVIL.bankName, 'banco')}
+                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
+                            title="Copiar banco"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Teléfono:</span>
+                        <div className="flex items-center gap-1">
+                          <strong className="text-slate-900">{OFFICIAL_PAGO_MOVIL.phone}</strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(OFFICIAL_PAGO_MOVIL.phoneRaw, 'tel')}
+                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
+                            title="Copiar teléfono"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Cédula del Titular:</span>
+                        <div className="flex items-center gap-1">
+                          <strong className="text-slate-900">{OFFICIAL_PAGO_MOVIL.cedula}</strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(OFFICIAL_PAGO_MOVIL.cedula.replace(/\D/g, ''), 'ci')}
+                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
+                            title="Copiar cédula"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-1.5 border-t border-slate-100">
+                        <span className="text-slate-500 font-semibold">Monto Exacto a Transferir:</span>
+                        <div className="flex items-center gap-1.5">
+                          <strong className="text-emerald-700 font-extrabold text-sm sm:text-base">
+                            {step4Conversion.formattedBs}
+                          </strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(step4Conversion.bsAmount.toString(), 'monto')}
+                            className="text-emerald-600 hover:text-emerald-700 p-0.5"
+                            title="Copiar monto en Bs"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      {copiedKey && (
+                        <p className="text-[10px] text-emerald-700 font-bold text-center pt-0.5">¡Dato copiado al portapapeles!</p>
+                      )}
+                    </div>
+
+                    {/* Form to submit payment reference */}
+                    <form 
+                      onSubmit={(e) => handleReportPagoMovilStep4(e, calculatedDueUsd, step4Conversion.bsAmount)} 
+                      className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-3"
+                    >
+                      <h5 className="font-bold text-xs text-slate-800">Reportar Transferencia / Referencia:</h5>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Banco desde el que pagaste:</label>
+                          <select
+                            value={pagoMovilBank}
+                            onChange={e => setPagoMovilBank(e.target.value)}
+                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-medium"
+                          >
+                            <option value="Banco de Venezuela">Banco de Venezuela</option>
+                            <option value="Banesco">Banesco</option>
+                            <option value="Mercantil">Mercantil</option>
+                            <option value="Bancamiga">Bancamiga</option>
+                            <option value="Banco Provincial">Banco Provincial</option>
+                            <option value="BNC">BNC</option>
+                            <option value="Otro">Otro Banco</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Número de Referencia:</label>
+                          <input
+                            type="text"
+                            value={pagoMovilRef}
+                            onChange={e => setPagoMovilRef(e.target.value)}
+                            placeholder="Ej. 948201"
+                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Enviar Comprobante a Dirección ({step4Conversion.formattedBs})</span>
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* OPTION 3: RETENTION HERO BUTTON - 24 HOURS COURTESY TRIAL (NO STUDENTS LOST!) */}
+                  <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+                        🎁
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-amber-950">
+                          ¿No tienes para transferir en este momento?
+                        </h4>
+                        <p className="text-xs text-amber-900/90 mt-0.5 leading-relaxed">
+                          ¡No te vayas! Te obsequiamos un <strong>Pase de Cortesía de 24 Horas</strong> para que explores el campus, hagas tus primeras prácticas diagnósticas y comiences hoy mismo sin perder tu motivación.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleActivateTrial24h}
+                        className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                      >
+                        <Gift className="w-4 h-4" />
+                        <span>Activar mi Pase de Cortesía de 24 Horas (Gratis)</span>
+                      </button>
+
+                      <a
+                        href={OFFICIAL_PAGO_MOVIL.whatsappWelcomeLoungeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 whitespace-nowrap"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Consultar por WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* OPTION 4: GUEST MODE EXPLORER */}
+                  <div className="pt-2 text-center space-y-2 border-t border-slate-200">
+                    <button
+                      type="button"
+                      onClick={onExploreCalendar}
+                      className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <span>🔒 Continuar explorando en Modo Guest</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                </div>
+              )}
 
             </div>
-          )}
-
-        </div>
-      )}
+          );
+        })()}
 
       {/* Standalone Placement Quiz Modal */}
       <PlacementQuizModal
