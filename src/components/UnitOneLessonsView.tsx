@@ -14,9 +14,12 @@ import {
   ShieldCheck,
   Star,
   Zap,
-  Award
+  Award,
+  Download,
+  FileText
 } from 'lucide-react';
 import { Student } from '../types';
+import { downloadUnitPdf, downloadUnitAudio } from '../services/materialDownloader';
 
 interface UnitOneLessonsViewProps {
   currentStudent: Student | null;
@@ -539,6 +542,46 @@ export const UnitOneLessonsView: React.FC<UnitOneLessonsViewProps> = ({
             <ArrowRight className="w-4 h-4" />
           </button>
         )}
+      </div>
+
+      {/* AVISO DESTACADO: DESCARGA PREVIA OBLIGATORIA DEL MATERIAL DE LA UNIDAD 1 */}
+      <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-3xl p-5 text-slate-950 border border-amber-300 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-md">
+            <Download className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="bg-slate-950 text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+                📥 Descarga Previa al Estudio
+              </span>
+              <strong className="text-xs sm:text-sm font-black text-slate-950">
+                Descarga tu Guía y Libro de la Unidad 1 antes de comenzar las lecciones
+              </strong>
+            </div>
+            <p className="text-xs text-slate-900 font-medium max-w-2xl leading-snug">
+              Para seguir las 8 secciones guiadas con La Teacher Cokitö, resolver los ejercicios interactivos y tus tareas, descarga el archivo en PDF oficial de la unidad (Student Book pp. 2–9 y Workbook pp. 89–92).
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto shrink-0">
+          <button
+            onClick={() => downloadUnitPdf('level_1', 1, 'Good Morning!')}
+            className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <FileText className="w-4 h-4 text-amber-400" />
+            <span>Descargar Libro y Guía (PDF)</span>
+          </button>
+
+          <button
+            onClick={() => downloadUnitAudio(2)}
+            className="flex-1 sm:flex-none px-3.5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-700" />
+            <span>Descargar Audios CD1</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Section Selector Carousel */}

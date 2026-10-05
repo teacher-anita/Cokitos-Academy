@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types';
+import { User } from 'firebase/auth';
 import { 
   LAB_STATIONS, 
   UNIT_1_LAB_EXERCISES, 
@@ -35,16 +36,26 @@ import {
 interface LanguageLabProps {
   currentStudent: Student | null;
   activeRole: 'student' | 'teacher';
+  user?: User | null;
+  isTeacherAuthenticated?: boolean;
   onAwardXp: (studentId: string, amount: number) => void;
   onGoToClassroom?: () => void;
+  onLogin?: () => void;
+  onStartRegistration?: () => void;
 }
 
 export const LanguageLab: React.FC<LanguageLabProps> = ({
   currentStudent,
   activeRole,
+  user,
+  isTeacherAuthenticated,
   onAwardXp,
-  onGoToClassroom
+  onGoToClassroom,
+  onLogin,
+  onStartRegistration
 }) => {
+  const isUnlocked = isTeacherAuthenticated || !!user;
+
   // Persistence key for student answers
   const storageKey = `cokito_lab_u1_${currentStudent?.id || 'guest'}`;
 
@@ -249,6 +260,75 @@ export const LanguageLab: React.FC<LanguageLabProps> = ({
     setShowExplanation(false);
     setShowHint(false);
   };
+
+  // IF NOT AUTHENTICATED: SHOW LOCKED GATE WITH CANDADITO (BENEFICIO DE AFILIACIÓN)
+  if (!isUnlocked) {
+    return (
+      <div className="max-w-4xl mx-auto py-10 px-4 space-y-8 animate-fadeIn">
+        <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-12 text-white border-2 border-amber-400/40 shadow-2xl text-center space-y-6 relative overflow-hidden">
+          
+          <div className="w-20 h-20 rounded-3xl bg-amber-400/20 border-2 border-amber-400/60 text-amber-300 flex items-center justify-center mx-auto shadow-xl shadow-amber-500/10">
+            <Lock className="w-10 h-10 text-amber-400" />
+          </div>
+
+          <div className="space-y-3 max-w-xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Candadito Activo • Beneficio de Afiliación</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+              Laboratorio de Idiomas Cokitö
+            </h2>
+            <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
+              El laboratorio de práctica intensiva con <strong>100 ejercicios interactivos</strong>, audios de pronunciación nativa y estaciones de entrenamiento comunicativo es un beneficio exclusivo para alumnos afiliados.
+            </p>
+          </div>
+
+          <div className="p-5 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 max-w-lg mx-auto text-left text-xs space-y-3 shadow-inner">
+            <div className="flex items-center gap-2 text-amber-300 font-bold">
+              <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
+              <span className="text-sm">¿Qué desbloqueas al iniciar sesión?</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-200">
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>100 Ejercicios de Alto Rendimiento:</strong> Greetings, verb BE, preguntas WH y gramática aplicada.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Audios Nativos Oficiales:</strong> Reproducción integrada de los tracks de McGraw-Hill con velocidad ajustable.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Guardado de Progreso y XP:</strong> Tus respuestas se registran y acumulan puntos para tu racha académica.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+            {onLogin && (
+              <button
+                onClick={onLogin}
+                className="w-full sm:w-auto px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl font-black text-sm shadow-xl transition-all hover:scale-102 flex items-center justify-center gap-2.5"
+              >
+                <Lock className="w-4 h-4 text-slate-950" />
+                <span>Iniciar Sesión para Abrir el Candadito</span>
+              </button>
+            )}
+
+            {onStartRegistration && (
+              <button
+                onClick={onStartRegistration}
+                className="w-full sm:w-auto px-6 py-4 bg-white/15 hover:bg-white/25 text-white border border-white/20 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <span>Afiliarme en Cokitö Academy</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 space-y-8 animate-fadeIn">

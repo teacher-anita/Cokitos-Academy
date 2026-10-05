@@ -443,8 +443,12 @@ export default function App() {
           <LanguageLab
             currentStudent={currentStudent}
             activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
+            user={user}
+            isTeacherAuthenticated={isTeacherAuthenticated}
             onAwardXp={handleAwardXp}
             onGoToClassroom={() => setActiveTab('pathway')}
+            onLogin={handleLogin}
+            onStartRegistration={() => setActiveTab('register')}
           />
         )}
 

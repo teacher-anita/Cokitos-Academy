@@ -59,6 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const isKids = audienceTheme === 'kids';
   const isEnrolled = isTeacherAuthenticated || (currentStudent && currentStudent.status === 'enrolled');
+  const isUserLoggedIn = !!user || isTeacherAuthenticated;
 
   return (
     <>
@@ -264,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
               
-              {/* 6. Laboratorio (Language Practice Lab • 100 Drills) */}
+              {/* 6. Laboratorio (Language Practice Lab • 100 Drills • Candadito si no ha iniciado sesión) */}
               <button
                 onClick={() => onTabChange('lab')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
@@ -272,16 +273,20 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-white text-emerald-700 shadow-xs font-bold ring-1 ring-emerald-300'
                     : 'hover:text-slate-900'
                 }`}
-                title="Laboratorio de Práctica • 100 Ejercicios Interactivos"
+                title="Laboratorio de Práctica • 100 Ejercicios Interactivos (Beneficio de Afiliación)"
               >
                 <span className="text-sm">🧪</span>
                 <span>Laboratorio</span>
-                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-1.5 py-0.5 rounded-full">
-                  100
-                </span>
+                {!isUserLoggedIn ? (
+                  <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 ml-0.5" />
+                ) : (
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                    100
+                  </span>
+                )}
               </button>
 
-              {/* 7. Teacher / Directora Portal (Emoji on left, Lock on RIGHT) */}
+              {/* 7. Teacher / Rectoría Portal (Lock on RIGHT) */}
               <button
                 onClick={() => onTabChange('teacher')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
@@ -291,10 +296,10 @@ export const Header: React.FC<HeaderProps> = ({
                       : 'bg-blue-900 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:text-blue-900 hover:bg-slate-200/60'
                 }`}
-                title={staffRole === 'principal' ? 'Despacho Directora Waky' : 'Acceso restringido para La Teacher'}
+                title={staffRole === 'principal' ? 'Portal de Rectoría' : 'Portal Docente'}
               >
                 <span className="text-sm">{staffRole === 'principal' ? '👑' : '👩‍🏫'}</span>
-                <span>{staffRole === 'principal' ? 'Directora (Waky)' : 'Teacher'}</span>
+                <span>{staffRole === 'principal' ? 'Rectoría' : 'Docente'}</span>
                 <Lock className={`w-3.5 h-3.5 shrink-0 ml-0.5 ${isTeacherAuthenticated ? 'text-emerald-400' : 'text-amber-500'}`} />
               </button>
 
@@ -354,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Classroom</span>
           </button>
 
-          {/* 4. Laboratorio (100 Drills) */}
+          {/* 4. Laboratorio (100 Drills • Candadito si no ha iniciado sesión) */}
           <button
             onClick={() => onTabChange('lab')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
@@ -365,9 +370,15 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <div className="relative">
               <span className="text-base">🧪</span>
-              <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-emerald-600 text-white rounded-full text-[8px] font-black">
-                100
-              </span>
+              {!isUserLoggedIn ? (
+                <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-amber-500 rounded-full border border-white flex items-center justify-center shadow-xs">
+                  <Lock className="w-2 h-2 text-white" />
+                </span>
+              ) : (
+                <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-emerald-600 text-white rounded-full text-[8px] font-black">
+                  100
+                </span>
+              )}
             </div>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Lab</span>
           </button>
@@ -398,7 +409,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
           </button>
 
-          {/* 7. Teacher / Directora (Lock on RIGHT) */}
+          {/* 7. Teacher / Rectoría (Lock on RIGHT) */}
           <button
             onClick={() => onTabChange('teacher')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
@@ -418,7 +429,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">
-              {staffRole === 'principal' ? 'Directora' : 'Teacher'}
+              {staffRole === 'principal' ? 'Rectoría' : 'Docente'}
             </span>
           </button>
 

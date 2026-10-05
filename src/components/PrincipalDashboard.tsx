@@ -388,10 +388,11 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                 The Principal • Directora General
               </span>
               <span className="bg-white/90 text-slate-900 text-xs font-bold px-3 py-1 rounded-full border border-amber-300">
-                👑 Usuario Maestro: Waky
+                👑 Sesión: Rectoría General
               </span>
-              <span className="bg-amber-200/80 text-amber-950 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full">
-                PIN: 0112 Activo
+              <span className="bg-amber-100 text-amber-950 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs border border-amber-300">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                <span>Acceso Seguro Verificado</span>
               </span>
             </div>
 

@@ -29,6 +29,7 @@ import {
 import confetti from 'canvas-confetti';
 import { Student } from '../types';
 import { UnitOneLessonsView } from './UnitOneLessonsView';
+import { downloadUnitPdf, downloadUnitAudio } from '../services/materialDownloader';
 
 interface UnitOneMasterClassProps {
   currentStudent: Student | null;
@@ -424,6 +425,14 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
 
           {/* Quick Actions */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
+            <button
+              onClick={() => downloadUnitPdf('level_1', 1, 'Good Morning!')}
+              className="px-5 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95"
+              title="Descargar libro de texto y guía oficial de la Unidad 1 en PDF"
+            >
+              <Download className="w-4 h-4 text-slate-950" />
+              <span>Descargar Archivo Oficial (PDF)</span>
+            </button>
             <a
               href="https://meet.google.com/eng-cokito-class"
               target="_blank"
@@ -436,7 +445,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
             {onClose && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold transition-colors"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold transition-colors text-center"
               >
                 Back to Learning Pathway
               </button>
@@ -446,6 +455,46 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
 
         {/* Ambient decorative elements */}
         <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      </div>
+
+      {/* BANNER DE DESCARGA OBLIGATORIA DEL MATERIAL DE LA UNIDAD 1 */}
+      <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 rounded-3xl p-5 text-slate-950 shadow-md border border-amber-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-md">
+            <Download className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className="bg-slate-950 text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+                📥 Paso 1 Obligatorio para el Alumno
+              </span>
+              <span className="text-xs font-black text-slate-950">
+                Descarga tu Guía y Libro de la Unidad 1 antes de comenzar
+              </span>
+            </div>
+            <p className="text-xs text-slate-900 font-medium max-w-2xl leading-snug">
+              Para seguir las explicaciones de La Teacher Cokitö, escuchar las pistas de audio y resolver tus tareas, descarga aquí tu archivo en PDF: <strong>Super Goal 1 (Pág. 2–9)</strong> y las hojas de práctica del <strong>Workbook (Pág. 89–92)</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto shrink-0">
+          <button
+            onClick={() => downloadUnitPdf('level_1', 1, 'Good Morning!')}
+            className="flex-1 sm:flex-none px-5 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-2xl font-black text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <FileText className="w-4 h-4 text-amber-400" />
+            <span>Descargar Libro y Guía (PDF)</span>
+          </button>
+
+          <button
+            onClick={() => downloadUnitAudio(2)}
+            className="flex-1 sm:flex-none px-4 py-3 bg-white hover:bg-slate-50 text-slate-900 border border-slate-900/20 rounded-2xl font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5"
+          >
+            <Download className="w-4 h-4 text-blue-700" />
+            <span>Descargar Audios CD1</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. TAB NAVIGATION BAR (THE CORE PILLARS) */}

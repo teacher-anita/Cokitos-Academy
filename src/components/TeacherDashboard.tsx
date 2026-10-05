@@ -264,9 +264,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <button
               onClick={onSwitchToPrincipal}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-colors border border-amber-300"
-              title="Volver al Despacho de Directora Principal Waky"
+              title="Volver al Despacho Institucional de Rectoría"
             >
-              <span>👑 Despacho Directora Waky</span>
+              <span>👑 Despacho de Rectoría</span>
             </button>
           )}
           <button

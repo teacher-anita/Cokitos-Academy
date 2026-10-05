@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, KeyRound, Sparkles, AlertCircle, ArrowLeft, ShieldCheck, CheckCircle2, Crown, Briefcase } from 'lucide-react';
+import { Lock, KeyRound, AlertCircle, ArrowLeft, ShieldCheck, CheckCircle2, Crown, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { User } from 'firebase/auth';
 
 interface TeacherGateProps {
@@ -17,10 +17,10 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
   onAuthenticated,
   onBackToStudent
 }) => {
-  const [username, setUsername] = useState('Waky');
-  const [password, setPassword] = useState('0112');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [selectedRolePreset, setSelectedRolePreset] = useState<'principal' | 'teacher'>('principal');
 
   const handleCredentialsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,19 +29,19 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    // 1. Directora General / The Principal Waky: Clave "0112"
-    if (cleanPass === '0112') {
+    // 1. Directora General / Institutional Principal
+    if (cleanPass === '0112' || (cleanUser === 'waky' && cleanPass === '0112')) {
       onAuthenticated('principal');
       return;
     }
 
-    // 2. Teacher: Clave "3223"
-    if (cleanPass === '3223') {
+    // 2. Teacher Docente
+    if (cleanPass === '3223' || ((cleanUser === 'coquito' || cleanUser === 'cokito') && cleanPass === '3223')) {
       onAuthenticated('teacher');
       return;
     }
 
-    setErrorMessage('Credenciales inválidas. Usa usuario "Waky" (clave: 0112) para Directora o "Coquito" (clave: 3223) para Teacher.');
+    setErrorMessage('Credenciales institucionales inválidas. Verifica tu usuario y clave o contacta a la administración.');
   };
 
   const isTeacherGoogle = user && (user.email === 'anateresa.csb@gmail.com' || user.email?.includes('anateresa'));
@@ -60,50 +60,11 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
       </div>
 
       <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-        Portal de Rectoría & Docencia
+        Portal Administrativo & Docente
       </h2>
       <p className="text-xs sm:text-sm text-slate-500 mt-2 mb-6">
-        Ingreso exclusivo para <strong>The Principal (Directora Waky)</strong> y el equipo de profesores de La Teacher Cokitö.
+        Ingreso seguro para personal directivo, administrativo y docente autorizado de Cokitö Academy.
       </p>
-
-      {/* Role Preset Quick Switcher */}
-      <div className="grid grid-cols-2 gap-2 mb-5 p-1 bg-slate-100 rounded-2xl">
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedRolePreset('principal');
-            setUsername('Waky');
-            setPassword('0112');
-            setErrorMessage('');
-          }}
-          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-            selectedRolePreset === 'principal'
-              ? 'bg-amber-400 text-slate-950 shadow-sm font-black'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Crown className="w-3.5 h-3.5 text-amber-900" />
-          <span>Principal Waky</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedRolePreset('teacher');
-            setUsername('Coquito');
-            setPassword('3223');
-            setErrorMessage('');
-          }}
-          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-            selectedRolePreset === 'teacher'
-              ? 'bg-blue-900 text-white shadow-sm font-black'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Briefcase className="w-3.5 h-3.5" />
-          <span>Teacher Coquito</span>
-        </button>
-      </div>
 
       {/* Google login option if already matching email */}
       {isTeacherGoogle ? (
@@ -118,14 +79,14 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
               onClick={() => onAuthenticated('principal')}
               className="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-black text-xs shadow-md transition-colors"
             >
-              Entrar como Directora
+              Entrar a Rectoría
             </button>
             <button
               type="button"
               onClick={() => onAuthenticated('teacher')}
               className="py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-xl font-bold text-xs shadow-md transition-colors"
             >
-              Entrar como Teacher
+              Entrar a Docencia
             </button>
           </div>
         </div>
@@ -134,13 +95,14 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
           <form onSubmit={handleCredentialsSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Usuario {selectedRolePreset === 'principal' ? 'Directora (Principal)' : 'Teacher'}
+                Usuario Institucional
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder={selectedRolePreset === 'principal' ? 'Waky' : 'Coquito'}
+                placeholder="Ingresa tu usuario institucional"
+                autoComplete="username"
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                 required
               />
@@ -148,19 +110,31 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Clave de Seguridad
+                Clave de Seguridad Institucional
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••"
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
-                required
-              />
-              <span className="text-[10px] text-slate-400 mt-1 block">
-                {selectedRolePreset === 'principal' ? 'Clave de Directora: 0112' : 'Clave de Teacher: 3223'}
-              </span>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className="w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-amber-500 tracking-wider"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 transition-colors"
+                  title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {errorMessage && (
@@ -172,16 +146,10 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
 
             <button
               type="submit"
-              className={`w-full py-3 rounded-xl font-black text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 ${
-                selectedRolePreset === 'principal'
-                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
-                  : 'bg-blue-900 hover:bg-blue-800 text-white'
-              }`}
+              className="w-full py-3 rounded-xl font-black text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-amber-300"
             >
-              <KeyRound className="w-4 h-4" />
-              <span>
-                {selectedRolePreset === 'principal' ? 'Ingresar como Directora Waky' : 'Ingresar como Teacher Coquito'}
-              </span>
+              <KeyRound className="w-4 h-4 text-amber-400" />
+              <span>Ingresar al Portal Institucional</span>
             </button>
           </form>
 
