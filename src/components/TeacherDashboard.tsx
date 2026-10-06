@@ -155,7 +155,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     // Default to suggested level if available
     setAssignedLevelId(student.levelId || 'level_1');
     setAssignedSlotsInput(student.assignedSlots.join(', '));
-    setTeacherEvaluationNotes(`Evaluado por Teacher Cokito. Desempeño destacado en prueba de nivel.`);
+    setTeacherEvaluationNotes(`Evaluado por Teacher Waky. Desempeño destacado en prueba de nivel.`);
   };
 
   const handleConfirmAssignment = async () => {
@@ -252,7 +252,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-amber-400/30">
-              Dirección Académica • La Teacher Cokito
+              Academic Faculty • Teacher Leadership
             </span>
             <span className="text-xs text-blue-200">Control Pedagógico & Asignaciones</span>
           </div>
@@ -720,7 +720,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Notas Docentes:</label>
+                <label className="block font-semibold text-slate-700 mb-1">Teacher Notes:</label>
                 <textarea
                   value={editingStudent.notes}
                   onChange={e => setEditingStudent({ ...editingStudent, notes: e.target.value })}

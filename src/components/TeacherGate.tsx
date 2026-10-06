@@ -63,7 +63,7 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
         Portal Administrativo & Teachers
       </h2>
       <p className="text-xs sm:text-sm text-slate-500 mt-2 mb-6">
-        Ingreso seguro para personal directivo, administrativo y Teachers autorizados de Coquitos Academy.
+        Ingreso seguro para personal directivo, administrativo y Teachers autorizados de Güakytopia.
       </p>
 
       {/* Google login option if already matching email */}
@@ -84,9 +84,9 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
             <button
               type="button"
               onClick={() => onAuthenticated('teacher')}
-              className="py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-xl font-bold text-xs shadow-md transition-colors"
+              className="py-2.5 bg-[#243447] hover:bg-[#18232F] text-white rounded-xl font-bold text-xs shadow-md transition-colors"
             >
-              Entrar a Docencia
+              Entrar como Teacher
             </button>
           </div>
         </div>

@@ -272,15 +272,15 @@ export const LanguageLab: React.FC<LanguageLabProps> = ({
           </div>
 
           <div className="space-y-3 max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider">
-              <Lock className="w-3.5 h-3.5 text-amber-400" />
-              <span>Candadito Activo • Beneficio de Afiliación</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FFD166]/15 border border-[#FFD166]/40 text-[#FFD166] text-xs font-black uppercase tracking-wider">
+              <Lock className="w-3.5 h-3.5 text-[#FFD166]" />
+              <span>Güakytalkie • Beneficio de Afiliación</span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-              Laboratorio de Idiomas Cokitö
+              Güakytalkie • Laboratorio de Idiomas
             </h2>
-            <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              El laboratorio de práctica intensiva con <strong>100 ejercicios interactivos</strong>, audios de pronunciación nativa y estaciones de entrenamiento comunicativo es un beneficio exclusivo para alumnos afiliados.
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              La capa de comunicación de <strong>Güakytopia</strong> con 100 ejercicios de speaking, audios de pronunciación nativa y estaciones de entrenamiento oral para soltar la lengua con confianza.
             </p>
           </div>
 
@@ -342,8 +342,8 @@ export const LanguageLab: React.FC<LanguageLabProps> = ({
                 <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                 Cokitö Interactive Language Lab
               </span>
-              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-3 py-1 rounded-full">
-                🧪 100 High-Yield Practice Drills
+              <span className="bg-[#2EC4B6]/20 text-[#2EC4B6] border border-[#2EC4B6]/30 text-xs font-bold px-3 py-1 rounded-full">
+                📻 Güakytalkie • 100 High-Yield Practice Drills
               </span>
               <span className="bg-blue-500/20 text-blue-200 border border-blue-500/30 text-xs font-bold px-3 py-1 rounded-full">
                 Super Goal 1 • Unit 1
@@ -351,11 +351,11 @@ export const LanguageLab: React.FC<LanguageLabProps> = ({
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-              Language Practice Lab • 100 Exercises
+              Güakytalkie • Communication & Speaking Lab
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Step into the workout arena. Practice greetings, the verb <em>be</em>, contractions, possessives, and audio listening with instant feedback and virtual explanations.
+              Step into the communication arena. Practice greetings, conversation, contractions, audio listening, and pronunciation with instant feedback.
             </p>
 
             {/* DUAL PATHWAY EXPLANATION NOTICE */}

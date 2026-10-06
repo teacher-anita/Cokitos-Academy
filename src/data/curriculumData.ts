@@ -619,13 +619,10 @@ export const INITIAL_SCHEDULE_SLOTS: ScheduleSlot[] = [
     });
   }),
 
-  // Sábado (Bloques matutinos)
-  { id: 'sab_08', day: 'Sábado', startTime: '08:00', endTime: '09:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 8am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
-  { id: 'sab_09', day: 'Sábado', startTime: '09:00', endTime: '10:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 9am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
-  { id: 'sab_10', day: 'Sábado', startTime: '10:00', endTime: '11:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 10am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
-  { id: 'sab_11', day: 'Sábado', startTime: '11:00', endTime: '12:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 11am', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
-  { id: 'sab_13', day: 'Sábado', startTime: '13:00', endTime: '14:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 1pm', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
-  { id: 'sab_14', day: 'Sábado', startTime: '14:00', endTime: '15:00', slotType: 'individual', maxCapacity: 1, classroomTitle: 'Aula Sábado 2pm', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' }
+  // Sábado (Exclusivo Sabatinos: Bloques de 2 horas o 4 horas)
+  { id: 'sab_08_10', day: 'Sábado', startTime: '08:00', endTime: '10:00', slotType: 'group', maxCapacity: 6, classroomTitle: 'Sabatino Bloque 1 (2 Horas: 8:00 - 10:00 am)', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_10_12', day: 'Sábado', startTime: '10:00', endTime: '12:00', slotType: 'group', maxCapacity: 6, classroomTitle: 'Sabatino Bloque 2 (2 Horas: 10:00 - 12:00 m)', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' },
+  { id: 'sab_08_12', day: 'Sábado', startTime: '08:00', endTime: '12:00', slotType: 'group', maxCapacity: 6, classroomTitle: 'Sabatino Intensivo (4 Horas: 8:00 am - 12:00 m)', enrolledStudents: [], teacherName: 'Teacher Cokitö', status: 'available' }
 ];
 
 export const DAILY_CHALLENGES: DailyChallenge[] = [

@@ -530,7 +530,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-            <span>Profesores</span>
+            <span>Teachers</span>
             <Users className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-black text-slate-900">{activeTeachersCount}</div>
@@ -605,7 +605,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
           }`}
         >
           <Briefcase className="w-4 h-4 text-amber-400" />
-          <span>Control de Profesores ({teachers.length})</span>
+          <span>Faculty & Teachers ({teachers.length})</span>
         </button>
 
         <button
@@ -629,7 +629,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
           }`}
         >
           <Calendar className="w-4 h-4 text-indigo-400" />
-          <span>Salones y Horarios de Profesores</span>
+          <span>Classrooms & Teacher Schedules</span>
         </button>
       </div>
 
@@ -639,10 +639,10 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-black text-slate-900">
-                Plantilla Docente & Asignación de Horarios
+                Faculty & Teacher Schedule Assignment
               </h2>
               <p className="text-xs text-slate-500">
-                Como Directora, asigna los horarios de trabajo de cada profesor, qué niveles imparten y cuántos alumnos tienen.
+                Como Directora, asigna los horarios de trabajo de cada Teacher, qué niveles imparten y cuántos alumnos tienen.
               </p>
             </div>
 
@@ -651,7 +651,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Contratar / Agregar Profesor</span>
+              <span>Contratar / Agregar Teacher</span>
             </button>
           </div>
 
@@ -913,10 +913,10 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
         <div className="space-y-6 animate-fadeIn">
           <div>
             <h2 className="text-lg font-black text-slate-900">
-              Salones de Clase y Asignación de Horarios Docentes
+              Classrooms & Teacher Schedule Assignment
             </h2>
             <p className="text-xs text-slate-500">
-              Haz clic en cualquier bloque para asignar qué profesor dictará la clase en ese horario.
+              Haz clic en cualquier bloque para asignar qué Teacher dictará la clase en ese horario.
             </p>
           </div>
 
@@ -938,7 +938,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                 <div className="text-xs text-slate-600">
                   <div className="font-semibold text-slate-900">{slot.classroomTitle || 'Aula General'}</div>
                   <div className="text-amber-800 font-bold mt-1">
-                    Profesor: {slot.teacherName || 'Sin asignar'}
+                    Teacher: {slot.teacherName || 'Sin asignar'}
                   </div>
                 </div>
 
@@ -946,7 +946,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                   onClick={() => setSelectedSlotForTeacher(slot)}
                   className="w-full py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-colors"
                 >
-                  Asignar / Cambiar Profesor
+                  Asignar / Cambiar Teacher
                 </button>
               </div>
             ))}
@@ -1296,13 +1296,13 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                 {/* Teacher and Slot assignment */}
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Profesor Asignado:</label>
+                    <label className="font-bold text-slate-700 block mb-1">Teacher Asignado:</label>
                     <select
                       value={approvalTeacherId}
                       onChange={e => setApprovalTeacherId(e.target.value)}
                       className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold"
                     >
-                      <option value="">Teacher Cokitö (General)</option>
+                      <option value="">Teacher Waky (General)</option>
                       {teachers.map(t => (
                         <option key={t.id} value={t.id}>Teacher {t.name} {t.lastName || ''} ({t.specialty})</option>
                       ))}
@@ -1420,14 +1420,14 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               {/* Target Teacher */}
               <div>
                 <label className="font-bold text-slate-700 block mb-1">
-                  3. Asignar Profesor Responsable:
+                  3. Asignar Teacher Responsable:
                 </label>
                 <select
                   value={targetTeacherId}
                   onChange={e => setTargetTeacherId(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
                 >
-                  <option value="">Teacher Cokitö (General)</option>
+                  <option value="">Teacher Waky (General)</option>
                   {teachers.map(t => (
                     <option key={t.id} value={t.id}>
                       Teacher {t.name} {t.lastName || ''} ({t.specialty})
@@ -1494,7 +1494,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Especialidad Docente:</label>
+                <label className="font-bold text-slate-700 block mb-1">Teacher Specialty / Focus:</label>
                 <input
                   type="text"
                   value={editingTeacher.specialty}
@@ -1546,7 +1546,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Estado del Profesor:</label>
+                <label className="font-bold text-slate-700 block mb-1">Teacher Status:</label>
                 <select
                   value={editingTeacher.status}
                   onChange={e => setEditingTeacher({ ...editingTeacher, status: e.target.value as any })}
@@ -1571,7 +1571,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                 type="submit"
                 className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-md transition-colors"
               >
-                Guardar Horarios del Profesor
+                Guardar Horarios del Teacher
               </button>
             </div>
           </form>
@@ -1587,7 +1587,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-black text-slate-900 text-base">
-                Contratar Nuevo Profesor para la Academia
+                Contratar / Agregar Nuevo Teacher
               </h3>
               <button 
                 type="button"
@@ -1670,7 +1670,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                 type="submit"
                 className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-md transition-colors"
               >
-                Registrar Profesor en Plantilla
+                Registrar Teacher en Plantilla
               </button>
             </div>
           </form>
@@ -1773,7 +1773,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base">
-                Asignar Profesor a {selectedSlotForTeacher.day} {selectedSlotForTeacher.startTime}
+                Asignar Teacher a {selectedSlotForTeacher.day} {selectedSlotForTeacher.startTime}
               </h3>
               <button 
                 onClick={() => setSelectedSlotForTeacher(null)}
@@ -1784,7 +1784,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
             </div>
 
             <p className="text-xs text-slate-500">
-              Selecciona el profesor que dictará la clase en este horario:
+              Selecciona el Teacher que dictará la clase en este horario:
             </p>
 
             <div className="space-y-2">

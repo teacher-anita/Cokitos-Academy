@@ -473,7 +473,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-900 font-medium max-w-2xl leading-snug">
-              Para seguir las explicaciones de La Teacher Cokitö, escuchar las pistas de audio y resolver tus tareas, descarga aquí tu archivo en PDF: <strong>Super Goal 1 (Pág. 2–9)</strong> y las hojas de práctica del <strong>Workbook (Pág. 89–92)</strong>.
+              Para seguir las explicaciones de Teacher Waky, escuchar las pistas de audio y resolver tus tareas, descarga aquí tu archivo en PDF: <strong>Super Goal 1 (Pág. 2–9)</strong> y las hojas de práctica del <strong>Workbook (Pág. 89–92)</strong>.
             </p>
           </div>
         </div>
@@ -639,12 +639,12 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 </div>
               </div>
 
-              {/* Tip Cokitö */}
+              {/* Tip Güaky */}
               <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl text-xs text-purple-950 flex items-start gap-3">
-                <span className="text-2xl shrink-0">🦉</span>
+                <span className="text-2xl shrink-0">🦜</span>
                 <div className="space-y-1">
                   <strong className="font-black text-purple-900 block uppercase tracking-wider text-[11px]">
-                    Tip Cokitö for Real Life:
+                    Tip Güaky for Real Life:
                   </strong>
                   <p className="leading-relaxed">
                     Never say <em>"Good night"</em> when arriving at an evening party or dinner! In English, to say hello at night, always use <strong>"Good evening"</strong>. The expression <strong>"Good night"</strong> is strictly reserved for leaving or going to bed.
@@ -742,7 +742,7 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
                 3-Session Curricular Structure
               </span>
               <h3 className="text-xl font-black text-slate-900">
-                Live Google Meet Classes with Teacher Cokitö
+                Live Google Meet Classes with Teacher Waky
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 To master Unit 1 effectively, each student participates in three 60-minute interactive live sessions on Google Meet.

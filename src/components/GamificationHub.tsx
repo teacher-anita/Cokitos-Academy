@@ -125,18 +125,18 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider bg-white/15 px-3 py-1 rounded-full backdrop-blur-md">
-                Gamificación & Hábito Diario
+                The Flock Community • Hábito Diario
               </span>
-              <span className="text-xs text-amber-300 font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                Liga Cokitö
+              <span className="text-xs text-[#FFD166] font-bold flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+                The Flock Arena
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              {isKids ? '¡Tus Misiones y Puntos Mágicos! 🚀' : 'Retos Diarios & Tabla de Clasificación Cokitö'}
+              {isKids ? '¡Tus Misiones y Puntos Güaky! 🚀' : 'The Flock Arena • Retos Diarios & Comunidad'}
             </h2>
-            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
-              Completa tus 3 micro-misiones diarias para alimentar tu Racha de Fuego 🔥, sumar puntos XP y ascender a la División Diamante de la academia.
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              Completa tus 3 micro-misiones diarias para alimentar tu Racha de Fuego 🔥, sumar puntos XP y avanzar junto a toda la comunidad de Güakytopia.
             </p>
           </div>
 
@@ -151,7 +151,7 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
                 <span className="text-2xl font-black text-white">{currentStudent?.streak || 0}</span>
                 <span className="text-xs text-amber-300 font-bold">Días Consecutivos</span>
               </div>
-              <span className="text-[10px] text-blue-200 block">Total: {currentStudent?.xp || 0} XP Cokitö</span>
+              <span className="text-[10px] text-blue-200 block">Total: {currentStudent?.xp || 0} XP Güakytopia</span>
             </div>
           </div>
         </div>

@@ -131,27 +131,27 @@ ${unit.owlCulture.culturalStory}
           </div>
 
           <div className="space-y-2 max-w-xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-400/30 inline-block">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#FFD166] bg-[#FFD166]/20 px-3 py-1 rounded-full border border-[#FFD166]/30 inline-block">
               🔒 Modo Guest • Vista Previa de Invitado
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Virtual Classroom & Pensum Oficial Cokitö
+              Güakypedia • Pensum Oficial & Flights de Güakytopia
             </h2>
-            <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
               Estás navegando en <strong>Modo Guest</strong>. Como invitado puedes explorar los títulos de los niveles y módulos. <strong>La descarga de libros y guías oficiales en PDF, las pistas de audio, los quizzes y las clases en vivo están estrictamente reservados para alumnos afiliados.</strong> Para desbloquear todo el material, valida tu afiliación de $5 o ingresa tu código de beca:
             </p>
           </div>
 
-          <div className="p-4 sm:p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-blue-200 text-left space-y-2.5">
+          <div className="p-4 sm:p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-lg mx-auto text-xs text-slate-200 text-left space-y-2.5">
             <p className="font-bold text-white flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>¿Qué desbloqueas con tu Afiliación Oficial?</span>
+              <Sparkles className="w-4 h-4 text-[#FFD166] shrink-0" />
+              <span>¿Qué desbloqueas en Güakytopia con tu Afiliación?</span>
             </p>
-            <ul className="space-y-1.5 list-disc list-inside text-blue-100">
+            <ul className="space-y-1.5 list-disc list-inside text-slate-100">
               <li><strong>Descarga de Libros & Guías (PDF):</strong> Material oficial completo de cada unidad y Workbook.</li>
               <li><strong>Audios Nativos MP3:</strong> Tracks de pronunciación fonética y listening de McGraw-Hill.</li>
-              <li><strong>Live Speaking Sessions:</strong> Clases en vivo en grupos reducidos con La Teacher Cokitö.</li>
-              <li><strong>Cyber Owl Interactive Quizzes:</strong> Evaluaciones autocorregibles con acumulación de XP.</li>
+              <li><strong>Güakytalkie Live Speaking:</strong> Clases y conversación en vivo con tutores en grupos reducidos.</li>
+              <li><strong>Güaky Interactive Quizzes:</strong> Evaluaciones interactivas con acumulación de XP y retos.</li>
             </ul>
           </div>
 

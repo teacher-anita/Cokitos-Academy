@@ -43,7 +43,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
         age: 30,
         isKid: false,
         schoolOrProfession: 'Educación',
-        learningGoal: 'Actualización de Teacher',
+        learningGoal: 'Teacher Professional Development',
         avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150',
         plan: 'basic',
         modality: 'online',

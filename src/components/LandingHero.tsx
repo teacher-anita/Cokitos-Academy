@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { AudienceTheme } from '../types';
 import { MODULES_INFO } from '../data/curriculumData';
+import { GuakyLogo } from './GuakyLogo';
 
 interface LandingHeroProps {
   audienceTheme: AudienceTheme;
@@ -46,43 +47,50 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       {/* 1. HERO BANNER */}
       <section className={`relative overflow-hidden rounded-3xl p-6 sm:p-12 text-white shadow-xl transition-all ${
         isKids
-          ? 'bg-gradient-to-br from-sky-500 via-indigo-600 to-purple-600'
-          : 'bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-slate-800'
+          ? 'bg-gradient-to-br from-[#2EC4B6] via-[#243447] to-[#18232F]'
+          : 'bg-gradient-to-br from-[#243447] via-[#1a2736] to-[#0f1720] border border-slate-700/80'
       }`}>
+        {/* Subtle decorative glow */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-[#2EC4B6]/15 blur-3xl pointer-events-none" />
+
         <div className="relative z-10 max-w-3xl space-y-6">
           
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md border border-white/20 text-amber-300">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Método Adaptativo • TDAH & Neurodivergente Friendly</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md border border-white/20 text-[#FFD166]">
+              <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+              <span>GÜAKYTOPIA • OPEN THE WORLD</span>
+            </div>
+            <span className="text-xs text-slate-300 font-medium hidden sm:inline">
+              Start where you are. Keep going.
+            </span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
             {isKids ? (
-              <>¡Aprende Inglés <span className="text-amber-300 underline decoration-amber-400">Jugando y Riendo</span> con La Teacher Cokitö! 🎈</>
+              <>Aprende Inglés <span className="text-[#FFD166] underline decoration-[#FF6B4A]">con Curiosidad y Confianza</span> junto a Güaky 🎈</>
             ) : (
-              <>Habla Inglés con <span className="text-amber-400">Confianza Real</span>, Sin Bloqueos ni Estrés.</>
+              <>Bienvenido a Tu <span className="text-[#2EC4B6]">Universo del Inglés</span>. Abrir el Mundo.</>
             )}
           </h1>
 
-          <p className="text-sm sm:text-lg text-blue-100/90 leading-relaxed font-normal">
-            {isKids
-              ? 'Lecciones dinámicas de 30 a 45 minutos diseñadas para mantener la atención, celebrar cada pequeño logro y hablar desde la primera clase.'
-              : 'Currículo internacional comunicativo en 12 niveles progresivos, con micro-bloques de 3 sesiones por unidad, quizzes interactivos y clases en vivo.'}
+          <p className="text-sm sm:text-lg text-slate-200 leading-relaxed font-normal">
+            Una experiencia digital de aprendizaje: estructurada, flexible, humana y con personalidad.
+            12 niveles progresivos, micro-bloques sin fatiga cognitiva, laboratorio de conversación oral y clases con tutores.
           </p>
 
           {/* Core Feature Badges */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-xs">
-              <span className="block font-bold text-amber-300">Micro-Chunking ⏱️</span>
-              <span className="text-blue-100 text-[11px]">3 sesiones por unidad, cero fatiga cognitiva</span>
+              <span className="block font-bold text-[#FFD166]">Micro-Chunking ⏱️</span>
+              <span className="text-slate-200 text-[11px]">3 sesiones por unidad, cero fatiga cognitiva</span>
             </div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-xs">
-              <span className="block font-bold text-amber-300">100% Conversacional 🗣️</span>
-              <span className="text-blue-100 text-[11px]">Pierde el miedo y suelta la lengua</span>
+              <span className="block font-bold text-[#2EC4B6]">Güakytalkie 📻</span>
+              <span className="text-slate-200 text-[11px]">Speaking real para soltar la lengua</span>
             </div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-xs col-span-2 sm:col-span-1">
-              <span className="block font-bold text-amber-300">Gamificación Cokitö 🏆</span>
-              <span className="text-blue-100 text-[11px]">Racha activa, puntos XP y Boss Fights</span>
+              <span className="block font-bold text-[#FF6B4A]">The Flock Community 🪶</span>
+              <span className="text-slate-200 text-[11px]">Retos, insignias, XP y avance mutuo</span>
             </div>
           </div>
 
@@ -90,7 +98,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
             <button
               onClick={onStartRegistration}
-              className="px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl font-black text-sm shadow-lg transition-transform hover:scale-102 flex items-center justify-center gap-2"
+              className="px-8 py-4 bg-[#2EC4B6] hover:bg-[#259C90] text-[#18232F] rounded-2xl font-black text-sm shadow-lg transition-transform hover:scale-102 flex items-center justify-center gap-2"
             >
               <span>Hacer Prueba Diagnóstica (25 Preguntas)</span>
               <ArrowRight className="w-4 h-4" />
@@ -99,8 +107,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               onClick={onExploreCalendar}
               className="px-6 py-4 bg-white/15 hover:bg-white/20 text-white rounded-2xl font-bold text-sm backdrop-blur-md border border-white/20 transition-colors flex items-center justify-center gap-2"
             >
-              <Calendar className="w-4 h-4" />
-              <span>Ver Horarios Disponibles</span>
+              <Calendar className="w-4 h-4 text-[#FFD166]" />
+              <span>Ver Horarios & Flights</span>
             </button>
           </div>
 
@@ -110,14 +118,14 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       {/* 2. THE 4 MODULES PENSUM OVERVIEW */}
       <section className="space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
-            Currículo Estructurado • 12 Niveles de Transformación
+          <span className="text-xs font-bold uppercase tracking-wider text-[#2EC4B6] bg-[#2EC4B6]/10 px-3 py-1 rounded-full border border-[#2EC4B6]/20">
+            Currículo Estructurado • 12 Flights de Transformación
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Los 4 Módulos de La Teacher Cokitö
+          <h2 className="text-2xl sm:text-3xl font-black text-[#243447] tracking-tight">
+            Los 4 Módulos de Güakytopia
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Un camino paso a paso desde cero absoluto hasta la maestría conversacional y profesional.
+            Un recorrido progresivo y organizado para saber qué aprender y hacia dónde avanzar.
           </p>
         </div>
 
@@ -446,40 +454,45 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
       </section>
 
-      {/* 4. METHODOLOGY & TRUST PILLARS */}
+      {/* 4. METHODOLOGY & GROWTH MINDSET PILLARS */}
       <section className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6">
-        <h3 className="font-bold text-slate-900 text-base text-center">
-          Por Qué el Método Cokitö Transforma Tu Fluidez
-        </h3>
+        <div className="text-center space-y-1">
+          <span className="text-[10px] font-black uppercase tracking-wider text-[#2EC4B6] bg-[#2EC4B6]/10 px-2.5 py-0.5 rounded-full">
+            Growth Mindset • Principios de Güakytopia
+          </span>
+          <h3 className="font-black text-[#243447] text-lg sm:text-xl">
+            Progreso sobre Perfección. Práctica sobre Miedo.
+          </h3>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           <div className="space-y-2">
-            <div className="w-12 h-12 bg-blue-50 text-blue-700 rounded-2xl flex items-center justify-center mx-auto">
-              <Smile className="w-6 h-6" />
+            <div className="w-12 h-12 bg-[#2EC4B6]/15 text-[#2EC4B6] rounded-2xl flex items-center justify-center mx-auto text-xl">
+              🌱
             </div>
-            <h4 className="font-black text-slate-900 text-sm">Cero Juicio, Cero Vergüenza</h4>
+            <h4 className="font-black text-[#243447] text-sm">Curiosidad sobre Vergüenza</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Equivocarse es la única manera de aprender. Creamos un espacio seguro donde el error se celebra como un avance.
+              Tu punto de partida no determina hasta dónde puedes llegar. Equivocarse es avanzar, descubrir y aprender.
             </p>
           </div>
 
           <div className="space-y-2">
-            <div className="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center mx-auto">
-              <Clock className="w-6 h-6" />
+            <div className="w-12 h-12 bg-[#FFD166]/25 text-[#FF9248] rounded-2xl flex items-center justify-center mx-auto text-xl">
+              🪽
             </div>
-            <h4 className="font-black text-slate-900 text-sm">Estándar Internacional CEFR</h4>
+            <h4 className="font-black text-[#243447] text-sm">Autonomía & Estructura</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Plan curricular estructurado desde nivel A1 hasta C1, enfocado en fluidez comunicativa y confianza para hablar.
+              Avanza a tu propio ritmo por los 12 Flights internacionales o acelera con clases y acompañamiento de tutores.
             </p>
           </div>
 
           <div className="space-y-2">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="w-12 h-12 bg-[#FF6B4A]/15 text-[#FF6B4A] rounded-2xl flex items-center justify-center mx-auto text-xl">
+              🚀
             </div>
-            <h4 className="font-black text-slate-900 text-sm">Puntualidad & Respeto</h4>
+            <h4 className="font-black text-[#243447] text-sm">Tu Nivel de Hoy no es para Siempre</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Sesiones respetadas minuto a minuto con agenda compartida transparente y recordatorios automáticos.
+              Nunca etiquetamos. La práctica constante y el hábito diario desarrollan cualquier habilidad.
             </p>
           </div>
         </div>

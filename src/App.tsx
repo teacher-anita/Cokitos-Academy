@@ -20,6 +20,7 @@ import { TeacherGate } from './components/TeacherGate';
 import { StudentProfileModal } from './components/StudentProfileModal';
 import { LanguageLab } from './components/LanguageLab';
 import { PrincipalDashboard } from './components/PrincipalDashboard';
+import { ThemeSelectorModal, StudyThemeId } from './components/ThemeSelectorModal';
 import { Student, ScheduleSlot, AudienceTheme, Teacher, StaffRole } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
 import { INITIAL_TEACHERS } from './data/teachersData';
@@ -42,7 +43,17 @@ export default function App() {
   // Navigation & Theme State
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [audienceTheme, setAudienceTheme] = useState<AudienceTheme>('adults');
+  const [studyTheme, setStudyTheme] = useState<StudyThemeId>(() => {
+    const saved = localStorage.getItem('guakytopia_study_theme');
+    return (saved as StudyThemeId) || 'official';
+  });
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('guakytopia_study_theme', studyTheme);
+    document.documentElement.setAttribute('data-theme', studyTheme);
+  }, [studyTheme]);
   const [isPlacementQuizOpen, setIsPlacementQuizOpen] = useState(false);
   const [isCouponOpen, setIsCouponOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -365,6 +376,7 @@ export default function App() {
         isLoggingIn={isLoggingIn}
         onOpenOptimizer={() => setIsOptimizerOpen(true)}
         onOpenCouponModal={() => setIsCouponOpen(true)}
+        onOpenThemeModal={() => setIsThemeModalOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
         currentStudentXp={currentStudent?.xp || 0}
         currentStudentStreak={currentStudent?.streak || 0}
@@ -570,6 +582,14 @@ export default function App() {
         }}
       />
 
+      {/* Theme / Appearance Modal (Sensory & Neurodiversity Control) */}
+      <ThemeSelectorModal
+        isOpen={isThemeModalOpen}
+        currentTheme={studyTheme}
+        onSelectTheme={(t) => setStudyTheme(t)}
+        onClose={() => setIsThemeModalOpen(false)}
+      />
+
       {/* Pedagogical Optimizer Modal */}
       <ScheduleOptimizerModal
         isOpen={isOptimizerOpen}
@@ -579,16 +599,23 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 text-center">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 La Teacher Cokitö • Programa Curricular Internacional de Inmersión y Fluidez</p>
+          <p>© 2026 Güakytopia • Open the World. Start where you are. Keep going.</p>
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+            <span className="flex items-center gap-1 text-[#2EC4B6] font-semibold">
               <ShieldCheck className="w-4 h-4" />
               Privacidad y Confidencialidad Garantizada
             </span>
             <span>•</span>
             <button
+              onClick={() => setIsThemeModalOpen(true)}
+              className="text-[#2EC4B6] hover:underline font-bold"
+            >
+              🎨 Personalizar Ambiente
+            </button>
+            <span>•</span>
+            <button
               onClick={() => setIsOptimizerOpen(true)}
-              className="text-blue-700 hover:underline font-bold"
+              className="text-[#243447] hover:underline font-bold"
             >
               Análisis Pedagógico de Tiempos
             </button>

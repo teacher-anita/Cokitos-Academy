@@ -7,21 +7,21 @@ const ATTENDANCE_LOGS_KEY = 'cokito_attendance_logs';
 const INITIAL_ANNOUNCEMENTS: TeacherAnnouncement[] = [
   {
     id: 'ann-1',
-    title: '☕ ¡Bienvenidos a la Sala de Profesores & Staff Hub!',
-    content: 'Estimado equipo de Teachers: este espacio es para nosotros. Aquí coordinamos horarios, compartimos avances de alumnos, novedades pedagógicas de Super Goal y Mega Goal, y resolvemos dudas directas con la Dirección.',
-    authorName: 'Directora Waky',
+    title: '☕ Welcome to the Faculty & Teachers\' Lounge!',
+    content: 'Dear Teachers: This collaborative space is for us. Here we coordinate schedules, track student progress, share pedagogical updates, and resolve any questions directly with Principal Waky.',
+    authorName: 'Principal Waky',
     authorRole: 'principal',
     priority: 'important',
-    createdAt: 'Hoy, 08:30 AM'
+    createdAt: 'Today, 08:30 AM'
   },
   {
     id: 'ann-2',
-    title: '📌 Proceso de Validación de Alumnos Nuevos',
-    content: 'Recuerden que ningún alumno entra a los salones de Google Meet sin previa confirmación de pago y cupo por parte de Dirección. Si ven un alumno en modo cortesía (24h) en sus listas, ayúdenlo a resolver dudas diagnósticas.',
-    authorName: 'Directora Waky',
+    title: '📌 Student Verification & Welcome Protocol',
+    content: 'Remember that students access Google Meet sessions after payment confirmation and schedule booking. If you see a student in courtesy status, support them with diagnostic speaking tips.',
+    authorName: 'Principal Waky',
     authorRole: 'principal',
     priority: 'urgent',
-    createdAt: 'Ayer, 04:15 PM'
+    createdAt: 'Yesterday, 04:15 PM'
   }
 ];
 
@@ -29,30 +29,30 @@ const INITIAL_MESSAGES: LoungeMessage[] = [
   {
     id: 'msg-1',
     authorId: 'principal-waky',
-    authorName: 'Directora Waky',
+    authorName: 'Principal Waky',
     authorRole: 'principal',
     avatar: '👑',
-    text: '¡Buenos días equipo! Dejé en la cartelera los lineamientos de las evaluaciones de diagnóstico. Un cafecito virtual para todos ☕✨',
+    text: 'Good morning Teachers! I posted the diagnostic guidelines on the board. Enjoy your virtual coffee ☕✨',
     timestamp: '09:00 AM',
     reactions: { '☕': 5, '❤️': 3 }
   },
   {
     id: 'msg-2',
-    authorId: 'teacher-cokito',
-    authorName: 'Teacher Cokitö',
+    authorId: 'teacher-elena',
+    authorName: 'Teacher Elena',
     authorRole: 'teacher',
     avatar: '👩‍🏫',
-    text: '¡Recibido Directora! Los chicos de Super Goal 1 están fascinados con el módulo de pronunciación y el Cyber Owl.',
+    text: 'Received Principal Waky! The Level 1 students are loving the new Güakypedia exercises and speaking sessions.',
     timestamp: '09:12 AM',
-    reactions: { '🦉': 4, '👏': 3 }
+    reactions: { '🦜': 4, '👏': 3 }
   },
   {
     id: 'msg-3',
-    authorId: 'teacher-carlos',
-    authorName: 'Teacher Carlos',
+    authorId: 'teacher-marcos',
+    authorName: 'Teacher Marcos',
     authorRole: 'teacher',
     avatar: '👨‍🏫',
-    text: 'Colegas, hoy tengo disponible el bloque de 5:00 a 6:00 pm por si algún grupo necesita refuerzo intensivo.',
+    text: 'Colleagues, I have the 5:00 to 6:00 PM slot available today in case any group needs extra conversation practice.',
     timestamp: '09:45 AM',
     reactions: { '👍': 2 }
   }

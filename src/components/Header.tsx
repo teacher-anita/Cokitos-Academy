@@ -8,12 +8,13 @@ import {
   Lock, 
   KeyRound, 
   GraduationCap, 
-  Baby, 
+  Sparkles, 
   User as UserIcon,
   Palette
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AudienceTheme, Student, StaffRole } from '../types';
+import { GuakyLogo } from './GuakyLogo';
 
 interface HeaderProps {
   user: User | null;
@@ -27,8 +28,8 @@ interface HeaderProps {
   isLoggingIn: boolean;
   onOpenOptimizer: () => void;
   onOpenCouponModal: () => void;
-  onOpenProfile: () => void;
   onOpenThemeModal?: () => void;
+  onOpenProfile: () => void;
   currentStudentXp: number;
   currentStudentStreak: number;
   currentStudent: Student | null;
@@ -50,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   isLoggingIn,
   onOpenOptimizer,
   onOpenCouponModal,
+  onOpenThemeModal,
   onOpenProfile,
   currentStudentXp,
   currentStudentStreak,
@@ -72,48 +74,27 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Row 1: Brand & Top Actions (Guaranteed 100% visible, never escapes on the right) */}
           <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
             
-            {/* Logo & Teacher Cokitö Branding */}
+            {/* Logo & Güakytopia Brand */}
             <button
               onClick={() => onTabChange('landing')}
               className="flex items-center gap-2 text-left focus:outline-hidden shrink-0 min-w-0"
+              title="Güakytopia • Open the World"
             >
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-white shadow-md transition-all shrink-0 ${
-                isKids
-                  ? 'bg-gradient-to-tr from-sky-400 via-blue-500 to-amber-400 shadow-sky-100'
-                  : 'bg-gradient-to-tr from-slate-900 via-blue-900 to-indigo-700 shadow-blue-100'
-              }`}>
-                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-slate-900 tracking-tight text-sm sm:text-base md:text-lg truncate">
-                    Coquitos Academy
-                  </span>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${
-                    isKids
-                      ? 'bg-yellow-100 text-yellow-900 border-yellow-300'
-                      : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  }`}>
-                    {isKids ? 'Kids' : 'La Teacher Cokitö'}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 hidden sm:block">Aprende Inglés Sin Miedo & a Tu Ritmo</p>
-              </div>
+              <GuakyLogo size="sm" showSubtitle={true} />
             </button>
 
             {/* Right Action Cluster - Always visible on desktop, tablet, and mobile */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               
-              {/* THEME & APPEARANCE SELECTOR BUTTON (TDAH, Sports, Pastels) */}
+              {/* THEME / AMBIENTE DE ESTUDIO BUTTON (Sensory & Neurodiversity Control) */}
               {onOpenThemeModal && (
                 <button
-                  type="button"
                   onClick={onOpenThemeModal}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 text-teal-900 border border-teal-300 rounded-xl text-xs font-bold transition-all shadow-2xs"
-                  title="Personalizar paletas de color y Modo TDAH"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#FFF9F0] hover:bg-[#FFEECB] text-[#243447] border border-[#FFD166] rounded-xl text-xs font-bold transition-all shadow-2xs"
+                  title="Personalizar ambiente de estudio (Bajo estímulo, Modo Oscuro TDAH, Pasteles)"
                 >
-                  <Palette className="w-3.5 h-3.5 text-teal-600" />
-                  <span className="hidden sm:inline">Paletas & Temas</span>
+                  <Palette className="w-3.5 h-3.5 text-[#2EC4B6]" />
+                  <span className="hidden sm:inline">Ambiente</span>
                 </button>
               )}
 
@@ -124,34 +105,34 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Canjear código de cortesía o beca"
               >
                 <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-                <span className="hidden sm:inline">Código / Beca</span>
+                <span className="hidden sm:inline">Beca / Código</span>
               </button>
 
-              {/* AUDIENCE THEME TOGGLE: Kids vs Adultos */}
+              {/* AUDIENCE THEME TOGGLE: Junior 12+ vs Adult */}
               <div className="hidden sm:flex bg-slate-100 p-0.5 rounded-xl items-center text-xs font-bold border border-slate-200/80">
                 <button
                   onClick={() => onAudienceChange('adults')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
                     !isKids
-                      ? 'bg-slate-900 text-white shadow-xs'
+                      ? 'bg-[#243447] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
-                  title="Modo Adultos"
+                  title="Audiencia Adult"
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
-                  <span>Adultos</span>
+                  <span>Adult</span>
                 </button>
                 <button
                   onClick={() => onAudienceChange('kids')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
                     isKids
-                      ? 'bg-sky-500 text-white shadow-xs'
+                      ? 'bg-[#2EC4B6] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
-                  title="Modo Kids"
+                  title="Audiencia Junior 12+"
                 >
-                  <Baby className="w-3.5 h-3.5" />
-                  <span>Kids</span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Junior 12+</span>
                 </button>
               </div>
 
@@ -217,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onTabChange('landing')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                   activeTab === 'landing'
-                    ? 'bg-white text-blue-700 shadow-xs font-bold'
+                    ? 'bg-white text-[#2EC4B6] shadow-xs font-bold'
                     : 'hover:text-slate-900'
                 }`}
               >
@@ -225,80 +206,80 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Inicio</span>
               </button>
 
-              {/* 2. Inscripción & Test */}
+              {/* 2. Vuelo & Test */}
               <button
                 onClick={() => onTabChange('register')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                   activeTab === 'register'
-                    ? 'bg-white text-blue-700 shadow-xs font-bold'
+                    ? 'bg-white text-[#2EC4B6] shadow-xs font-bold'
                     : 'hover:text-slate-900'
                 }`}
               >
                 <span className="text-sm">✍️</span>
-                <span>Inscripción & Test</span>
+                <span>Vuelo & Test</span>
               </button>
 
-              {/* 3. Agenda */}
-              <button
-                onClick={() => onTabChange('calendar')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'calendar'
-                    ? 'bg-white text-blue-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                <span className="text-sm">📅</span>
-                <span>Agenda</span>
-              </button>
-
-              {/* 4. Retos Cokitö */}
-              <button
-                onClick={() => onTabChange('duolingo')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                  activeTab === 'duolingo'
-                    ? 'bg-white text-emerald-700 shadow-xs font-bold'
-                    : 'hover:text-slate-900'
-                }`}
-              >
-                <span className="text-sm">⚡</span>
-                <span>Retos Cokitö</span>
-              </button>
-
-              {/* 5. Classroom (Emoji on left, Lock on RIGHT) */}
+              {/* 3. Güakypedia & Flights */}
               <button
                 onClick={() => onTabChange('pathway')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                   activeTab === 'pathway'
-                    ? 'bg-white text-indigo-700 shadow-xs font-bold'
+                    ? 'bg-white text-[#243447] shadow-xs font-bold'
                     : 'hover:text-slate-900'
                 }`}
               >
-                <span className="text-sm">📚</span>
-                <span>Classroom</span>
+                <span className="text-sm">📖</span>
+                <span>Güakypedia & Flights</span>
                 {!isEnrolled && (
                   <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 ml-0.5" />
                 )}
               </button>
               
-              {/* 6. Laboratorio (Language Practice Lab • 100 Drills • Candadito si no ha iniciado sesión) */}
+              {/* 4. Güakytalkie (Speaking Lab) */}
               <button
                 onClick={() => onTabChange('lab')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                   activeTab === 'lab'
-                    ? 'bg-white text-emerald-700 shadow-xs font-bold ring-1 ring-emerald-300'
+                    ? 'bg-white text-[#2EC4B6] shadow-xs font-bold ring-1 ring-[#2EC4B6]/30'
                     : 'hover:text-slate-900'
                 }`}
-                title="Laboratorio de Práctica • 100 Ejercicios Interactivos (Beneficio de Afiliación)"
+                title="Güakytalkie • Laboratorio de Speaking y Conversación"
               >
-                <span className="text-sm">🧪</span>
-                <span>Laboratorio</span>
+                <span className="text-sm">📻</span>
+                <span>Güakytalkie</span>
                 {!isUserLoggedIn ? (
                   <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 ml-0.5" />
                 ) : (
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                  <span className="bg-[#2EC4B6]/20 text-[#2EC4B6] text-[10px] font-black px-1.5 py-0.5 rounded-full">
                     100
                   </span>
                 )}
+              </button>
+
+              {/* 5. The Flock Arena (Retos & Comunidad) */}
+              <button
+                onClick={() => onTabChange('duolingo')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'duolingo'
+                    ? 'bg-white text-[#FF6B4A] shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">🪶</span>
+                <span>The Flock Arena</span>
+              </button>
+
+              {/* 6. Agenda */}
+              <button
+                onClick={() => onTabChange('calendar')}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === 'calendar'
+                    ? 'bg-white text-[#243447] shadow-xs font-bold'
+                    : 'hover:text-slate-900'
+                }`}
+              >
+                <span className="text-sm">📅</span>
+                <span>Agenda</span>
               </button>
 
               {/* 7. Teacher / Rectoría Portal (Lock on RIGHT) */}
@@ -308,13 +289,13 @@ export const Header: React.FC<HeaderProps> = ({
                   activeTab === 'teacher'
                     ? staffRole === 'principal'
                       ? 'bg-amber-400 text-slate-950 shadow-md font-black ring-1 ring-amber-500'
-                      : 'bg-blue-900 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-blue-900 hover:bg-slate-200/60'
+                      : 'bg-[#243447] text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                 }`}
-                title={staffRole === 'principal' ? 'Portal de Rectoría' : 'Portal Docente'}
+                title={staffRole === 'principal' ? 'Portal de Rectoría' : 'Portal Teacher'}
               >
                 <span className="text-sm">{staffRole === 'principal' ? '👑' : '👩‍🏫'}</span>
-                <span>{staffRole === 'principal' ? 'Rectoría' : 'Docente'}</span>
+                <span>{staffRole === 'principal' ? 'Rectoría' : 'Teacher'}</span>
                 <Lock className={`w-3.5 h-3.5 shrink-0 ml-0.5 ${isTeacherAuthenticated ? 'text-emerald-400' : 'text-amber-500'}`} />
               </button>
 
@@ -331,84 +312,84 @@ export const Header: React.FC<HeaderProps> = ({
           {/* 1. Inicio */}
           <button
             onClick={() => onTabChange('landing')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] ${
               activeTab === 'landing'
-                ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
+                ? 'text-[#2EC4B6] font-bold bg-[#2EC4B6]/10 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <span className="text-base">🏠</span>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Inicio</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5 font-bold">Inicio</span>
           </button>
 
-          {/* 2. Inscripción */}
-          <button
-            onClick={() => onTabChange('register')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[62px] ${
-              activeTab === 'register'
-                ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <span className="text-base">✍️</span>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Inscripción</span>
-          </button>
-
-          {/* 3. Classroom (Lock on RIGHT) */}
+          {/* 2. Güakypedia */}
           <button
             onClick={() => onTabChange('pathway')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
               activeTab === 'pathway'
-                ? 'text-indigo-600 font-bold bg-indigo-50/80 scale-102'
+                ? 'text-[#243447] font-bold bg-slate-100 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <div className="relative">
-              <span className="text-base">📚</span>
+              <span className="text-base">📖</span>
               {!isEnrolled && (
                 <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-amber-500 rounded-full border border-white flex items-center justify-center">
                   <Lock className="w-2 h-2 text-white" />
                 </span>
               )}
             </div>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Classroom</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Güakypedia</span>
           </button>
 
-          {/* 4. Laboratorio (100 Drills • Candadito si no ha iniciado sesión) */}
+          {/* 3. Güakytalkie */}
           <button
             onClick={() => onTabChange('lab')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] relative ${
               activeTab === 'lab'
-                ? 'text-emerald-600 font-bold bg-emerald-50/80 scale-102'
+                ? 'text-[#2EC4B6] font-bold bg-[#2EC4B6]/10 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <div className="relative">
-              <span className="text-base">🧪</span>
+              <span className="text-base">📻</span>
               {!isUserLoggedIn ? (
                 <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-amber-500 rounded-full border border-white flex items-center justify-center shadow-xs">
                   <Lock className="w-2 h-2 text-white" />
                 </span>
               ) : (
-                <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-emerald-600 text-white rounded-full text-[8px] font-black">
+                <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-[#2EC4B6] text-white rounded-full text-[8px] font-black">
                   100
                 </span>
               )}
             </div>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Lab</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Talkie</span>
           </button>
 
-          {/* 5. Retos */}
+          {/* 4. The Flock Arena */}
           <button
             onClick={() => onTabChange('duolingo')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] ${
               activeTab === 'duolingo'
-                ? 'text-emerald-600 font-bold bg-emerald-50/80 scale-102'
+                ? 'text-[#FF6B4A] font-bold bg-[#FF6B4A]/10 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <span className="text-base">⚡</span>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Retos</span>
+            <span className="text-base">🪶</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Flock</span>
+          </button>
+
+          {/* 5. Vuelo & Test */}
+          <button
+            onClick={() => onTabChange('register')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] ${
+              activeTab === 'register'
+                ? 'text-[#2EC4B6] font-bold bg-[#2EC4B6]/10 scale-102'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <span className="text-base">✍️</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Vuelo</span>
           </button>
 
           {/* 6. Agenda */}
@@ -416,12 +397,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => onTabChange('calendar')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[56px] ${
               activeTab === 'calendar'
-                ? 'text-blue-600 font-bold bg-blue-50/80 scale-102'
+                ? 'text-[#243447] font-bold bg-slate-100 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <span className="text-base">📅</span>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
           </button>
 
           {/* 7. Teacher / Rectoría (Lock on RIGHT) */}
@@ -431,7 +412,7 @@ export const Header: React.FC<HeaderProps> = ({
               activeTab === 'teacher'
                 ? staffRole === 'principal'
                   ? 'text-amber-950 font-black bg-amber-200/80 scale-102'
-                  : 'text-blue-900 font-bold bg-blue-100/80 scale-102'
+                  : 'text-[#243447] font-bold bg-slate-200 scale-102'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -443,8 +424,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <Lock className="w-2 h-2 text-white" />
               </span>
             </div>
-            <span className="text-[10px] leading-tight truncate w-full text-center mt-0.5">
-              {staffRole === 'principal' ? 'Rectoría' : 'Docente'}
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5 font-bold">
+              {staffRole === 'principal' ? 'Rectoría' : 'Teacher'}
             </span>
           </button>
 

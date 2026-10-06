@@ -557,8 +557,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
     // Send confirmation email
     await sendGmailEmail({
       to: email,
-      subject: `¡Inscripción recibida en la academia de La Teacher Cokitö!`,
-      bodyText: `Hola ${name},\n\n¡Bienvenido(a) a la academia de La Teacher Cokitö!\n\nHemos recibido tu registro${placementResult ? ` y el resultado de tu prueba diagnóstica (${placementResult.score}/${placementResult.total} puntos)` : ' para comenzar tu aprendizaje'}.\n\nDetalles:\n- Plan elegido: ${currentPlan.title}\n- Nivel: ${placementResult ? placementResult.suggestedLevelName : 'Inicial (A1) por defecto'}\n- Horario / Modalidad: ${currentPlan.isSelfPaced ? 'Autónomo Asincrónico' : selectedSlotIds.join(', ') || preferredTimeSlot}\n\n¡Nos alegra mucho acompañarte en tu meta de hablar inglés con confianza!`
+      subject: `¡Inscripción recibida en Güakytopia! • Open the World`,
+      bodyText: `Hola ${name},\n\n¡Bienvenido(a) a Güakytopia!\n\nHemos recibido tu registro${placementResult ? ` y el resultado de tu prueba diagnóstica (${placementResult.score}/${placementResult.total} puntos)` : ' para comenzar tu aprendizaje'}.\n\nDetalles:\n- Plan elegido: ${currentPlan.title}\n- Nivel: ${placementResult ? placementResult.suggestedLevelName : 'Inicial (A1) por defecto'}\n- Horario / Modalidad: ${currentPlan.isSelfPaced ? 'Autónomo Asincrónico' : selectedSlotIds.join(', ') || preferredTimeSlot}\n\nStart where you are. Keep going. ¡Nos alegra mucho acompañarte a abrir el mundo a través del inglés!`
     }).catch(() => null);
 
     try {
@@ -1107,10 +1107,10 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
               {/* Schedule Rules Legend */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                <div>🎒 <strong>15:00 - 17:00:</strong> Alumnos CSB</div>
-                <div>🏫 <strong>17:00 - 19:00:</strong> Teachers CSB</div>
-                <div>🌅 <strong>06:00 - 08:00:</strong> Solo Grupos</div>
-                <div>🌙 <strong>20:00 - 22:00:</strong> Solo Grupos</div>
+                <div>🌅 <strong>06:00 - 08:00:</strong> Grupos Matutinos (6-7 y 7-8 am)</div>
+                <div>🎒 <strong>15:00 - 17:00:</strong> Prioridad Alumno Escolar</div>
+                <div>🏫 <strong>17:00 - 19:00:</strong> Prioridad Teachers CSB</div>
+                <div>🌙 <strong>20:00 - 22:00:</strong> Exclusivo Grupos Adultos</div>
               </div>
 
               <div className="space-y-2">
