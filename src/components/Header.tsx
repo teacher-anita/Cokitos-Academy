@@ -9,7 +9,8 @@ import {
   KeyRound, 
   GraduationCap, 
   Baby, 
-  User as UserIcon 
+  User as UserIcon,
+  Palette
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AudienceTheme, Student, StaffRole } from '../types';
@@ -27,6 +28,7 @@ interface HeaderProps {
   onOpenOptimizer: () => void;
   onOpenCouponModal: () => void;
   onOpenProfile: () => void;
+  onOpenThemeModal?: () => void;
   currentStudentXp: number;
   currentStudentStreak: number;
   currentStudent: Student | null;
@@ -85,14 +87,14 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-black text-slate-900 tracking-tight text-sm sm:text-base md:text-lg truncate">
-                    La Teacher Cokitö
+                    Coquitos Academy
                   </span>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${
                     isKids
                       ? 'bg-yellow-100 text-yellow-900 border-yellow-300'
-                      : 'bg-blue-50 text-blue-800 border-blue-200'
+                      : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   }`}>
-                    {isKids ? 'Kids' : 'Academia'}
+                    {isKids ? 'Kids' : 'La Teacher Cokitö'}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 hidden sm:block">Aprende Inglés Sin Miedo & a Tu Ritmo</p>
@@ -102,6 +104,19 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Right Action Cluster - Always visible on desktop, tablet, and mobile */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               
+              {/* THEME & APPEARANCE SELECTOR BUTTON (TDAH, Sports, Pastels) */}
+              {onOpenThemeModal && (
+                <button
+                  type="button"
+                  onClick={onOpenThemeModal}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 text-teal-900 border border-teal-300 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                  title="Personalizar paletas de color y Modo TDAH"
+                >
+                  <Palette className="w-3.5 h-3.5 text-teal-600" />
+                  <span className="hidden sm:inline">Paletas & Temas</span>
+                </button>
+              )}
+
               {/* Coupon / Beca button */}
               <button
                 onClick={onOpenCouponModal}

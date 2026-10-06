@@ -60,10 +60,10 @@ export const TeacherGate: React.FC<TeacherGateProps> = ({
       </div>
 
       <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-        Portal Administrativo & Docente
+        Portal Administrativo & Teachers
       </h2>
       <p className="text-xs sm:text-sm text-slate-500 mt-2 mb-6">
-        Ingreso seguro para personal directivo, administrativo y docente autorizado de Cokitö Academy.
+        Ingreso seguro para personal directivo, administrativo y Teachers autorizados de Coquitos Academy.
       </p>
 
       {/* Google login option if already matching email */}

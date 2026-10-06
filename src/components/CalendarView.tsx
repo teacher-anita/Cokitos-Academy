@@ -90,7 +90,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               {activeRole === 'teacher'
-                ? 'Gestiona la agenda docente, libera horarios asignados y envía recordatorios inmediatos por correo.'
+                ? 'Gestiona la agenda de Teachers, libera horarios asignados y envía recordatorios inmediatos por correo.'
                 : 'Para proteger la privacidad de los alumnos, los turnos ocupados por otros compañeros se muestran como "Reservado".'}
             </p>
           </div>

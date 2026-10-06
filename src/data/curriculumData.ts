@@ -396,7 +396,7 @@ export const INITIAL_STUDENTS: Student[] = [
     age: 25,
     isKid: false,
     schoolOrProfession: 'Auxiliar - CSB Preschool (PRE CSB)',
-    learningGoal: 'Consolidación comunicativa, fluidez docente y desarrollo profesional.',
+    learningGoal: 'Consolidación comunicativa, fluidez en inglés y desarrollo profesional.',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     plan: 'basic',
     modality: 'presencial',
@@ -506,7 +506,7 @@ export const INITIAL_STUDENTS: Student[] = [
     streak: 1,
     league: 'Bronce',
     rating: { fluency: 3, grammar: 4, vocabulary: 4, pronunciation: 3 },
-    notes: 'Nuevo aspirante registrado hoy. Requiere asignación de nivel y horario en el panel docente.',
+    notes: 'Nuevo aspirante registrado hoy. Requiere asignación de nivel y horario en el panel de Teachers.',
     assignedSlots: []
   }
 ];

@@ -8,7 +8,7 @@ const INITIAL_ANNOUNCEMENTS: TeacherAnnouncement[] = [
   {
     id: 'ann-1',
     title: '☕ ¡Bienvenidos a la Sala de Profesores & Staff Hub!',
-    content: 'Estimado equipo docente: este espacio es para nosotros. Aquí coordinamos horarios, compartimos avances de alumnos, novedades pedagógicas de Super Goal y Mega Goal, y resolvemos dudas directas con la Dirección.',
+    content: 'Estimado equipo de Teachers: este espacio es para nosotros. Aquí coordinamos horarios, compartimos avances de alumnos, novedades pedagógicas de Super Goal y Mega Goal, y resolvemos dudas directas con la Dirección.',
     authorName: 'Directora Waky',
     authorRole: 'principal',
     priority: 'important',

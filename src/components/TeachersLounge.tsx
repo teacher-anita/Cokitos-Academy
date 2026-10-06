@@ -171,7 +171,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
                 Teacher's Lounge & Coffee Hub
               </h2>
               <p className="text-xs text-amber-100/90 mt-0.5">
-                Espacio colaborativo de Waky y el equipo docente: mensajes en vivo, avisos oficiales, bitácoras y coordinación.
+                Espacio colaborativo de Waky y el equipo de Teachers: mensajes en vivo, avisos oficiales, bitácoras y coordinación.
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
             <span className="text-lg">{staffAvatar}</span>
             <div>
               <span className="font-bold text-white block leading-tight">{staffName}</span>
-              <span className="text-[10px] text-amber-300 capitalize">{currentStaffRole === 'principal' ? 'Directora Principal' : 'Docente Cokits'}</span>
+              <span className="text-[10px] text-amber-300 capitalize">{currentStaffRole === 'principal' ? 'Directora Principal' : 'Teacher Coquitos'}</span>
             </div>
           </div>
         </div>
@@ -244,7 +244,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             <div className="text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
-                ☕ Canal del Equipo Docente • Cokits Academy
+                ☕ Canal del Equipo de Teachers • Coquitos Academy
               </span>
             </div>
 
@@ -445,7 +445,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
                       rows={4}
                       value={annContent}
                       onChange={e => setAnnContent(e.target.value)}
-                      placeholder="Escribe el mensaje detallado para el equipo docente..."
+                      placeholder="Escribe el mensaje detallado para los Teachers..."
                       className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                       required
                     />
@@ -515,7 +515,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
                       </div>
                       {student.phone && (
                         <a
-                          href={`https://wa.me/${student.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${student.name}! Te saluda el equipo de Cokits Academy. Vemos que estás explorando tu pase de cortesía de 24 horas. ¿Tienes alguna duda con tu nivel o tus clases?`)}`}
+                          href={`https://wa.me/${student.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${student.name}! Te saluda el equipo de Coquitos Academy. Vemos que estás explorando tu pase de cortesía de 24 horas. ¿Tienes alguna duda con tu nivel o tus clases?`)}`}
                           target="_blank"
                           rel="noreferrer"
                           className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 shadow-2xs"

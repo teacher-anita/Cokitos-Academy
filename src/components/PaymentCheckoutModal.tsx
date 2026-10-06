@@ -90,15 +90,15 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full">
-                Pase Digital Cokitö
+                Pase Digital Coquitos
               </span>
-              <span className="text-xs text-blue-200 font-semibold">$5 USD / mes</span>
+              <span className="text-xs text-blue-200 font-semibold">$5 USD mensuales</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
               Métodos de Pago Oficiales
             </h2>
             <p className="text-xs text-blue-200 mt-0.5">
-              Acceso total e ilimitado a los 12 niveles de libros, audios y quizzes.
+              Acceso mensual ilimitado a los 12 niveles de libros, audios y quizzes.
             </p>
           </div>
           <button

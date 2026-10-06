@@ -535,6 +535,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       groupSize: selectedPlanId === 'digital_5' ? 'individual' : selectedGroupSize,
       preferredTimeSlot,
       status: appliedCoupon ? 'enrolled' : 'pending_evaluation',
+      paymentStatus: appliedCoupon ? 'scholarship' : 'pending_approval',
+      depositAmountUsd: appliedCoupon ? 0 : 5,
       levelId: placementResult?.suggestedLevelId || defaultLevelId,
       placementTestScore: placementResult?.score,
       placementTestDiagnosis: placementResult 
@@ -829,36 +831,74 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedGroupSize('individual')}
-                    className={`p-2 rounded-xl border text-center text-xs font-bold transition-all ${
+                    className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all ${
                       selectedGroupSize === 'individual'
-                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs ring-2 ring-blue-100'
                         : 'border-slate-200 bg-slate-100 text-slate-600'
                     }`}
                   >
-                    👤 1 a 1 (Privada)
+                    <span className="block">👤 1 a 1</span>
+                    <span className="text-[10px] block opacity-80 font-normal">Privada</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedGroupSize('duo')}
-                    className={`p-2 rounded-xl border text-center text-xs font-bold transition-all ${
+                    className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all ${
                       selectedGroupSize === 'duo'
-                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs ring-2 ring-blue-100'
                         : 'border-slate-200 bg-slate-100 text-slate-600'
                     }`}
                   >
-                    👥 Dúo (2 alumnos)
+                    <span className="block">👥 Dúo</span>
+                    <span className="text-[10px] block opacity-80 font-normal">2 alumnos</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedGroupSize('crew4')}
-                    className={`p-2 rounded-xl border text-center text-xs font-bold transition-all ${
+                    className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all ${
                       selectedGroupSize === 'crew4'
-                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs'
+                        ? 'border-blue-600 bg-white text-blue-950 shadow-xs ring-2 ring-blue-100'
                         : 'border-slate-200 bg-slate-100 text-slate-600'
                     }`}
                   >
-                    🧑‍🤝‍🧑 Grupo (3-4 pax)
+                    <span className="block">🧑‍🤝‍🧑 Grupal</span>
+                    <span className="text-[10px] block opacity-80 font-normal">3-4 pax</span>
                   </button>
+                </div>
+              </div>
+
+              {/* REASSURING CALLOUT BOX: EXPLAINS EXACTLY WHAT IS PAID TODAY */}
+              <div className={`p-4 rounded-2xl border text-xs space-y-2 mt-3 ${
+                selectedGroupSize === 'individual'
+                  ? 'bg-blue-50/80 border-blue-200 text-blue-950'
+                  : 'bg-emerald-50/80 border-emerald-300 text-emerald-950'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <strong className="text-sm font-black">
+                    {selectedGroupSize === 'individual' 
+                      ? '🌟 Clases Privadas 1 a 1' 
+                      : selectedGroupSize === 'duo' 
+                      ? '👥 Modalidad Dúo (2 Alumnos) • Reserva de Cupo' 
+                      : '🧑‍🤝‍🧑 Modalidad Grupal (3 a 4 Alumnos) • Reserva de Cupo'}
+                  </strong>
+                </div>
+                <p className="leading-relaxed">
+                  {selectedGroupSize === 'individual' ? (
+                    <>
+                      Atención pedagógica exclusiva 100% personalizada. Para ingresar hoy a la plataforma, puedes <strong>apartar tu cupo con solo $5 USD</strong> (deducibles de tu paquete) o cancelar la totalidad si ya deseas iniciar de inmediato.
+                    </>
+                  ) : (
+                    <>
+                      La tarifa final de la mensualidad depende de la conformación de tu grupo. <strong>Para asegurar tu cupo y disfrutar de la plataforma de inmediato, hoy solo abonas la reserva mínima de $5 USD</strong> (o en Bs a tasa BCV). Este monto se te descontará al 100% de tu primera factura una vez que la Directora Waky confirme y arme tu grupo oficial.
+                    </>
+                  )}
+                </p>
+                <div className="pt-1.5 flex flex-wrap items-center justify-between gap-2 border-t border-emerald-200/60 font-bold">
+                  <span className="text-[11px] text-slate-600">Abono requerido hoy para activar tu cuenta:</span>
+                  <span className="text-xs font-black text-emerald-700 bg-white px-3 py-1 rounded-xl border border-emerald-300 shadow-2xs">
+                    $5 USD (Bs. {convertUsdToBs(5, bcvRate).formattedBs})
+                  </span>
                 </div>
               </div>
             </div>
@@ -868,6 +908,21 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {REGISTRATION_PLANS.map(plan => {
               const isSelected = selectedPlanId === plan.id;
+              
+              // Calculate adjusted rate based on group format
+              let displayedPrice = plan.priceDisplay;
+              let displayedPeriod = plan.period;
+              if (plan.id !== 'digital_5') {
+                if (selectedGroupSize === 'duo') {
+                  const duoRates: Record<string, string> = { express_6: '$70', intensive_4: '$55', regular_3: '$45', basic_2: '$35' };
+                  displayedPrice = duoRates[plan.id] || plan.priceDisplay;
+                  displayedPeriod = `${plan.period} (por alumno)`;
+                } else if (selectedGroupSize === 'crew4') {
+                  const crewRates: Record<string, string> = { express_6: '$50', intensive_4: '$40', regular_3: '$30', basic_2: '$25' };
+                  displayedPrice = crewRates[plan.id] || plan.priceDisplay;
+                  displayedPeriod = `${plan.period} (por alumno)`;
+                }
+              }
 
               return (
                 <div
@@ -896,9 +951,14 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     <div>
                       <h3 className="font-black text-slate-900 text-base">{plan.title}</h3>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <span className="text-2xl sm:text-3xl font-black text-slate-900">{plan.priceDisplay}</span>
-                        <span className="text-xs text-slate-500 font-semibold">{plan.period}</span>
+                        <span className="text-2xl sm:text-3xl font-black text-slate-900">{displayedPrice}</span>
+                        <span className="text-xs text-slate-500 font-semibold">{displayedPeriod}</span>
                       </div>
+                      {plan.id !== 'digital_5' && (
+                        <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          Reserva hoy con solo $5 USD (Bs. {convertUsdToBs(5, bcvRate).formattedBs})
+                        </span>
+                      )}
                     </div>
 
                     <p className="text-xs text-slate-600 leading-relaxed">
@@ -963,6 +1023,48 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 ? 'La prueba toma de 5 a 10 minutos y te posiciona en el libro y nivel ideal para comenzar.'
                 : 'Selecciona tus turnos preferidos y completa la prueba para que La Teacher Cokitö organice tu grupo.'}
             </p>
+          </div>
+
+          {/* FINANCIAL & PLAN SUMMARY CARD BEFORE SELECTING HOURS */}
+          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white rounded-3xl p-5 sm:p-6 space-y-4 shadow-md border border-slate-800 animate-fadeIn">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/30 inline-block mb-1.5">
+                  Resumen de tu Inscripción
+                </span>
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  {currentPlan.title}
+                </h3>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Modalidad: <strong className="text-amber-300 capitalize">{selectedModality}</strong> • Formato: <strong className="text-amber-300">
+                    {selectedPlanId === 'digital_5' ? 'Pase Autónomo' : selectedGroupSize === 'individual' ? 'Privada (1 a 1)' : selectedGroupSize === 'duo' ? 'Dúo (2 Alumnos)' : 'Grupal (3-4 Pax)'}
+                  </strong>
+                </p>
+              </div>
+
+              <div className="text-left sm:text-right bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 shrink-0">
+                <span className="text-[10px] text-slate-300 uppercase font-bold block">
+                  {selectedPlanId === 'digital_5' ? 'Monto a pagar:' : selectedGroupSize === 'individual' ? 'Abono hoy / Reserva:' : 'Abono de Reserva Hoy:'}
+                </span>
+                <span className="text-2xl font-black text-emerald-400 block">
+                  $5 USD
+                </span>
+                <span className="text-[11px] text-amber-300 font-bold block mt-0.5">
+                  ≈ {convertUsdToBs(5, bcvRate).formattedBs} (BCV)
+                </span>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-300 leading-relaxed flex items-start gap-2 bg-white/5 p-3 rounded-xl border border-white/5">
+              <span className="text-emerald-400 text-sm font-bold">💡</span>
+              <p>
+                {selectedPlanId === 'digital_5'
+                  ? 'Con tu pago de $5 USD desbloqueas inmediatamente los 12 niveles, audios oficiales, libros y quizzes con Cyber Owl.'
+                  : selectedGroupSize === 'individual'
+                  ? 'Marca tus horarios preferidos abajo. En el siguiente paso reportarás tu pago móvil de $5 USD (o la totalidad) para que la Directora Waky active tu acceso.'
+                  : 'Para ingresar hoy a la plataforma y apartar tu puesto, solo abonas la reserva de $5 USD (o en Bs). Este monto se descontará 100% de tu mensualidad cuando la Directora Waky confirme y conforme tu grupo definitivo.'}
+              </p>
+            </div>
           </div>
 
           {/* Schedule Picker (Only if LIVE classes plan is chosen) */}
@@ -1200,14 +1302,18 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               type="button"
               onClick={handleFinalSubmit}
               disabled={isSubmitting}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all hover:scale-101 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
-                <span>Registrando en la plataforma...</span>
+                <span>Preparando tu comprobante de pago...</span>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Finalizar Inscripción ({appliedCoupon ? 'Gratis con Código' : currentPlan.priceDisplay})</span>
+                  <span>
+                    {appliedCoupon 
+                      ? 'Finalizar con Cupón 100% Bonificado' 
+                      : `Continuar al Pago Móvil ($5 USD • ${convertUsdToBs(5, bcvRate).formattedBs}) ➡️`}
+                  </span>
                 </>
               )}
             </button>
@@ -1286,15 +1392,20 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   <strong className="text-blue-700">{currentPlan.title}</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Modalidad:</span>
+                  <span className="text-slate-500">Modalidad & Formato:</span>
                   <strong className="text-slate-800 capitalize">
-                    {isDigital ? 'Autónomo Asincrónico' : `${selectedModality} • ${selectedGroupSize === 'individual' ? 'Clase 1 a 1' : 'Grupal'}`}
+                    {isDigital ? 'Autónomo Asincrónico' : `${selectedModality} • ${selectedGroupSize === 'individual' ? 'Clase 1 a 1' : selectedGroupSize === 'duo' ? 'Dúo (2 alumnos)' : 'Grupal (3-4 alumnos)'}`}
                   </strong>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Monto del Plan:</span>
-                  <strong className="text-slate-900 font-bold">{currentPlan.priceDisplay} {currentPlan.period}</strong>
+                  <span className="text-slate-500">{isDigital ? 'Monto a pagar:' : isGroup ? 'Abono de Reserva Requerido Hoy:' : 'Abono Hoy:'}</span>
+                  <strong className="text-emerald-700 font-bold">${calculatedDueUsd} USD (Bs. {step4Conversion.formattedBs})</strong>
                 </div>
+                {isGroup && (
+                  <p className="text-[10px] text-amber-800 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
+                    💡 Los $5 USD de hoy se descuentan 100% de tu mensualidad al confirmarse el grupo.
+                  </p>
+                )}
                 <div className="flex justify-between pt-1 border-t border-slate-200">
                   <span className="text-slate-500">Estado de Cuenta:</span>
                   <strong className={
