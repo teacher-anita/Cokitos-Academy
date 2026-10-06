@@ -50,6 +50,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Main Study Rhythm Filter (reduces cognitive noise by 70%!)
   const [studyRhythm, setStudyRhythm] = useState<StudyRhythm>('mon_wed');
   const [intensiveVariant, setIntensiveVariant] = useState<'mon_wed_fri' | 'tue_thu_fri'>('mon_wed_fri');
+  
+  // Format Filter: Individual vs Grupal vs Todos
+  const [classFormatFilter, setClassFormatFilter] = useState<'all' | 'individual' | 'group'>('all');
+  
+  // Audience Filter: Adultos vs Niños/Escolar vs Todos
+  const [targetAudienceFilter, setTargetAudienceFilter] = useState<'all' | 'adults' | 'kids'>('all');
+  
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [showFrequencyGuide, setShowFrequencyGuide] = useState<boolean>(true);
 
@@ -75,6 +82,40 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   const activeDays = getActiveDays();
+
+  // Filter slots according to class format (individual/grupal) and target audience (adults/kids)
+  const filterDaySlots = (rawDaySlots: ScheduleSlot[]) => {
+    return rawDaySlots.filter(slot => {
+      const startH = parseInt(slot.startTime.split(':')[0], 10);
+      const isMorningEarly = startH >= 6 && startH < 8; // 06:00 - 08:00
+      const isNightGroup = startH >= 20 && startH < 22; // 20:00 - 22:00
+      const isSchoolAfternoon = startH >= 15 && startH < 17; // 15:00 - 17:00
+
+      // 1. Format Filter: Individual vs Group
+      if (classFormatFilter === 'individual') {
+        if (isMorningEarly || isNightGroup || slot.slotType === 'group') {
+          return false;
+        }
+      } else if (classFormatFilter === 'group') {
+        if (slot.slotType !== 'group' && !isMorningEarly && !isNightGroup && slot.day !== 'Sábado') {
+          return false;
+        }
+      }
+
+      // 2. Audience Filter: Adults vs Kids
+      if (targetAudienceFilter === 'adults') {
+        if (isSchoolAfternoon) {
+          return false;
+        }
+      } else if (targetAudienceFilter === 'kids') {
+        if (slot.day !== 'Sábado' && (startH < 15 || startH >= 18)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
 
   // Helper to categorize slots into official pedagogical bands
   const getSlotBand = (slot: ScheduleSlot) => {
@@ -324,6 +365,89 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         </div>
 
+        {/* Filters requested by Ana: Formato (Individual vs Grupal) y Audiencia (Adultos vs Escolar) */}
+        <div className="pt-3 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          
+          {/* Filter 1: Individual vs Grupal */}
+          <div className="bg-white/5 p-2.5 rounded-2xl border border-white/10 flex items-center justify-between gap-2 flex-wrap">
+            <span className="text-slate-300 font-bold shrink-0">Formato:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => setClassFormatFilter('all')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                  classFormatFilter === 'all'
+                    ? 'bg-white text-slate-950 shadow-xs'
+                    : 'bg-white/10 text-slate-300 hover:text-white'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => setClassFormatFilter('individual')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                  classFormatFilter === 'individual'
+                    ? 'bg-[#2EC4B6] text-slate-950 font-black shadow-xs'
+                    : 'bg-white/10 text-slate-300 hover:text-white'
+                }`}
+                title="Solo horarios disponibles para clases privadas 1 a 1"
+              >
+                👤 Individual
+              </button>
+              <button
+                onClick={() => setClassFormatFilter('group')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                  classFormatFilter === 'group'
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
+                    : 'bg-white/10 text-slate-300 hover:text-white'
+                }`}
+                title="Madrugadores 6-8am, nocturnos 8-10pm y sabatinos"
+              >
+                👥 Grupal
+              </button>
+            </div>
+          </div>
+
+          {/* Filter 2: Adultos vs Niños/Escolar */}
+          <div className="bg-white/5 p-2.5 rounded-2xl border border-white/10 flex items-center justify-between gap-2 flex-wrap">
+            <span className="text-slate-300 font-bold shrink-0">Audiencia:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => setTargetAudienceFilter('all')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                  targetAudienceFilter === 'all'
+                    ? 'bg-white text-slate-950 shadow-xs'
+                    : 'bg-white/10 text-slate-300 hover:text-white'
+                }`}
+              >
+                Todas
+              </button>
+              <button
+                onClick={() => setTargetAudienceFilter('adults')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                  targetAudienceFilter === 'adults'
+                    ? 'bg-blue-400 text-slate-950 font-black shadow-xs'
+                    : 'bg-white/10 text-slate-300 hover:text-white'
+                }`}
+                title="Oculta los horarios escolares infantiles de 3 a 5 pm"
+              >
+                🧑‍💼 Adulto
+              </button>
+              <button
+                onClick={() => setTargetAudienceFilter('kids')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                  targetAudienceFilter === 'kids'
+                    ? 'bg-pink-400 text-slate-950 font-black shadow-xs'
+                    : 'bg-white/10 text-slate-300 hover:text-white'
+                }`}
+                title="Solo muestra tardes escolares a partir de las 3pm y sábados"
+              >
+                🎒 Escolar / Niño
+              </button>
+            </div>
+          </div>
+
+        </div>
+
         {/* Sub-selector for Intensive 6h (Choose which pair combines with Friday) */}
         {studyRhythm === 'intensive_6h' && (
           <div className="pt-2 border-t border-white/10 flex items-center gap-3 text-xs">
@@ -444,7 +568,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
       }`}>
         {activeDays.map(day => {
-          const daySlots = slots.filter(s => s.day === day);
+          const rawDaySlots = slots.filter(s => s.day === day);
+          const daySlots = filterDaySlots(rawDaySlots);
 
           return (
             <div key={day} className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">

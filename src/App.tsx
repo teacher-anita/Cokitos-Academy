@@ -21,6 +21,7 @@ import { StudentProfileModal } from './components/StudentProfileModal';
 import { LanguageLab } from './components/LanguageLab';
 import { PrincipalDashboard } from './components/PrincipalDashboard';
 import { ThemeSelectorModal, StudyThemeId } from './components/ThemeSelectorModal';
+import { UnitOneMasterClass } from './components/UnitOneMasterClass';
 import { Student, ScheduleSlot, AudienceTheme, Teacher, StaffRole } from './types';
 import { INITIAL_STUDENTS, INITIAL_SCHEDULE_SLOTS } from './data/curriculumData';
 import { INITIAL_TEACHERS } from './data/teachersData';
@@ -436,7 +437,7 @@ export default function App() {
           />
         )}
 
-        {/* TAB 5: AULA VIRTUAL & RUTA DE APRENDIZAJE */}
+        {/* TAB 5: HUB DE PROGRESO & RUTA CURRICULAR */}
         {activeTab === 'pathway' && (
           <LearningPathway
             currentStudent={currentStudent}
@@ -448,6 +449,31 @@ export default function App() {
             onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
             onAwardXp={handleAwardXp}
           />
+        )}
+
+        {/* TAB 6: CLASSROOM (AULA INTERACTIVA) */}
+        {activeTab === 'classroom' && (
+          (isTeacherAuthenticated || (currentStudent && currentStudent.status === 'enrolled')) ? (
+            <div className="max-w-7xl mx-auto py-6 px-4 space-y-4">
+              <UnitOneMasterClass
+                currentStudent={currentStudent}
+                activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
+                onAwardXp={handleAwardXp}
+                onClose={() => setActiveTab('pathway')}
+              />
+            </div>
+          ) : (
+            <LearningPathway
+              currentStudent={currentStudent}
+              activeRole={isTeacherAuthenticated ? 'teacher' : 'student'}
+              audienceTheme={audienceTheme}
+              onOpenRegister={() => setActiveTab('register')}
+              onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
+              onOpenCouponModal={() => setIsCouponOpen(true)}
+              onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
+              onAwardXp={handleAwardXp}
+            />
+          )
         )}
 
         {/* TAB 6: LABORATORIO DE PRÁCTICA (Language Practice Lab • 100 Drills) */}
