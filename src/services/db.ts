@@ -42,7 +42,12 @@ export async function saveStudent(student: Student): Promise<void> {
 export function getLocalStudents(): Student[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-    return raw ? JSON.parse(raw) : INITIAL_STUDENTS;
+    if (!raw) return INITIAL_STUDENTS;
+    const parsed: Student[] = JSON.parse(raw);
+    const map = new Map<string, Student>();
+    INITIAL_STUDENTS.forEach((s) => map.set(s.id, s));
+    parsed.forEach((s) => map.set(s.id, s));
+    return Array.from(map.values());
   } catch {
     return INITIAL_STUDENTS;
   }

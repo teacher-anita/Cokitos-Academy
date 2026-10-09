@@ -35,12 +35,20 @@ import {
   Smartphone,
   MessageCircle,
   TrendingUp,
-  Gift
+  Gift,
+  Tag,
+  Power,
+  ToggleLeft,
+  ToggleRight,
+  Eye,
+  EyeOff,
+  FileText
 } from 'lucide-react';
 import { Student, Teacher, ScheduleSlot, EnglishLevel } from '../types';
 import { ENGLISH_LEVELS } from '../data/curriculumData';
 import { TeachersLounge } from './TeachersLounge';
 import { OFFICIAL_PAGO_MOVIL, getBcvExchangeRate, setBcvExchangeRateOverride, convertUsdToBs } from '../services/currencyService';
+import { CouponItem, getStoredCoupons, saveStoredCoupons, BenefitType, CouponCategory } from '../data/couponsData';
 
 interface PrincipalDashboardProps {
   students: Student[];
@@ -72,7 +80,152 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
   onLogout
 }) => {
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'students' | 'teachers' | 'classrooms' | 'payments' | 'lounge'>('payments');
+  const [activeTab, setActiveTab] = useState<'students' | 'teachers' | 'classrooms' | 'payments' | 'lounge' | 'coupons' | 'profile'>('payments');
+
+  // Coupon Management (Directora Waky Control)
+  const [couponsList, setCouponsList] = useState<CouponItem[]>(() => getStoredCoupons());
+  const [couponSearch, setCouponSearch] = useState('');
+  const [couponCategoryFilter, setCouponCategoryFilter] = useState<'all' | CouponCategory>('all');
+  const [couponStatusFilter, setCouponStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [isNewCouponModalOpen, setIsNewCouponModalOpen] = useState(false);
+  const [couponNotice, setCouponNotice] = useState<string | null>(null);
+
+  const [newCouponData, setNewCouponData] = useState<{
+    code: string;
+    title: string;
+    description: string;
+    category: CouponCategory;
+    benefitType: BenefitType;
+    maxUses: string;
+    notes: string;
+  }>({
+    code: '',
+    title: '',
+    description: '',
+    category: 'scholarship',
+    benefitType: 'scholar_100',
+    maxUses: '1',
+    notes: ''
+  });
+
+  const handleToggleCouponActive = (couponId: string) => {
+    const updated = couponsList.map(c => {
+      if (c.id === couponId) {
+        return { ...c, isActive: !c.isActive };
+      }
+      return c;
+    });
+    setCouponsList(updated);
+    saveStoredCoupons(updated);
+    const toggled = updated.find(c => c.id === couponId);
+    setCouponNotice(`Cupón [${toggled?.code}] ${toggled?.isActive ? 'ACTIVADO 🟢' : 'DESACTIVADO 🔴'}`);
+    setTimeout(() => setCouponNotice(null), 3000);
+  };
+
+  const handleDeleteCoupon = (couponId: string) => {
+    const toDelete = couponsList.find(c => c.id === couponId);
+    if (!toDelete) return;
+    if (confirm(`¿Eliminar definitivamente el cupón [${toDelete.code}]?`)) {
+      const updated = couponsList.filter(c => c.id !== couponId);
+      setCouponsList(updated);
+      saveStoredCoupons(updated);
+      setCouponNotice(`Cupón [${toDelete.code}] eliminado del sistema.`);
+      setTimeout(() => setCouponNotice(null), 3000);
+    }
+  };
+
+  const handleCreateCouponSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = newCouponData.code.trim().toUpperCase().replace(/\s+/g, '');
+    if (!cleanCode) return;
+
+    if (couponsList.some(c => c.code.toUpperCase() === cleanCode)) {
+      alert(`Ya existe un cupón con el código ${cleanCode}. Elige otro código.`);
+      return;
+    }
+
+    const maxU = newCouponData.maxUses === '' || newCouponData.maxUses === '0' || newCouponData.maxUses === 'unlimited'
+      ? null
+      : parseInt(newCouponData.maxUses, 10);
+
+    const categoryLabels: Record<CouponCategory, string> = {
+      scholarship: 'Becas Institucionales',
+      csb: 'Colegio Simón Bolívar',
+      launch: 'Lanzamiento Especial',
+      ambassador: 'Embajadores VIP',
+      tester: 'Beta Testers'
+    };
+
+    const newCoupon: CouponItem = {
+      id: `cp_${Date.now()}_${cleanCode.toLowerCase()}`,
+      code: cleanCode,
+      category: newCouponData.category,
+      categoryLabel: categoryLabels[newCouponData.category] || 'General',
+      benefitType: newCouponData.benefitType,
+      title: newCouponData.title.trim() || `Pase Institucional ${cleanCode}`,
+      description: newCouponData.description.trim() || 'Acceso y beneficio institucional autorizado por Rectoría de Gûakytopia.',
+      maxUses: isNaN(maxU as number) ? null : maxU,
+      currentUses: 0,
+      isActive: true,
+      notes: newCouponData.notes.trim() || 'Creado directamente por Directora Waky',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    const updated = [newCoupon, ...couponsList];
+    setCouponsList(updated);
+    saveStoredCoupons(updated);
+    setIsNewCouponModalOpen(false);
+    setNewCouponData({
+      code: '',
+      title: '',
+      description: '',
+      category: 'scholarship',
+      benefitType: 'scholar_100',
+      maxUses: '1',
+      notes: ''
+    });
+    setCouponNotice(`¡Cupón [${cleanCode}] creado y activo inmediatamente en Gûakytopia! ✨`);
+    setTimeout(() => setCouponNotice(null), 3500);
+  };
+
+  // Student Full Profile Edit Modal State
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [editStudentForm, setEditStudentForm] = useState<Partial<Student>>({});
+
+  const handleOpenEditStudent = (student: Student) => {
+    setEditingStudent(student);
+    setEditStudentForm({ ...student });
+  };
+
+  const handleSaveStudentEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    const updated: Student = {
+      ...editingStudent,
+      ...editStudentForm,
+      name: editStudentForm.name?.trim() || editingStudent.name,
+      lastName: editStudentForm.lastName?.trim() || '',
+      email: editStudentForm.email?.trim().toLowerCase() || editingStudent.email,
+      username: editStudentForm.username?.trim().toLowerCase() || editingStudent.username,
+      notes: `${editStudentForm.notes || ''} | Modificado por Directora Waky el ${new Date().toLocaleDateString('es-VE')}`
+    };
+    onUpdateStudent(updated);
+    setEditingStudent(null);
+    setApprovalNotice(`¡Perfil de ${updated.name} actualizado con éxito!`);
+    setTimeout(() => setApprovalNotice(null), 3000);
+  };
+
+  const handleToggleStudentStatus = (student: Student) => {
+    const nextStatus = student.status === 'enrolled' ? 'paused' : 'enrolled';
+    const updated: Student = {
+      ...student,
+      status: nextStatus,
+      notes: `${student.notes || ''} | Estado cambiado a ${nextStatus} por Directora Waky el ${new Date().toLocaleDateString('es-VE')}`
+    };
+    onUpdateStudent(updated);
+    setApprovalNotice(`Alumno ${student.name} ${nextStatus === 'enrolled' ? 'activado' : 'pausado / suspendido'} correctamente.`);
+    setTimeout(() => setApprovalNotice(null), 3000);
+  };
 
   // BCV Rate Management (Waky Control)
   const [currentBcvRate, setCurrentBcvRate] = useState<number>(() => getBcvExchangeRate());
@@ -481,11 +634,11 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-950">
-              Despacho Institucional Cokitö Academy
+              Despacho Institucional Gûakytopia • Rectoría General
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-900 font-medium leading-relaxed">
-              Control maestro de rectoría: asigna y reasigna profesores a sus turnos de trabajo, mueve alumnos de clase o nivel, gestiona los salones y supervisa toda la institución.
+              Control maestro de rectoría: emite y controla cupones y becas, edita perfiles de alumnos, gestiona profesores, aprueba pagos y supervisa toda la institución como Directora Waky.
             </p>
           </div>
 
@@ -630,6 +783,30 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
         >
           <Calendar className="w-4 h-4 text-indigo-400" />
           <span>Classrooms & Teacher Schedules</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('coupons')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all ${
+            activeTab === 'coupons'
+              ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Gift className="w-4 h-4 text-amber-500" />
+          <span>Cupones, Becas & Promos ({couponsList.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all ${
+            activeTab === 'profile'
+              ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white font-black shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Crown className="w-4 h-4 text-amber-300" />
+          <span>👑 Despacho Rectora Waky</span>
         </button>
       </div>
 
@@ -870,6 +1047,27 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
+                              onClick={() => handleOpenEditStudent(student)}
+                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold border border-blue-200 rounded-xl transition-colors flex items-center gap-1"
+                              title="Editar perfil completo, credenciales y plan"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Editar</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleToggleStudentStatus(student)}
+                              className={`p-1.5 rounded-lg border transition-colors ${
+                                student.status === 'enrolled'
+                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                              }`}
+                              title={student.status === 'enrolled' ? 'Pausar o suspender alumno temporalmente' : 'Reactivar alumno'}
+                            >
+                              <Power className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
                               onClick={() => {
                                 setMovingStudent(student);
                                 setTargetLevelId(student.levelId || 'level_1');
@@ -882,7 +1080,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                               title="Mover de nivel, unidad o profesor"
                             >
                               <ArrowRightLeft className="w-3.5 h-3.5" />
-                              <span>Mover / Reasignar</span>
+                              <span>Mover</span>
                             </button>
 
                             <button
@@ -892,7 +1090,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                                 }
                               }}
                               className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Dar de baja al alumno"
+                              title="Dar de baja definitiva y eliminar al alumno"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1361,6 +1559,385 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
         </div>
       )}
 
+      {/* 7. TAB CONTENT: GESTIÓN DE CUPONES, BECAS & PROMOS */}
+      {activeTab === 'coupons' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header & New Coupon Button */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-amber-100 text-amber-900 text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                  🎟️ Rectoría Gûakytopia
+                </span>
+                <span className="text-xs text-slate-500 font-bold">Validación en tiempo real</span>
+              </div>
+              <h2 className="text-xl font-black text-slate-900">
+                Matriz de Cupones, Becas & Promociones
+              </h2>
+              <p className="text-xs text-slate-500 max-w-2xl">
+                Crea códigos confidenciales para becas totales o parciales, convenios institucionales (CSB) o promociones. Puedes activar y desactivar códigos con un clic sin recargar la plataforma.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsNewCouponModalOpen(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs shadow-md flex items-center gap-2 transition-all shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Crear Nuevo Cupón / Beca</span>
+            </button>
+          </div>
+
+          {/* Quick Notice Banner */}
+          {couponNotice && (
+            <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl text-xs font-bold flex items-center gap-2 animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{couponNotice}</span>
+            </div>
+          )}
+
+          {/* Statistics Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase">Total Cupones</span>
+              <div className="text-2xl font-black text-slate-900">{couponsList.length}</div>
+              <span className="text-[10px] text-slate-500 font-medium">En catálogo</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[11px] font-bold text-emerald-600 uppercase">Activos (En Línea)</span>
+              <div className="text-2xl font-black text-emerald-600">
+                {couponsList.filter(c => c.isActive).length}
+              </div>
+              <span className="text-[10px] text-emerald-700 font-bold">Listos para canjear</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[11px] font-bold text-rose-600 uppercase">Inactivos / Pausados</span>
+              <div className="text-2xl font-black text-rose-600">
+                {couponsList.filter(c => !c.isActive).length}
+              </div>
+              <span className="text-[10px] text-slate-500 font-medium">Bloqueados temporalmente</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[11px] font-bold text-amber-600 uppercase">Canjes Realizados</span>
+              <div className="text-2xl font-black text-amber-700">
+                {couponsList.reduce((acc, c) => acc + (c.currentUses || 0), 0)}
+              </div>
+              <span className="text-[10px] text-amber-800 font-medium">Alumnos beneficiados</span>
+            </div>
+          </div>
+
+          {/* Filter & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+              <input
+                type="text"
+                value={couponSearch}
+                onChange={e => setCouponSearch(e.target.value)}
+                placeholder="Buscar por código, título o descripción..."
+                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select
+                value={couponCategoryFilter}
+                onChange={e => setCouponCategoryFilter(e.target.value as any)}
+                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700"
+              >
+                <option value="all">Todas las Categorías</option>
+                <option value="scholarship">Becas Institucionales</option>
+                <option value="csb">Convenio Simón Bolívar (CSB)</option>
+                <option value="launch">Lanzamiento</option>
+                <option value="ambassador">Embajadores</option>
+                <option value="tester">Beta Testers</option>
+              </select>
+
+              <select
+                value={couponStatusFilter}
+                onChange={e => setCouponStatusFilter(e.target.value as any)}
+                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700"
+              >
+                <option value="all">Todos los Estados</option>
+                <option value="active">Solo Activos 🟢</option>
+                <option value="inactive">Solo Inactivos 🔴</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Coupons Table */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="py-3 px-4">Código Secreto</th>
+                    <th className="py-3 px-4">Título & Categoría</th>
+                    <th className="py-3 px-4">Beneficio</th>
+                    <th className="py-3 px-4">Usos / Límite</th>
+                    <th className="py-3 px-4">Estado</th>
+                    <th className="py-3 px-4 text-right">Acción de Rectora</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {couponsList
+                    .filter(c => {
+                      const matchesSearch = !couponSearch || 
+                        c.code.toLowerCase().includes(couponSearch.toLowerCase()) ||
+                        c.title.toLowerCase().includes(couponSearch.toLowerCase()) ||
+                        (c.description && c.description.toLowerCase().includes(couponSearch.toLowerCase()));
+                      const matchesCategory = couponCategoryFilter === 'all' || c.category === couponCategoryFilter;
+                      const matchesStatus = couponStatusFilter === 'all' || 
+                        (couponStatusFilter === 'active' && c.isActive) ||
+                        (couponStatusFilter === 'inactive' && !c.isActive);
+                      return matchesSearch && matchesCategory && matchesStatus;
+                    })
+                    .map(c => {
+                      return (
+                        <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-black text-sm text-slate-900 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-300">
+                                {c.code}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 block mt-1">
+                              Creado: {c.createdAt || '2026-10'}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-900">{c.title}</div>
+                            <div className="text-[11px] text-slate-500 line-clamp-1">{c.description}</div>
+                            <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-bold border border-blue-200 mt-1 inline-block">
+                              {c.categoryLabel || c.category}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-bold">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-black ${
+                              c.benefitType === 'scholar_100' || c.benefitType === 'free_webapp_3m'
+                                ? 'bg-purple-100 text-purple-900 border border-purple-200'
+                                : c.benefitType === 'scholar_50'
+                                ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                                : c.benefitType === 'webapp_5usd_3m'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                                : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                            }`}>
+                              {c.benefitType === 'scholar_100' ? 'Beca Total 100%' :
+                               c.benefitType === 'free_webapp_3m' ? '100% Free 3 Meses' :
+                               c.benefitType === 'scholar_50' ? '50% Descuento' :
+                               c.benefitType === 'scholar_20' ? '20% Descuento' :
+                               c.benefitType === 'webapp_5usd_3m' ? 'Web App $5/mes' :
+                               c.benefitType === 'friend_pass' ? 'Pase VIP Amigo' :
+                               c.benefitType}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                            <span>{c.currentUses}</span>
+                            <span className="text-slate-400"> / </span>
+                            <span className="text-slate-500">
+                              {c.maxUses === null ? '∞ Ilimitado' : c.maxUses}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1.5 w-fit ${
+                              c.isActive
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : 'bg-rose-100 text-rose-800 border border-rose-300'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${c.isActive ? 'bg-emerald-600 animate-pulse' : 'bg-rose-600'}`} />
+                              {c.isActive ? 'Activo' : 'Pausado'}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Toggle Active / Inactive */}
+                              <button
+                                onClick={() => handleToggleCouponActive(c.id)}
+                                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ${
+                                  c.isActive
+                                    ? 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200'
+                                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                }`}
+                                title={c.isActive ? 'Desactivar cupón temporalmente' : 'Activar cupón de inmediato'}
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                                <span>{c.isActive ? 'Desactivar' : 'Activar'}</span>
+                              </button>
+
+                              {/* Delete button */}
+                              <button
+                                onClick={() => handleDeleteCoupon(c.id)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Eliminar cupón definitivamente"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. TAB CONTENT: DESPACHO & PERFIL DE LA DIRECTORA WAKY */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Presidential Banner */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-600 p-6 sm:p-10 text-slate-950 shadow-2xl border-2 border-amber-300">
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8">
+              {/* Avatar Waky */}
+              <div className="relative shrink-0">
+                <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-slate-950 p-2 shadow-2xl border-4 border-amber-200 flex items-center justify-center text-6xl sm:text-7xl overflow-hidden">
+                  🦜
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-slate-950 text-amber-300 p-2 rounded-2xl border-2 border-amber-400 shadow-md">
+                  <Crown className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Title & Info */}
+              <div className="text-center md:text-left space-y-2 flex-1">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                  <span className="bg-slate-950 text-amber-300 text-xs font-black uppercase tracking-wider px-3.5 py-1 rounded-full flex items-center gap-1.5">
+                    <Crown className="w-4 h-4 text-amber-400" />
+                    The Principal • Directora General
+                  </span>
+                  <span className="bg-white/90 text-slate-900 text-xs font-bold px-3 py-1 rounded-full border border-amber-300">
+                    Gûakytopia • Coquitos Academy
+                  </span>
+                </div>
+
+                <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-950">
+                  Dra. Waky The Principal
+                </h2>
+
+                <p className="text-sm sm:text-base font-bold text-slate-900/90 leading-relaxed max-w-2xl">
+                  Rectora y Fundadora Académica. Supervisora del Pensum Oficial Bilingüe SuperGoal / MegaGoal y de la Matriz Tropical de Aprendizaje Acelerado.
+                </p>
+
+                <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-black text-slate-950">
+                  <span className="flex items-center gap-1.5 bg-amber-400/80 px-3 py-1.5 rounded-xl border border-amber-300">
+                    🎓 Ph.D. in Tropical Pedagogy & Bilingual Systems
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-amber-400/80 px-3 py-1.5 rounded-xl border border-amber-300">
+                    🇬🇧 British & American CEFR Standard
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Institutional Creed & Mission */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                📜
+              </div>
+              <h3 className="font-black text-slate-900 text-base">Misión de Rectoría</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Transformar el aprendizaje del inglés en Venezuela y Latinoamérica eliminando el miedo a hablar, mediante inmersión lúdica y acompañamiento humano de alta categoría.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                🏆
+              </div>
+              <h3 className="font-black text-slate-900 text-base">Lema Institucional</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-semibold italic">
+                &ldquo;Donde cada estudiante descubre el poder de comunicarse con fluidez, confianza y excelencia global.&rdquo;
+              </p>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl block w-fit">
+                ✨ Excelencia &amp; Liderazgo Académico
+              </span>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                🏛️
+              </div>
+              <h3 className="font-black text-slate-900 text-base">Políticas Escolares</h3>
+              <div className="space-y-1.5 text-xs text-slate-600">
+                <div className="flex items-center justify-between">
+                  <span>Admisiones:</span>
+                  <span className="font-bold text-emerald-600">🟢 Abiertas</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Tasa Oficial BCV:</span>
+                  <span className="font-bold text-slate-900">Bs. {currentBcvRate} / $</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Modalidad:</span>
+                  <span className="font-bold text-slate-900">100% Online + En Vivo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions Panel from the Principal */}
+          <div className="bg-slate-950 text-white rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl border border-amber-400/40">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                  Panel de Despacho Inmediato
+                </span>
+                <h3 className="text-xl font-black text-white">
+                  Controles de Alta Dirección de Gûakytopia
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('students')}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors"
+                >
+                  Ver Alumnos ({students.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('coupons')}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition-colors"
+                >
+                  Ver Cupones ({couponsList.length})
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+              <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                <span className="text-amber-300 font-bold block mb-1">👑 Autoridad Académica</span>
+                <p className="text-slate-300 text-[11px]">
+                  Todos los cambios realizados en pensum, asignación docente o cupones tienen validez inmediata en toda la plataforma.
+                </p>
+              </div>
+              <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                <span className="text-amber-300 font-bold block mb-1">🔒 Privacidad y Resguardo</span>
+                <p className="text-slate-300 text-[11px]">
+                  Los códigos y accesos confidenciales de becas permanecen cifrados y solo visibles dentro de este despacho.
+                </p>
+              </div>
+              <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                <span className="text-amber-300 font-bold block mb-1">🌴 Sello Institucional</span>
+                <p className="text-slate-300 text-[11px]">
+                  Firma digital registrada bajo la jurisdicción de Gûakytopia & Coquitos Academy.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: MOVER ALUMNO (NIVEL, UNIDAD, PROFESOR, ESTADO) */}
       {movingStudent && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1810,6 +2387,354 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MODAL: CREAR NUEVO CUPÓN / BECA / PROMO (RECTORÍA WAKY) */}
+      {isNewCouponModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <form
+            onSubmit={handleCreateCouponSubmit}
+            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-4 shadow-2xl border border-slate-200 my-auto"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+                  <Gift className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-base">
+                    Crear Cupón, Beca o Promoción
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Directora Waky • Emisión de Pases Oficiales
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsNewCouponModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              {/* Código y Categoría */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Código Secreto (Sin espacios):
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newCouponData.code}
+                    onChange={e => setNewCouponData({ ...newCouponData, code: e.target.value.toUpperCase().replace(/\s+/g, '') })}
+                    placeholder="Ej. BECA-OCT26 o VIP-AMIGO"
+                    className="w-full p-2.5 bg-amber-50/60 border border-amber-300 rounded-xl font-mono font-bold text-slate-900 uppercase focus:bg-white focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Categoría Institucional:
+                  </label>
+                  <select
+                    value={newCouponData.category}
+                    onChange={e => setNewCouponData({ ...newCouponData, category: e.target.value as any })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  >
+                    <option value="scholarship">Beca Institucional 🎓</option>
+                    <option value="csb">Colegio Simón Bolívar (CSB) 🏫</option>
+                    <option value="launch">Lanzamiento Oficial 🚀</option>
+                    <option value="ambassador">Embajador VIP 🌟</option>
+                    <option value="tester">Beta Tester 🧪</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Título */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Título Descriptivo del Cupón:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newCouponData.title}
+                  onChange={e => setNewCouponData({ ...newCouponData, title: e.target.value })}
+                  placeholder="Ej. Beca de Mérito Académico 100% Free"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                />
+              </div>
+
+              {/* Tipo de Beneficio & Límite de Usos */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Beneficio Asignado:
+                  </label>
+                  <select
+                    value={newCouponData.benefitType}
+                    onChange={e => setNewCouponData({ ...newCouponData, benefitType: e.target.value as any })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  >
+                    <option value="scholar_100">Beca Total 100% (Clases + Web App)</option>
+                    <option value="free_webapp_3m">100% Free Web App 3 Meses</option>
+                    <option value="scholar_50">50% de Descuento</option>
+                    <option value="scholar_20">20% de Descuento</option>
+                    <option value="webapp_5usd_3m">Pase Web App $5.00/mes</option>
+                    <option value="friend_pass">Pase VIP de Amigo / Cortesía</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Límite de Canjes:
+                  </label>
+                  <input
+                    type="text"
+                    value={newCouponData.maxUses}
+                    onChange={e => setNewCouponData({ ...newCouponData, maxUses: e.target.value })}
+                    placeholder="1 (uso único) o 'unlimited'"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Descripción */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Descripción o Condiciones para el Alumno:
+                </label>
+                <textarea
+                  rows={2}
+                  value={newCouponData.description}
+                  onChange={e => setNewCouponData({ ...newCouponData, description: e.target.value })}
+                  placeholder="Ej. Acceso completo y becado por rendimiento académico en Gûakytopia."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800"
+                />
+              </div>
+
+              {/* Notas de Rectoría */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Notas Internas de Rectoría:
+                </label>
+                <input
+                  type="text"
+                  value={newCouponData.notes}
+                  onChange={e => setNewCouponData({ ...newCouponData, notes: e.target.value })}
+                  placeholder="Ej. Autorizado por Directora Waky para convenio especial."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsNewCouponModalOpen(false)}
+                className="px-4 py-2 text-slate-500 hover:text-slate-800 font-bold text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Emitir y Activar Cupón</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL: EDITAR PERFIL COMPLETO DE ALUMNO (RECTORÍA WAKY) */}
+      {editingStudent && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <form
+            onSubmit={handleSaveStudentEdit}
+            className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 space-y-4 shadow-2xl border border-slate-200 my-auto"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <img
+                  src={editingStudent.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${editingStudent.name}`}
+                  alt={editingStudent.name}
+                  className="w-10 h-10 rounded-2xl border border-slate-200 object-cover"
+                />
+                <div>
+                  <h3 className="font-black text-slate-900 text-base">
+                    Editar Perfil: {editingStudent.name} {editingStudent.lastName || ''}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Modificación directa autorizada por Directora Waky
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingStudent(null)}
+                className="text-slate-400 hover:text-slate-700 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs max-h-[65vh] overflow-y-auto pr-1">
+              {/* Nombre y Apellido */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Nombre:</label>
+                  <input
+                    type="text"
+                    required
+                    value={editStudentForm.name || ''}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, name: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Apellido:</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.lastName || ''}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, lastName: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Usuario y Correo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Usuario (@username):</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.username || ''}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Correo Electrónico:</label>
+                  <input
+                    type="email"
+                    required
+                    value={editStudentForm.email || ''}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, email: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Contraseña (para resetear si el alumno la olvidó) */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Contraseña de Acceso (Resetear si el alumno la olvidó):
+                </label>
+                <input
+                  type="text"
+                  value={editStudentForm.password || ''}
+                  onChange={e => setEditStudentForm({ ...editStudentForm, password: e.target.value })}
+                  placeholder="Define una nueva contraseña"
+                  className="w-full p-2.5 bg-amber-50/50 border border-amber-300 rounded-xl font-mono text-slate-900"
+                />
+              </div>
+
+              {/* Plan y Estado */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Plan de Estudio:</label>
+                  <select
+                    value={editStudentForm.plan || 'basic'}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, plan: e.target.value as any })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  >
+                    <option value="basic">Básico (2 h/sem)</option>
+                    <option value="regular">Regular (3 h/sem)</option>
+                    <option value="intensive">Intensivo (4 h/sem)</option>
+                    <option value="express">Express (6 h/sem)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Estado de Matrícula:</label>
+                  <select
+                    value={editStudentForm.status || 'enrolled'}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, status: e.target.value as any })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  >
+                    <option value="enrolled">Inscrito / Activo 🟢</option>
+                    <option value="paused">Pausado / Permiso 🟡</option>
+                    <option value="pending_evaluation">Pendiente de Diagnóstico ⏱️</option>
+                    <option value="completed">Graduado Oficial 🎓</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Nivel y Unidad */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Nivel Curricular:</label>
+                  <select
+                    value={editStudentForm.levelId || 'level_1'}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, levelId: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  >
+                    {ENGLISH_LEVELS.map(l => (
+                      <option key={l.id} value={l.id}>{l.levelName} ({l.book})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Unidad Activa (1 a 8):</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={editStudentForm.currentUnit || 1}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, currentUnit: Number(e.target.value) })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Notas de Rectoría */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Notas Oficiales de Rectoría:</label>
+                <textarea
+                  rows={2}
+                  value={editStudentForm.notes || ''}
+                  onChange={e => setEditStudentForm({ ...editStudentForm, notes: e.target.value })}
+                  placeholder="Comentarios sobre el rendimiento o beca del estudiante..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setEditingStudent(null)}
+                className="px-4 py-2 text-slate-500 hover:text-slate-800 font-bold text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs shadow-md transition-colors flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Guardar Cambios de Perfil</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

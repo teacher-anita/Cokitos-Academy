@@ -365,6 +365,18 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                   >
                     Iniciar Sesión con mi Cuenta
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenCoupon();
+                    }}
+                    className="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold rounded-xl text-[11px] transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+                    <span>¿Tienes un código de beca o invitación? Ingrésalo aquí</span>
+                  </button>
                 </form>
               )}
 

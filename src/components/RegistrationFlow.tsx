@@ -34,6 +34,7 @@ import { Student, ScheduleSlot, ClassModality, GroupSize, AudienceTheme } from '
 import { PlacementQuizModal } from './PlacementQuizModal';
 import { generateEmailTemplate, sendGmailEmail } from '../services/gmailNotifier';
 import { OFFICIAL_PAGO_MOVIL, convertUsdToBs, getBcvExchangeRate, fetchLiveBcvRate } from '../services/currencyService';
+import { findCouponByCode } from '../data/couponsData';
 
 interface RegistrationFlowProps {
   slots: ScheduleSlot[];
@@ -380,7 +381,26 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       });
       try { confetti({ particleCount: 60, spread: 50, origin: { y: 0.6 } }); } catch {}
     } else {
-      setCouponError('Código no válido o expirado. Consulta con La Teacher Cokitö.');
+      const dbCoupon = findCouponByCode(clean);
+      if (dbCoupon) {
+        if (!dbCoupon.isActive) {
+          setCouponError('Este cupón o beca se encuentra temporalmente inactivo en Gûakytopia.');
+          return;
+        }
+        const discountPct = dbCoupon.benefitType === 'scholar_100' || dbCoupon.benefitType === 'free_webapp_3m' ? 100
+          : dbCoupon.benefitType === 'scholar_50' ? 50
+          : dbCoupon.benefitType === 'scholar_20' || dbCoupon.benefitType === 'launch_20_off' ? 20
+          : 100;
+
+        setAppliedCoupon({
+          code: clean,
+          label: `${dbCoupon.title} (${discountPct === 100 ? '100% Bonificado' : `${discountPct}% OFF`})`,
+          discountPercent: discountPct
+        });
+        try { confetti({ particleCount: 75, spread: 65, origin: { y: 0.6 } }); } catch {}
+      } else {
+        setCouponError('Código no válido o expirado. Consulta con la Rectoría de Gûakytopia.');
+      }
     }
   };
 
