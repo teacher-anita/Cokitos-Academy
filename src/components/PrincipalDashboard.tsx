@@ -1235,6 +1235,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                     <th className="py-3 px-4">Alumno</th>
                     <th className="py-3 px-4">Nivel Actual</th>
                     <th className="py-3 px-4">Unidad</th>
+                    <th className="py-3 px-4">Código utilizado</th>
                     <th className="py-3 px-4">Teacher & Horarios</th>
                     <th className="py-3 px-4">Estado</th>
                     <th className="py-3 px-4 text-right">Acciones de Directora</th>
@@ -1268,6 +1269,37 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                           Unidad {student.currentUnit || 1}
                         </td>
 
+                        <td className="py-3 px-4">
+                          {(() => {
+                            // Older registrations stored the entered coupon in notes.
+                            // Show only the code the student actually entered; do not infer a benefit.
+                            const match = (student.notes || '').match(/Cup[oó]n:\s*([^.|\n]+)/i);
+                            const legacyCode = match?.[1]?.trim();
+                            const usedCode = student.couponCodeUsed || (legacyCode && !/Sin cup[oó]n/i.test(student.notes || '') ? legacyCode : '');
+                            const assignedCode = student.couponCodeAssigned || '';
+                            return (
+                              <div className="space-y-1 min-w-[145px]">
+                                {usedCode ? (
+                                  <div className="font-mono text-[10px] font-bold text-violet-800">Usado: {usedCode}</div>
+                                ) : (
+                                  <div className="text-[10px] font-medium text-slate-400">Sin código utilizado</div>
+                                )}
+                                {assignedCode && <div className="font-mono text-[10px] font-bold text-emerald-800">Asignado por Waky: {assignedCode}</div>}
+                                <select
+                                  aria-label={`Asignar cupón a ${student.name}`}
+                                  value={assignedCode}
+                                  onChange={e => onUpdateStudent({ ...student, couponCodeAssigned: e.target.value || undefined })}
+                                  className="max-w-[175px] rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-700"
+                                >
+                                  <option value="">+ Asignar cupón</option>
+                                  <option value="EARLYBIRD-OCT26">EARLYBIRD-OCT26</option>
+                                  <option value="CSBteachers26">CSBteachers26</option>
+                                </select>
+                              </div>
+                            );
+                          })()}
+                        </td>
+
                         <td className="py-3 px-4 text-slate-700">
                           <div className="space-y-1">
                             <div className="font-semibold text-slate-900 flex items-center gap-1.5">
@@ -1277,6 +1309,11 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                               <div className="text-[10px] font-bold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200 inline-flex items-center gap-1">
                                 <Calendar className="w-3 h-3 text-indigo-600" />
                                 <span>{student.assignedSlots.join(' • ')}</span>
+                              </div>
+                            ) : student.isDigitalPass ? (
+                              <div className="text-[10px] font-bold text-sky-800 bg-sky-50 px-2 py-1 rounded-lg border border-sky-200 inline-flex items-center gap-1">
+                                <Smartphone className="w-3 h-3 text-sky-600" />
+                                <span>Pase Digital • Sin clases obligatorias</span>
                               </div>
                             ) : (
                               <div className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-300 inline-flex items-center gap-1">

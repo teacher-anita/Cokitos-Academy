@@ -551,6 +551,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       learningGoal,
       avatar: `https://api.dicebear.com/7.x/${isKid ? 'bottts' : 'micah'}/svg?seed=${name}`,
       plan: selectedPlanId === 'express_6' ? 'super_intensive' : selectedPlanId === 'intensive_4' ? 'intensive' : selectedPlanId === 'regular_3' ? 'regular' : 'basic',
+      isDigitalPass: selectedPlanId === 'digital_5',
+      couponCodeUsed: appliedCoupon?.code,
       modality: selectedModality,
       groupSize: selectedPlanId === 'digital_5' ? 'individual' : selectedGroupSize,
       preferredTimeSlot,

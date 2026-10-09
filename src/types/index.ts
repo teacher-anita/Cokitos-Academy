@@ -67,6 +67,9 @@ export interface Student {
   depositAmountUsd?: number; // e.g. 5 USD
   balanceDueUsd?: number;    // e.g. remaining balance for private classes or group
   preferredSlotId?: string;
+  couponCodeUsed?: string; // Coupon entered and applied during registration
+  couponCodeAssigned?: string; // Coupon entitlement assigned later by Waky
+  isDigitalPass?: boolean; // Platform-only access; live classes are not required
   
   // Level Assignment
   levelId?: string; // Assigned by Teacher Cokito or Principal Waky!
