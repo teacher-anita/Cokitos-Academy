@@ -1274,14 +1274,28 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                             // Older registrations stored the entered coupon in notes.
                             // Show only the code the student actually entered; do not infer a benefit.
                             const match = (student.notes || '').match(/Cup[oó]n:\s*([^.|\n]+)/i);
-                            const couponCode = match?.[1]?.trim();
-                            const noCoupon = /Sin cup[oó]n/i.test(student.notes || '');
-                            return couponCode && !noCoupon ? (
-                              <span className="inline-flex whitespace-nowrap rounded-lg border border-violet-200 bg-violet-50 px-2 py-1 font-mono text-[10px] font-bold text-violet-800">
-                                {couponCode}
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-medium text-slate-400">Sin código</span>
+                            const legacyCode = match?.[1]?.trim();
+                            const usedCode = student.couponCodeUsed || (legacyCode && !/Sin cup[oó]n/i.test(student.notes || '') ? legacyCode : '');
+                            const assignedCode = student.couponCodeAssigned || '';
+                            return (
+                              <div className="space-y-1 min-w-[145px]">
+                                {usedCode ? (
+                                  <div className="font-mono text-[10px] font-bold text-violet-800">Usado: {usedCode}</div>
+                                ) : (
+                                  <div className="text-[10px] font-medium text-slate-400">Sin código utilizado</div>
+                                )}
+                                {assignedCode && <div className="font-mono text-[10px] font-bold text-emerald-800">Asignado por Waky: {assignedCode}</div>}
+                                <select
+                                  aria-label={`Asignar cupón a ${student.name}`}
+                                  value={assignedCode}
+                                  onChange={e => onUpdateStudent({ ...student, couponCodeAssigned: e.target.value || undefined })}
+                                  className="max-w-[175px] rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-700"
+                                >
+                                  <option value="">+ Asignar cupón</option>
+                                  <option value="EARLYBIRD-OCT26">EARLYBIRD-OCT26</option>
+                                  <option value="CSBteachers26">CSBteachers26</option>
+                                </select>
+                              </div>
                             );
                           })()}
                         </td>
