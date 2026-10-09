@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
-import { X, KeyRound, CheckCircle2, Sparkles, AlertCircle, Gift } from 'lucide-react';
+import { X, KeyRound, CheckCircle2, Sparkles, AlertCircle, ArrowLeft, Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types';
+import { findCouponByCode } from '../data/couponsData';
 
 interface CouponModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyCoupon: (student: Student) => void;
+  onBackToLogin?: () => void;
 }
 
 export const CouponModal: React.FC<CouponModalProps> = ({
   isOpen,
   onClose,
-  onApplyCoupon
+  onApplyCoupon,
+  onBackToLogin
 }) => {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<{ title: string; desc: string } | null>(null);
@@ -27,155 +33,102 @@ export const CouponModal: React.FC<CouponModalProps> = ({
     setErrorMsg(null);
 
     const cleanCode = code.trim().toUpperCase().replace(/\s+/g, '');
+    const cleanUser = username.trim().toLowerCase().replace(/\s+/g, '');
 
     if (!name.trim() || !email.trim()) {
-      setErrorMsg('Por favor completa tu nombre y correo electrónico.');
+      setErrorMsg('Por favor completa tu nombre completo y correo electrónico.');
       return;
     }
 
-    if (cleanCode === 'CSB2026' || cleanCode.includes('CSB2026')) {
+    if (!cleanUser) {
+      setErrorMsg('Por favor crea un nombre de usuario para tu cuenta.');
+      return;
+    }
+
+    if (!password.trim()) {
+      setErrorMsg('Por favor define una contraseña para poder iniciar sesión.');
+      return;
+    }
+
+    if (!cleanCode) {
+      setErrorMsg('Por favor ingresa tu código de invitación o beca.');
+      return;
+    }
+
+    // Check against configured coupons database or known coupon formats
+    const matchedCoupon = findCouponByCode(cleanCode);
+
+    const isCSB = cleanCode === 'CSB2026' || cleanCode.includes('CSB2026') || cleanCode === 'CSBTEACHERS26' || cleanCode === 'CSBFRIENDS';
+    const isFriends = cleanCode === 'FRIENDS2026' || cleanCode.startsWith('FRIEND-');
+    const isDigital = cleanCode === 'COKITO5';
+    const isScholar = Boolean(matchedCoupon && matchedCoupon.category === 'scholarship') || cleanCode.startsWith('SCHOLAR-');
+
+    if (matchedCoupon || isCSB || isFriends || isDigital || isScholar) {
+      const benefitTitle = matchedCoupon?.title || (
+        isCSB ? 'Pase Directo Comunidad Simón Bolívar (CSB)' :
+        isFriends ? 'Pase de Invitación VIP' :
+        isDigital ? 'Pase Digital Web App $5' :
+        'Beca Institucional Asignada'
+      );
+
       const redeemedStudent: Student = {
-        id: `csb_${Date.now()}`,
+        id: `student_${Date.now()}`,
         name: name.trim(),
-        lastName: '(Comunidad)',
+        lastName: '',
+        username: cleanUser,
         email: email.trim().toLowerCase(),
+        password: password.trim(),
         phone: '',
-        age: 30,
+        age: 26,
         isKid: false,
-        schoolOrProfession: 'Educación',
-        learningGoal: 'Teacher Professional Development',
-        avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150',
-        plan: 'basic',
+        schoolOrProfession: isCSB ? 'Comunidad CSB' : 'Estudiante Cokitö',
+        learningGoal: 'Aprender y certificar inglés',
+        avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${cleanUser}`,
+        plan: isScholar ? 'intensive' : isFriends ? 'regular' : 'basic',
         modality: 'online',
-        groupSize: 'individual',
-        preferredTimeSlot: 'Tardes',
-        status: 'enrolled',
-        levelId: 'level_1',
-        placementTestScore: 22,
-        currentUnit: 1,
-        completedHours: 0,
-        xp: 350,
-        streak: 3,
-        league: 'Oro',
-        rating: { fluency: 4, grammar: 4, vocabulary: 4, pronunciation: 4 },
-        notes: 'Pase de cortesía especial Comunidad Educativa Simón Bolívar.',
-        assignedSlots: ['Lunes-16:00', 'Miércoles-16:00'],
-        registeredAt: new Date().toISOString()
-      };
-
-      setSuccessInfo({
-        title: '¡Pase Especial Activado! 🎁',
-        desc: 'Se ha desbloqueado tu acceso de cortesía al Módulo 1 completo y sus unidades en la plataforma Cokitö. ¡Bienvenido!'
-      });
-
-      try {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      } catch {}
-
-      setTimeout(() => {
-        onApplyCoupon(redeemedStudent);
-        onClose();
-      }, 2000);
-
-    } else if (cleanCode === 'FRIENDS2026') {
-      const redeemedStudent: Student = {
-        id: `friends_${Date.now()}`,
-        name: name.trim(),
-        lastName: '(VIP Friends)',
-        email: email.trim().toLowerCase(),
-        phone: '',
-        age: 28,
-        isKid: false,
-        schoolOrProfession: 'Comunidad Cokitö',
-        learningGoal: 'Fluidez y práctica libre',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        plan: 'regular',
-        modality: 'online',
-        groupSize: 'individual',
+        groupSize: isCSB ? 'duo' : 'individual',
         preferredTimeSlot: 'Flexible',
         status: 'enrolled',
         levelId: 'level_1',
-        placementTestScore: 25,
+        placementTestScore: 24,
+        placementTestDiagnosis: `Beca/Pase activado (${benefitTitle})`,
+        placementTestDate: new Date().toISOString().split('T')[0],
+        registeredAt: new Date().toISOString().split('T')[0],
         currentUnit: 1,
         completedHours: 0,
-        xp: 500,
-        streak: 5,
-        league: 'Diamante',
-        rating: { fluency: 5, grammar: 5, vocabulary: 5, pronunciation: 5 },
-        notes: 'Pase Friends & Family otorgado por La Teacher Cokitö.',
-        assignedSlots: ['Martes-17:30', 'Jueves-17:30'],
-        registeredAt: new Date().toISOString()
-      };
-
-      setSuccessInfo({
-        title: '¡Pase Friends & Family Desbloqueado! 🌟',
-        desc: 'Acceso de cortesía preferencial para amigos y familiares de La Teacher Cokitö.'
-      });
-
-      try {
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
-      } catch {}
-
-      setTimeout(() => {
-        onApplyCoupon(redeemedStudent);
-        onClose();
-      }, 2000);
-
-    } else if (cleanCode === 'COKITO5') {
-      const redeemedStudent: Student = {
-        id: `dig_${Date.now()}`,
-        name: name.trim(),
-        lastName: '',
-        email: email.trim().toLowerCase(),
-        phone: '',
-        age: 25,
-        isKid: false,
-        schoolOrProfession: 'Autoaprendizaje',
-        learningGoal: 'Práctica asincrónica autónoma',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-        plan: 'basic',
-        modality: 'online',
-        groupSize: 'individual',
-        preferredTimeSlot: 'Asincrónico',
-        status: 'enrolled',
-        levelId: 'level_1',
-        placementTestScore: 18,
-        currentUnit: 1,
-        completedHours: 0,
-        xp: 150,
+        xp: isScholar ? 600 : isFriends ? 500 : 350,
         streak: 1,
-        league: 'Plata',
-        rating: { fluency: 3, grammar: 4, vocabulary: 4, pronunciation: 3 },
-        notes: 'Suscripción Digital $5/mes activa.',
-        assignedSlots: [],
-        registeredAt: new Date().toISOString()
+        league: isScholar ? 'Diamante' : isFriends ? 'Oro' : 'Plata',
+        rating: { fluency: 4, grammar: 4, vocabulary: 4, pronunciation: 4 },
+        notes: `Pase/Beca activada mediante código secreto [${cleanCode}]: ${benefitTitle}`,
+        assignedSlots: isCSB ? ['Lunes-16:00', 'Miércoles-16:00'] : []
       };
 
       setSuccessInfo({
-        title: '¡Suscripción Digital $5/mes Activa! 📱',
-        desc: 'Acceso asincrónico a los recursos, audios y quizzes interactivos de la plataforma Cokitö.'
+        title: '¡Pase & Beca Activada con Éxito! 🎁',
+        desc: `Tu cuenta ha sido creada como @${cleanUser}. Tienes acceso completo e inmediato al Hub y al aula de la Unidad 1 de Coquitos Academy.`
       });
 
       try {
-        confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+        confetti({ particleCount: 120, spread: 75, origin: { y: 0.6 } });
       } catch {}
 
       setTimeout(() => {
         onApplyCoupon(redeemedStudent);
         onClose();
-      }, 2000);
+      }, 1800);
 
     } else {
-      setErrorMsg('Código no reconocido o expirado. Por favor verifica con La Teacher Cokitö.');
+      setErrorMsg('El código ingresado no es válido o ha expirado. Verifica que esté bien escrito o solicita uno a la administración de Coquitos Academy.');
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 my-auto">
         
         {/* Header */}
-        <div className="p-5 bg-gradient-to-r from-blue-900 via-indigo-950 to-blue-900 text-white flex items-center justify-between">
+        <div className="p-5 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center border border-amber-400/30">
               <KeyRound className="w-5 h-5" />
@@ -185,7 +138,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
                 Pases de Cortesía & Becas
               </span>
               <h3 className="font-black text-base text-white">
-                Canjear Código Cokitö
+                Validar Código Institucional
               </h3>
             </div>
           </div>
@@ -200,50 +153,103 @@ export const CouponModal: React.FC<CouponModalProps> = ({
         {/* Body */}
         {successInfo ? (
           <div className="p-8 text-center space-y-4 animate-fadeIn">
-            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
-              <CheckCircle2 className="w-7 h-7" />
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-md">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
             <h4 className="text-xl font-black text-slate-900">{successInfo.title}</h4>
             <p className="text-xs text-slate-600 leading-relaxed">{successInfo.desc}</p>
+            <p className="text-[11px] font-bold text-emerald-700 bg-emerald-50 py-1.5 px-3 rounded-xl border border-emerald-200">
+              Iniciando tu sesión y cargando tus libros...
+            </p>
           </div>
         ) : (
-          <form onSubmit={handleRedeem} className="p-6 space-y-4">
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Si recibiste una cortesía especial, beca o pase de invitación de <strong>La Teacher Cokitö</strong>, ingrésalo a continuación para activar tu acceso de inmediato.
+          <form onSubmit={handleRedeem} className="p-5 sm:p-6 space-y-3.5">
+            <p className="text-xs text-slate-600 leading-relaxed bg-amber-50/70 p-3 rounded-2xl border border-amber-200/60">
+              Si recibiste una cortesía especial, beca institucional o pase de invitación de <strong>Coquitos Academy</strong>, completa tus datos para crear tu usuario y contraseña de acceso.
             </p>
 
             <div className="space-y-3">
+              {/* 1. Nombre Completo */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Tu Nombre Completo
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej. Andrés Silva"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ej. Ana Teresa Sandoval"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  />
+                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                </div>
               </div>
 
+              {/* 2. Usuario & Correo en dos columnas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    Crea tu Usuario
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                    placeholder="ej. anasandoval"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    Correo Electrónico
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu.correo@ejemplo.com"
+                      className="w-full pl-8 pr-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    />
+                    <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3.5 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Contraseña */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
-                  Correo Electrónico
+                  Crea tu Contraseña
                 </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu.correo@ejemplo.com"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Define una clave para volver a entrar"
+                    className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
+              {/* 4. Código Secreto (Sin delatar códigos en el placeholder) */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
-                  Código de Invitación / Beca
+                  Código Secreto de Invitación / Beca
                 </label>
                 <div className="relative">
                   <input
@@ -251,29 +257,41 @@ export const CouponModal: React.FC<CouponModalProps> = ({
                     required
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder="Ej. CSB2026 o FRIENDS2026"
-                    className="w-full px-3.5 py-2.5 bg-amber-50/60 border border-amber-300 rounded-xl text-xs text-slate-900 font-mono font-bold uppercase tracking-wider focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                    placeholder="Ingresa tu código confidencial..."
+                    className="w-full pl-9 pr-9 py-2.5 bg-amber-50/70 border border-amber-300 rounded-xl text-xs text-slate-900 font-mono font-bold uppercase tracking-wider focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
+                  <KeyRound className="w-4 h-4 text-amber-600 absolute left-3 top-3 pointer-events-none" />
                   <Sparkles className="w-4 h-4 text-amber-500 absolute right-3 top-3 pointer-events-none" />
                 </div>
               </div>
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2"
               >
-                <KeyRound className="w-4 h-4" />
+                <KeyRound className="w-4 h-4 text-slate-950" />
                 <span>Validar y Activar Pase</span>
               </button>
+
+              {onBackToLogin && (
+                <button
+                  type="button"
+                  onClick={onBackToLogin}
+                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Volver a Iniciar Sesión</span>
+                </button>
+              )}
             </div>
           </form>
         )}

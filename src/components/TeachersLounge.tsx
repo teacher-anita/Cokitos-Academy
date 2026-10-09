@@ -66,7 +66,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
   // Coffee Chat
   const [messages, setMessages] = useState<LoungeMessage[]>([]);
   const [newMessageText, setNewMessageText] = useState('');
-  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Attendance Log
   const [logs, setLogs] = useState<TeacherAttendanceLog[]>([]);
@@ -83,10 +83,10 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
   }, []);
 
   useEffect(() => {
-    if (activeSubTab === 'chat') {
-      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (activeSubTab === 'chat' && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages, activeSubTab]);
+  }, [messages.length, activeSubTab]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,7 +241,7 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
       {activeSubTab === 'chat' && (
         <div className="flex flex-col h-[520px] bg-slate-50/70">
           {/* Messages Stream */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             <div className="text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
                 ☕ Canal del Equipo de Teachers • Coquitos Academy
@@ -300,7 +300,6 @@ export const TeachersLounge: React.FC<TeachersLoungeProps> = ({
                 </div>
               );
             })}
-            <div ref={chatBottomRef} />
           </div>
 
           {/* Chat Input */}

@@ -224,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
 
-              {/* 3. Schedule */}
+              {/* 3. Agenda */}
               <button
                 onClick={() => onTabChange('calendar')}
                 className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
@@ -234,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 <span className="text-sm">📅</span>
-                <span>Schedule</span>
+                <span>Agenda</span>
               </button>
 
               {/* 4. Arena (Con emoticón de palmera verde donde aterrizan las guacamayas) */}
@@ -365,7 +365,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* 3. Schedule */}
+          {/* 3. Agenda */}
           <button
             onClick={() => onTabChange('calendar')}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all flex-1 min-w-0 max-w-[54px] ${
@@ -375,7 +375,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <span className="text-base">📅</span>
-            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Schedule</span>
+            <span className="text-[9px] leading-tight truncate w-full text-center mt-0.5">Agenda</span>
           </button>
 
           {/* 4. Arena */}

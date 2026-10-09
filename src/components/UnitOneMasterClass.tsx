@@ -1124,7 +1124,16 @@ export const UnitOneMasterClass: React.FC<UnitOneMasterClassProps> = ({
               </p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <a
+                href="https://drive.google.com/file/d/13JNZQ1NpbLF-DodPPkAnHVaMaPqkImmw/view?usp=drive_link"
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+              >
+                <Download className="w-3.5 h-3.5 text-amber-400" />
+                <span>Descargar Workbook PDF</span>
+              </a>
               <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1.5 rounded-xl border border-amber-200">
                 +150 XP on completion
               </span>

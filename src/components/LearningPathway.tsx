@@ -73,6 +73,16 @@ export const LearningPathway: React.FC<LearningPathwayProps> = ({
   // Classroom copy notification
   const [copiedNotice, setCopiedNotice] = useState<string | null>(null);
 
+  // Track units whose quizzes have been passed (persisted in localStorage per student)
+  const [passedUnitQuizzes, setPassedUnitQuizzes] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(`cokito_passed_quizzes_${currentStudent?.id || 'default'}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   const activeLevel = PATHWAY_LEVELS.find(l => l.levelId === selectedLevelId) || PATHWAY_LEVELS[0];
 
   const toggleSessionCompletion = (sessionKey: string) => {
@@ -110,13 +120,36 @@ ${unit.owlCulture.culturalStory}
     setTimeout(() => setCopiedNotice(null), 3500);
   };
 
-  // Check if a unit is unlocked based on XP or role
+  const handleQuizFinished = (score: number, total: number) => {
+    if (!quizUnit) return;
+    const isPassed = (score / total) >= 0.7; // 70% or more to pass
+    if (isPassed) {
+      const quizKey = `${selectedLevelId}_u${quizUnit.unitNumber}`;
+      setPassedUnitQuizzes(prev => {
+        const updated = { ...prev, [quizKey]: true };
+        if (currentStudent) {
+          localStorage.setItem(`cokito_passed_quizzes_${currentStudent.id}`, JSON.stringify(updated));
+          onAwardXp(currentStudent.id, 50);
+        }
+        return updated;
+      });
+      setCopiedNotice(`🎉 ¡Aprobaste el Quiz de la Unidad ${quizUnit.unitNumber} (${score}/${total})! Siguiente unidad desbloqueada.`);
+      setTimeout(() => setCopiedNotice(null), 5000);
+    } else {
+      setCopiedNotice(`ℹ️ Obtuviste ${score}/${total} (requiere 70% para aprobar). ¡Repite el quiz para desbloquear la siguiente unidad!`);
+      setTimeout(() => setCopiedNotice(null), 5000);
+    }
+  };
+
+  // Check if a unit is unlocked based strictly on having passed the previous unit's quiz!
   const isUnitUnlocked = (unitIndex: number) => {
     if (isTeacher) return true;
-    if (unitIndex === 0) return true; // First unit is always open!
-    const studentXp = currentStudent?.xp || 0;
-    const requiredXp = unitIndex * 100;
-    return studentXp >= requiredXp;
+    if (unitIndex === 0) return true; // Unit 1 is always unlocked for enrolled students!
+    
+    // Previous unit must have passed its quiz
+    const prevUnitNumber = unitIndex; // For unit index 1 (Unit 2), previous unit is Unit 1
+    const prevQuizKey = `${selectedLevelId}_u${prevUnitNumber}`;
+    return Boolean(passedUnitQuizzes[prevQuizKey]);
   };
 
   // IF NOT ENROLLED AND NOT TEACHER: LOCKED PREVIEW (GUEST SEES CURRICULAR OVERVIEW / GUEST MODE)
@@ -240,49 +273,6 @@ ${unit.owlCulture.culturalStory}
         </div>
       )}
 
-      {/* 0. AVISO DESTACADO GENERAL ANTES DE INGRESAR AL CLASSROOM */}
-      <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-3xl p-5 sm:p-6 text-slate-950 border-2 border-amber-500/40 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-lg">
-            <Download className="w-6 h-6 sm:w-7 sm:h-7" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="bg-slate-950 text-amber-300 text-[10px] sm:text-xs font-black uppercase px-3 py-0.5 rounded-full tracking-wider">
-                🚨 PASO 1 OBLIGATORIO PARA ALUMNOS
-              </span>
-              <strong className="text-sm sm:text-base font-black text-slate-950">
-                Descarga el archivo de tu unidad antes de comenzar la clase
-              </strong>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-900 font-medium max-w-3xl leading-snug">
-              Para seguir las clases en vivo con <strong>La Teacher Cokitö</strong>, escuchar los audios y resolver tus tareas del Workbook, es indispensable que descargues el archivo PDF de cada unidad antes de comenzar.
-            </p>
-            <p className="text-[11px] sm:text-xs text-slate-950 font-bold flex items-center gap-1.5 pt-0.5">
-              <span>👉 Encontrarás el enlace directo para bajar el archivo justamente antes de cada unidad a continuación:</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap shrink-0 w-full md:w-auto">
-          <button
-            onClick={() => downloadUnitPdf('level_1', 1, 'Good Morning!')}
-            className="flex-1 md:flex-none px-5 py-3.5 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4 text-amber-400" />
-            <span>Descargar Archivo Unit 1 (PDF)</span>
-          </button>
-
-          <button
-            onClick={() => setSelectedMasterUnit(1)}
-            className="flex-1 md:flex-none px-5 py-3.5 bg-blue-900 hover:bg-blue-800 text-white rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-          >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>Aula Interactiva U1</span>
-          </button>
-        </div>
-      </div>
-
       {/* 1. ENGLISH ONLY ZONE IMMERSIVE BANNER */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl px-5 py-3 text-white flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5">
@@ -390,62 +380,49 @@ ${unit.owlCulture.culturalStory}
         </span>
       </div>
 
-      {/* Units & Boss Fights Section with XP Lock Progression */}
+      {/* Units & Boss Fights Section with Quiz-based Lock Progression */}
       <div className="space-y-8">
         {activeLevel.units.map((unit, uIdx) => {
           const unlocked = isUnitUnlocked(uIdx);
-          const reqXp = uIdx * 100;
 
           if (!unlocked) {
+            const prevUnitNum = unit.unitNumber - 1;
             return (
               <div
                 key={unit.unitNumber}
                 className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-0"
               >
-                {/* 📥 JUSTAMENTE ANTES DE CADA UNIT: DESCARGA DEL ARCHIVO (DISPONIBLE PARA PREPARACIÓN) */}
-                <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-300 via-amber-200 to-yellow-200 text-slate-950 border-b border-amber-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-sm">
-                      <Download className="w-5 h-5 text-amber-400" />
+                {/* Header locked */}
+                <div className="p-5 sm:p-6 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">
+                      <Lock className="w-5 h-5 text-slate-600" />
                     </div>
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-slate-950 text-amber-300 text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-                          📥 DESCARGA OFICIAL • UNIT {unit.unitNumber}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-lg">
+                          Unit {unit.unitNumber}
                         </span>
-                        <strong className="text-xs sm:text-sm font-black text-slate-950">
-                          Bajar Archivo Oficial antes de comenzar: "{unit.title}"
-                        </strong>
+                        <h3 className="font-bold text-slate-800 text-base">{unit.title}</h3>
                       </div>
-                      <p className="text-xs text-slate-800">
-                        Descarga el libro y ejercicios en PDF para ir leyendo el contenido de la unidad.
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {unit.bookTitle} • {unit.sbPages}
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => downloadUnitPdf(activeLevel.levelId, unit.unitNumber, unit.title)}
-                    className="w-full md:w-auto px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-2 shrink-0 transition-transform active:scale-95"
-                  >
-                    <Download className="w-4 h-4 text-amber-400" />
-                    <span>Bajar Archivo Unit {unit.unitNumber} (PDF)</span>
-                  </button>
+
+                  <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-300 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-900 self-start sm:self-auto shadow-2xs">
+                    <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Bloqueado • Requiere aprobar Quiz de Unit {prevUnitNum}</span>
+                  </div>
                 </div>
 
-                <div className="p-6 opacity-60 relative overflow-hidden space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-lg">
-                        Unit {unit.unitNumber}
-                      </span>
-                      <h3 className="font-bold text-slate-700 text-base">{unit.title}</h3>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold text-amber-900">
-                      <Lock className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Locked • Requiere {reqXp} XP</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    Completa las misiones diarias y el quiz de la unidad anterior para acumular suficiente XP y desbloquear el quiz de esta unidad.
+                <div className="p-6 bg-slate-50/50 space-y-2 text-xs text-slate-600">
+                  <p>
+                    🔒 <strong>Requisito Pedagógico:</strong> Para acceder a las lecciones de la <strong>Unidad {unit.unitNumber}</strong>, primero debes completar la <strong>Unidad {prevUnitNum}</strong> y aprobar su evaluación oficial con al menos 70% de aciertos.
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Regresa a la Unidad {prevUnitNum} y haz clic en el botón verde <strong>"Unit Quiz (+50 XP)"</strong> para presentar tu examen interactivo.
                   </p>
                 </div>
               </div>
@@ -457,39 +434,57 @@ ${unit.owlCulture.culturalStory}
               key={unit.unitNumber}
               className="bg-white rounded-3xl border-2 border-slate-200 shadow-sm overflow-hidden transition-all hover:border-amber-400 space-y-0"
             >
-              {/* 📥 JUSTAMENTE ANTES DE CADA UNIT (DONDE EMPIEZA EL UNIT): DESCARGA DEL ARCHIVO */}
+              {/* 📥 DESCARGA OFICIAL REAL DIRECTO DE GOOGLE DRIVE */}
               <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 border-b-2 border-amber-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-start gap-3.5">
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-md">
-                    <Download className="w-6 h-6 text-amber-400" />
+                    <BookOpen className="w-6 h-6 text-amber-400" />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="bg-slate-950 text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">
-                        📥 PASO 1 OBLIGATORIO • UNIT {unit.unitNumber}
+                        📥 MATERIAL OFICIAL • UNIT {unit.unitNumber}
                       </span>
                       <strong className="text-xs sm:text-sm font-black text-slate-950">
-                        Descarga el Archivo Oficial antes de comenzar la Unidad {unit.unitNumber}: "{unit.title}"
+                        {unit.bookTitle} — Unit {unit.unitNumber}: "{unit.title}"
                       </strong>
                     </div>
                     <p className="text-xs text-slate-900 font-medium max-w-2xl leading-snug">
-                      Para realizar las actividades, escuchar los audios y resolver las tareas con La Teacher Cokitö, descarga aquí el archivo oficial en PDF de <strong>{unit.bookTitle}</strong> ({unit.sbPages}) y las hojas de práctica del Workbook ({unit.wbPages}).
+                      Descarga tu <strong>Student Book</strong> ({unit.sbPages}) y las hojas oficiales de práctica del <strong>Workbook</strong> ({unit.wbPages}) directamente en PDF.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap w-full md:w-auto shrink-0">
-                  <button
-                    onClick={() => downloadUnitPdf(activeLevel.levelId, unit.unitNumber, unit.title)}
-                    className="flex-1 sm:flex-none px-5 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                  {/* Real Student Book Google Drive Link */}
+                  <a
+                    href={unit.studentBookPdfUrl || 'https://drive.google.com/file/d/17Oqq95rEd2Qy9fbltoHA_86jYBOoyitE/view?usp=drive_link'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-amber-300 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                    title="Abrir o descargar el Student Book oficial en Google Drive"
                   >
-                    <Download className="w-4 h-4 text-amber-400" />
-                    <span>Bajar Archivo Unit {unit.unitNumber} (PDF)</span>
-                  </button>
+                    <BookOpen className="w-4 h-4 text-amber-400" />
+                    <span>Student Book (PDF)</span>
+                  </a>
 
+                  {/* Real Workbook Google Drive Link */}
+                  <a
+                    href={unit.workbookPdfUrl || 'https://drive.google.com/file/d/13JNZQ1NpbLF-DodPPkAnHVaMaPqkImmw/view?usp=drive_link'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-950 border-2 border-slate-900 rounded-xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                    title="Abrir o descargar el Workbook oficial en Google Drive"
+                  >
+                    <FileText className="w-4 h-4 text-slate-900" />
+                    <span>Workbook (PDF)</span>
+                  </a>
+
+                  {/* Audio MP3 */}
                   <button
                     onClick={() => downloadUnitAudio(unit.unitNumber === 1 ? 2 : 1)}
-                    className="flex-1 sm:flex-none px-4 py-3 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 sm:flex-none px-3.5 py-2.5 bg-white/90 hover:bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                    title="Descargar tracks de audio oficial en MP3"
                   >
                     <Download className="w-3.5 h-3.5 text-blue-700" />
                     <span>Audios MP3</span>
@@ -739,11 +734,7 @@ ${unit.owlCulture.culturalStory}
           unit={quizUnit}
           isOpen={!!quizUnit}
           onClose={() => setQuizUnit(null)}
-          onQuizFinished={(score, total) => {
-            if (currentStudent) {
-              onAwardXp(currentStudent.id, 50);
-            }
-          }}
+          onQuizFinished={handleQuizFinished}
         />
       )}
 

@@ -140,6 +140,11 @@ export default function App() {
     };
   }, [students]);
 
+  // Scroll to top whenever active tab changes to prevent abrupt jumping
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   const handleLogin = async () => {
     setIsLoggingIn(true);
     try {
@@ -569,7 +574,10 @@ export default function App() {
         onCredentialsLogin={handleCredentialsLogin}
         isLoggingIn={isLoggingIn}
         onLogout={handleLogout}
-        onOpenCoupon={() => setIsCouponOpen(true)}
+        onOpenCoupon={() => {
+          setIsProfileOpen(false);
+          setIsCouponOpen(true);
+        }}
         onOpenPlacementTest={() => setIsPlacementQuizOpen(true)}
         onOpenRegister={() => {
           setIsProfileOpen(false);
@@ -595,6 +603,10 @@ export default function App() {
         isOpen={isCouponOpen}
         onClose={() => setIsCouponOpen(false)}
         onApplyCoupon={handleApplyCoupon}
+        onBackToLogin={() => {
+          setIsCouponOpen(false);
+          setIsProfileOpen(true);
+        }}
       />
 
       {/* Standalone Placement Quiz Modal */}

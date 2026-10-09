@@ -54,8 +54,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Format Filter: Individual vs Grupal vs Todos
   const [classFormatFilter, setClassFormatFilter] = useState<'all' | 'individual' | 'group'>('all');
   
-  // Audience Filter: Adultos vs Niños/Escolar vs Todos
-  const [targetAudienceFilter, setTargetAudienceFilter] = useState<'all' | 'adults' | 'kids'>('all');
+  // Audience Filter: Adultos vs Niños/Escolar vs Todos (autodetect according to theme)
+  const [targetAudienceFilter, setTargetAudienceFilter] = useState<'all' | 'adults' | 'kids'>(
+    audienceTheme === 'kids' ? 'kids' : 'all'
+  );
   
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [showFrequencyGuide, setShowFrequencyGuide] = useState<boolean>(true);

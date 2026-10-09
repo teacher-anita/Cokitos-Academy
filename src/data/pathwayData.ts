@@ -43,6 +43,8 @@ export interface PathwayUnit {
   sessions: PathwaySession[];
   quizQuestions: UnitQuizQuestion[];
   googleFormUrl?: string;
+  studentBookPdfUrl?: string;
+  workbookPdfUrl?: string;
   tipCokito: string;
   owlCulture: OwlCultureCorner;
 }
@@ -118,6 +120,8 @@ export const PATHWAY_LEVELS: PathwayLevel[] = [
         vocabularyTheme: 'Greetings, Farewells, Courtesy Titles (Mr., Mrs., Miss, Ms.), School Supplies',
         tipCokito: 'Never say "Good night" when arriving at a party! Use "Good evening" to say hello at night, and save "Good night" strictly for going to bed or leaving.',
         googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc-unit1-sg1/viewform',
+        studentBookPdfUrl: 'https://drive.google.com/file/d/17Oqq95rEd2Qy9fbltoHA_86jYBOoyitE/view?usp=drive_link',
+        workbookPdfUrl: 'https://drive.google.com/file/d/13JNZQ1NpbLF-DodPPkAnHVaMaPqkImmw/view?usp=drive_link',
         owlCulture: {
           owlTitle: 'Cyber Owl Trivia: Greetings Around the World',
           topic: 'Handshakes, Bows & The Anglo-Saxon Rule',
