@@ -1310,6 +1310,11 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                                 <Calendar className="w-3 h-3 text-indigo-600" />
                                 <span>{student.assignedSlots.join(' • ')}</span>
                               </div>
+                            ) : student.isDigitalPass ? (
+                              <div className="text-[10px] font-bold text-sky-800 bg-sky-50 px-2 py-1 rounded-lg border border-sky-200 inline-flex items-center gap-1">
+                                <Smartphone className="w-3 h-3 text-sky-600" />
+                                <span>Pase Digital • Sin clases obligatorias</span>
+                              </div>
                             ) : (
                               <div className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-300 inline-flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3 text-amber-600" />
