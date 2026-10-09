@@ -49,6 +49,13 @@ import { ENGLISH_LEVELS } from '../data/curriculumData';
 import { TeachersLounge } from './TeachersLounge';
 import { OFFICIAL_PAGO_MOVIL, getBcvExchangeRate, setBcvExchangeRateOverride, convertUsdToBs } from '../services/currencyService';
 import { CouponItem, getStoredCoupons, saveStoredCoupons, BenefitType, CouponCategory } from '../data/couponsData';
+import confetti from 'canvas-confetti';
+import { 
+  addStudentNotification, 
+  getStoredClassRequests, 
+  updateClassRequestStatus, 
+  StudentClassRequest 
+} from '../services/notificationService';
 
 interface PrincipalDashboardProps {
   students: Student[];
@@ -163,7 +170,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
       categoryLabel: categoryLabels[newCouponData.category] || 'General',
       benefitType: newCouponData.benefitType,
       title: newCouponData.title.trim() || `Pase Institucional ${cleanCode}`,
-      description: newCouponData.description.trim() || 'Acceso y beneficio institucional autorizado por Rectoría de Gûakytopia.',
+      description: newCouponData.description.trim() || 'Acceso y beneficio institucional autorizado por Rectoría de Güakytopia.',
       maxUses: isNaN(maxU as number) ? null : maxU,
       currentUses: 0,
       isActive: true,
@@ -184,7 +191,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
       maxUses: '1',
       notes: ''
     });
-    setCouponNotice(`¡Cupón [${cleanCode}] creado y activo inmediatamente en Gûakytopia! ✨`);
+    setCouponNotice(`¡Cupón [${cleanCode}] creado y activo inmediatamente en Güakytopia! ✨`);
     setTimeout(() => setCouponNotice(null), 3500);
   };
 
@@ -225,6 +232,193 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
     onUpdateStudent(updated);
     setApprovalNotice(`Alumno ${student.name} ${nextStatus === 'enrolled' ? 'activado' : 'pausado / suspendido'} correctamente.`);
     setTimeout(() => setApprovalNotice(null), 3000);
+  };
+
+  // Directora Waky: Class Assignment & Student Requests Management
+  const [classRequests, setClassRequests] = useState<StudentClassRequest[]>(() => getStoredClassRequests());
+  const [assigningClassesStudent, setAssigningClassesStudent] = useState<Student | null>(null);
+  const [assignTeacherId, setAssignTeacherId] = useState<string>('teacher_cokito');
+  const [assignSlots, setAssignSlots] = useState<string[]>(['Sábados de 10:00 am a 12:00 pm (Todos los Sábados)']);
+  const [customScheduleText, setCustomScheduleText] = useState<string>('Sábados de 10:00 am a 12:00 pm (Todos los Sábados)');
+  const [assignDays, setAssignDays] = useState<string[]>(['Sábado']);
+  const [assignStartTime, setAssignStartTime] = useState<string>('10:00 AM');
+  const [assignEndTime, setAssignEndTime] = useState<string>('12:00 PM');
+  const [assignFrequency, setAssignFrequency] = useState<string>('Todos los Sábados');
+  const [assignSlotsList, setAssignSlotsList] = useState<string[]>(['Sábados de 10:00 am a 12:00 pm (Todos los Sábados)']);
+  const [assignLevelId, setAssignLevelId] = useState<string>('level_1');
+  const [assignUnit, setAssignUnit] = useState<number>(1);
+  const [assignPhoneNotes, setAssignPhoneNotes] = useState<string>('');
+  const [assignMeetLink, setAssignMeetLink] = useState<string>('https://meet.google.com/cok-waky-cls');
+  const [assignMessage, setAssignMessage] = useState<string>('');
+  const [assignedNotificationSummary, setAssignedNotificationSummary] = useState<{
+    studentName: string;
+    studentEmail: string;
+    teacherName: string;
+    schedule: string;
+    meetLink: string;
+    whatsappUrl: string;
+  } | null>(null);
+
+  const handleOpenAssignClasses = (student: Student, preferredSchedule?: string, preferredTeacher?: string) => {
+    setAssigningClassesStudent(student);
+    setAssignLevelId(student.levelId || 'level_1');
+    setAssignUnit(student.currentUnit || 1);
+    
+    // Auto select teacher
+    if (preferredTeacher) {
+      const match = teachers.find(t => t.name.toLowerCase().includes(preferredTeacher.toLowerCase()));
+      setAssignTeacherId(match ? match.id : 'teacher_cokito');
+    } else if (student.teacherId) {
+      setAssignTeacherId(student.teacherId);
+    } else {
+      setAssignTeacherId('teacher_cokito');
+    }
+
+    // Directora phone call & schedule configuration logic
+    if (student.assignedSlots && student.assignedSlots.length > 0) {
+      setAssignSlotsList(student.assignedSlots);
+      setCustomScheduleText(student.assignedSlots.join(' • '));
+      const firstSlot = student.assignedSlots[0];
+      if (firstSlot.toLowerCase().includes('sábado') || firstSlot.toLowerCase().includes('sabado')) {
+        setAssignDays(['Sábado']);
+        setAssignStartTime('10:00 AM');
+        setAssignEndTime('12:00 PM');
+        setAssignFrequency('Todos los Sábados');
+      }
+    } else {
+      // Default to Saturdays 10:00 am - 12:00 pm (especially for Genesis and weekend intensives)
+      const defaultSlot = 'Sábados de 10:00 am a 12:00 pm (Todos los Sábados)';
+      setAssignDays(['Sábado']);
+      setAssignStartTime('10:00 AM');
+      setAssignEndTime('12:00 PM');
+      setAssignFrequency('Todos los Sábados');
+      setAssignSlotsList([defaultSlot]);
+      setCustomScheduleText(defaultSlot);
+      setAssignPhoneNotes('Acordado directamente por llamada telefónica: clases fijas todos los sábados de 10:00 am a 12:00 pm.');
+    }
+
+    setAssignMeetLink('https://meet.google.com/cok-waky-cls');
+    setAssignMessage(
+      `¡Hola ${student.name}! Directora Waky ha configurado oficialmente tus clases de inglés en Güakytopia. Tus sesiones quedan agendadas todos los sábados de 10:00 am a 12:00 pm con tu Teacher.`
+    );
+  };
+
+  const handleToggleAssignDay = (day: string) => {
+    const nextDays = assignDays.includes(day)
+      ? (assignDays.length > 1 ? assignDays.filter(d => d !== day) : assignDays)
+      : [...assignDays, day];
+    setAssignDays(nextDays);
+    const dayLabel = nextDays.length === 1 ? `Todos los ${nextDays[0]}s` : nextDays.join(' y ');
+    const slotStr = `${dayLabel} de ${assignStartTime} a ${assignEndTime} (${assignFrequency})`;
+    setCustomScheduleText(slotStr);
+  };
+
+  const handleApplyPresetSlot = (preset: {
+    days: string[];
+    start: string;
+    end: string;
+    frequency: string;
+    label: string;
+  }) => {
+    setAssignDays(preset.days);
+    setAssignStartTime(preset.start);
+    setAssignEndTime(preset.end);
+    setAssignFrequency(preset.frequency);
+    setAssignSlotsList([preset.label]);
+    setCustomScheduleText(preset.label);
+    setAssignMessage(
+      `¡Hola ${assigningClassesStudent?.name || ''}! Directora Waky ha configurado tus clases en Güakytopia para ${preset.label}. ¡Todo listo para iniciar!`
+    );
+  };
+
+  const handleAddCurrentBlockToList = () => {
+    const dayLabel = assignDays.length === 1 ? `Todos los ${assignDays[0]}s` : assignDays.join(' y ');
+    const slotStr = `${dayLabel} de ${assignStartTime} a ${assignEndTime} (${assignFrequency})`;
+    if (!assignSlotsList.includes(slotStr)) {
+      const updated = [...assignSlotsList, slotStr];
+      setAssignSlotsList(updated);
+      setCustomScheduleText(updated.join(' • '));
+    }
+  };
+
+  const handleRemoveSlotFromList = (slotToRemove: string) => {
+    const updated = assignSlotsList.filter(s => s !== slotToRemove);
+    setAssignSlotsList(updated);
+    setCustomScheduleText(updated.length > 0 ? updated.join(' • ') : '');
+  };
+
+  const handleConfirmClassAssignment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assigningClassesStudent) return;
+
+    const teacherObj = teachers.find(t => t.id === assignTeacherId) || {
+      id: assignTeacherId,
+      name: assignTeacherId === 'teacher_cokito' ? 'Teacher Cokitö' : assignTeacherId === 'teacher_andrea' ? 'Teacher Andrea' : 'Teacher Carlos'
+    };
+
+    const finalSlots = assignSlotsList.length > 0 ? assignSlotsList : [customScheduleText];
+
+    const updatedStudent: Student = {
+      ...assigningClassesStudent,
+      teacherId: teacherObj.id,
+      teacherName: teacherObj.name,
+      assignedSlots: finalSlots,
+      levelId: assignLevelId,
+      currentUnit: assignUnit,
+      status: 'enrolled',
+      notes: `${assigningClassesStudent.notes || ''} | ${assignPhoneNotes || 'Acuerdo de Rectoría'} (${teacherObj.name} • ${finalSlots.join(', ')}) el ${new Date().toLocaleDateString('es-VE')}`
+    };
+
+    onUpdateStudent(updatedStudent);
+
+    // Save student notification to inbox
+    addStudentNotification({
+      studentId: assigningClassesStudent.id,
+      type: 'class_assigned',
+      title: `¡Tus clases de inglés han sido programadas! 🎓✨`,
+      message: assignMessage || `Directora Waky te ha asignado a ${teacherObj.name}. Horario oficial: ${finalSlots.join(' • ')}. ¡Nos vemos en el aula virtual!`,
+      teacherName: teacherObj.name,
+      slots: finalSlots,
+      levelTitle: ENGLISH_LEVELS.find(l => l.id === assignLevelId)?.levelName || assignLevelId,
+      meetLink: assignMeetLink
+    });
+
+    // Mark any pending request as approved
+    const pendingReq = classRequests.find(r => r.studentId === assigningClassesStudent.id && r.status === 'pending');
+    if (pendingReq) {
+      updateClassRequestStatus(pendingReq.id, 'approved');
+      setClassRequests(getStoredClassRequests());
+    }
+
+    try {
+      confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } });
+    } catch {}
+
+    const cleanPhone = (assigningClassesStudent.phone || '+584147891234').replace(/[^0-9]/g, '');
+    const scheduleSummary = finalSlots.join(' • ');
+    const waText = encodeURIComponent(
+      `¡Hola ${assigningClassesStudent.name}! 🌴✨ Te saluda la Rectoría de Güakytopia (Directora Waky).\n\n` +
+      `Tus clases oficiales de inglés han sido agendadas con éxito conforme a lo acordado:\n` +
+      `👨‍🏫 Profesor Asignado: ${teacherObj.name}\n` +
+      `📅 Horario Oficial: ${scheduleSummary}\n` +
+      `📚 Nivel: ${ENGLISH_LEVELS.find(l => l.id === assignLevelId)?.levelName || assignLevelId} (Unidad ${assignUnit})\n` +
+      `💻 Enlace Google Meet: ${assignMeetLink}\n\n` +
+      `Tu cuenta ya tiene acceso completo a la plataforma interactiva y a tus unidades didácticas. ¡Bienvenida a tu camino hacia la fluidez bilingüe!`
+    );
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${waText}`;
+
+    setAssignedNotificationSummary({
+      studentName: assigningClassesStudent.name,
+      studentEmail: assigningClassesStudent.email,
+      teacherName: teacherObj.name,
+      schedule: scheduleSummary,
+      meetLink: assignMeetLink,
+      whatsappUrl
+    });
+
+    setAssigningClassesStudent(null);
+    setApprovalNotice(`¡Clases de ${assigningClassesStudent.name} agendadas con éxito (${scheduleSummary})! ✨`);
+    setTimeout(() => setApprovalNotice(null), 4500);
   };
 
   // BCV Rate Management (Waky Control)
@@ -634,7 +828,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-950">
-              Despacho Institucional Gûakytopia • Rectoría General
+              Despacho Institucional Güakytopia • Rectoría General
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-900 font-medium leading-relaxed">
@@ -981,6 +1175,57 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
             </div>
           </div>
 
+          {/* Pending Class Requests Alert Banner (e.g., Génesis or any applicant) */}
+          {classRequests.some(r => r.status === 'pending') && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/15 border-2 border-amber-400 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-fadeIn">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-sm text-lg">
+                  🔔
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">
+                      Solicitud de Clases Pendiente en Rectoría
+                    </span>
+                    <span className="text-xs text-amber-900 font-bold">
+                      {classRequests.filter(r => r.status === 'pending').length} por agendar
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 mt-1">
+                    {classRequests.find(r => r.status === 'pending')?.studentName} necesita asignación de clases
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    "{classRequests.find(r => r.status === 'pending')?.notes || 'Solicitud de horarios y docente para iniciar clases.'}" • Horario tentativo: <strong className="text-slate-800">{classRequests.find(r => r.status === 'pending')?.preferredDaysTimes}</strong>
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 w-full sm:w-auto">
+                {(() => {
+                  const firstPending = classRequests.find(r => r.status === 'pending');
+                  if (!firstPending) return null;
+                  const targetStudent = students.find(s => s.id === firstPending.studentId) || {
+                    id: firstPending.studentId,
+                    name: firstPending.studentName,
+                    email: firstPending.studentEmail,
+                    status: 'enrolled',
+                    levelId: 'level_1',
+                    assignedSlots: []
+                  } as Student;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAssignClasses(targetStudent, firstPending.preferredDaysTimes, firstPending.preferredTeacher)}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-amber-300 hover:text-amber-200 font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                    >
+                      <Calendar className="w-4 h-4 text-amber-400" />
+                      <span>📅 Asignar Horario & Notificar Ahora</span>
+                    </button>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+
           {/* Students Table */}
           <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
@@ -990,7 +1235,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                     <th className="py-3 px-4">Alumno</th>
                     <th className="py-3 px-4">Nivel Actual</th>
                     <th className="py-3 px-4">Unidad</th>
-                    <th className="py-3 px-4">Teacher Asignado</th>
+                    <th className="py-3 px-4">Teacher & Horarios</th>
                     <th className="py-3 px-4">Estado</th>
                     <th className="py-3 px-4 text-right">Acciones de Directora</th>
                   </tr>
@@ -998,6 +1243,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                 <tbody className="divide-y divide-slate-100">
                   {filteredStudents.map(student => {
                     const matchedLevel = ENGLISH_LEVELS.find(l => l.id === student.levelId);
+                    const hasClasses = student.assignedSlots && student.assignedSlots.length > 0;
                     return (
                       <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-4">
@@ -1023,13 +1269,22 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                         </td>
 
                         <td className="py-3 px-4 text-slate-700">
-                          {student.teacherName ? (
-                            <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                              {student.teacherName}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 italic">Teacher Cokitö (General)</span>
-                          )}
+                          <div className="space-y-1">
+                            <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                              <span>{student.teacherName || 'Teacher Cokitö (General)'}</span>
+                            </div>
+                            {hasClasses ? (
+                              <div className="text-[10px] font-bold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200 inline-flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-indigo-600" />
+                                <span>{student.assignedSlots.join(' • ')}</span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-300 inline-flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3 text-amber-600" />
+                                <span>⚠️ Sin clases agendadas</span>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                         <td className="py-3 px-4">
@@ -1046,6 +1301,20 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
 
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {/* Assign / Edit Classes Button */}
+                            <button
+                              onClick={() => handleOpenAssignClasses(student)}
+                              className={`px-2.5 py-1.5 font-bold rounded-xl border transition-all flex items-center gap-1 text-xs ${
+                                !hasClasses
+                                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500 shadow-xs'
+                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300'
+                              }`}
+                              title={hasClasses ? 'Modificar clases y notificar' : 'Asignar horario y notificar a la alumna'}
+                            >
+                              <Calendar className={`w-3.5 h-3.5 ${!hasClasses ? 'text-slate-950' : 'text-emerald-700'}`} />
+                              <span>{!hasClasses ? 'Asignar Clases' : 'Clases'}</span>
+                            </button>
+
                             <button
                               onClick={() => handleOpenEditStudent(student)}
                               className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold border border-blue-200 rounded-xl transition-colors flex items-center gap-1"
@@ -1567,7 +1836,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="bg-amber-100 text-amber-900 text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-300">
-                  🎟️ Rectoría Gûakytopia
+                  🎟️ Rectoría Güakytopia
                 </span>
                 <span className="text-xs text-slate-500 font-bold">Validación en tiempo real</span>
               </div>
@@ -1816,12 +2085,12 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                     The Principal • Directora General
                   </span>
                   <span className="bg-white/90 text-slate-900 text-xs font-bold px-3 py-1 rounded-full border border-amber-300">
-                    Gûakytopia • Coquitos Academy
+                    Güakytopia • Coquitos Academy
                   </span>
                 </div>
 
                 <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-950">
-                  Dra. Waky The Principal
+                  Waky - The Principal
                 </h2>
 
                 <p className="text-sm sm:text-base font-bold text-slate-900/90 leading-relaxed max-w-2xl">
@@ -1895,7 +2164,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                   Panel de Despacho Inmediato
                 </span>
                 <h3 className="text-xl font-black text-white">
-                  Controles de Alta Dirección de Gûakytopia
+                  Controles de Alta Dirección de Güakytopia
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -1930,7 +2199,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
                 <span className="text-amber-300 font-bold block mb-1">🌴 Sello Institucional</span>
                 <p className="text-slate-300 text-[11px]">
-                  Firma digital registrada bajo la jurisdicción de Gûakytopia & Coquitos Academy.
+                  Firma digital registrada bajo la jurisdicción de Güakytopia & Coquitos Academy.
                 </p>
               </div>
             </div>
@@ -2049,17 +2318,33 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
         </div>
       )}
 
-      {/* MODAL: EDITAR PROFESOR (HORARIOS, DÍAS, NIVELES) */}
+      {/* MODAL: EDITAR PROFESOR (HORARIOS, DÍAS, NIVELES - DINÁMICO) */}
       {editingTeacher && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <form 
-            onSubmit={handleSaveTeacherEdit}
-            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-slate-200"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSaveTeacherEdit(e);
+              setApprovalNotice(`¡Horarios y disponibilidad de Teacher ${editingTeacher.name} guardados con éxito!`);
+              setTimeout(() => setApprovalNotice(null), 3000);
+            }}
+            className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 space-y-4 shadow-2xl border border-slate-200 my-auto animate-scaleUp max-h-[92vh] flex flex-col"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-black text-slate-900 text-base">
-                Editar Horarios de Teacher {editingTeacher.name}
-              </h3>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+              <div className="flex items-center gap-3">
+                <img
+                  src={editingTeacher.avatar || `https://api.dicebear.com/7.x/micah/svg?seed=${editingTeacher.name}`}
+                  alt={editingTeacher.name}
+                  className="w-11 h-11 rounded-2xl border border-slate-200 object-cover shadow-2xs"
+                />
+                <div>
+                  <h3 className="font-black text-slate-900 text-base">
+                    Gestión de Horarios: Teacher {editingTeacher.name} {editingTeacher.lastName || ''}
+                  </h3>
+                  <span className="text-xs text-amber-700 font-bold">{editingTeacher.specialty}</span>
+                </div>
+              </div>
               <button 
                 type="button"
                 onClick={() => setEditingTeacher(null)}
@@ -2069,86 +2354,182 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            {/* Scrollable Form Body */}
+            <div className="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
+              {/* Especialidad */}
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Teacher Specialty / Focus:</label>
+                <label className="font-bold text-slate-700 block mb-1">Especialidad Docente:</label>
                 <input
                   type="text"
                   value={editingTeacher.specialty}
                   onChange={e => setEditingTeacher({ ...editingTeacher, specialty: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900"
                   required
                 />
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Franja de Horas Laborales (Ej. 08:00 - 14:00):</label>
+              {/* DÍAS ASIGNADOS (SELECTOR INTERACTIVO) */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-black text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Días de Disponibilidad Laboral:</span>
+                  </label>
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                    {editingTeacher.assignedDays.length} días activos
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] as const).map(day => {
+                    const isSelected = editingTeacher.assignedDays.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          const nextDays = isSelected
+                            ? editingTeacher.assignedDays.filter(d => d !== day)
+                            : [...editingTeacher.assignedDays, day];
+                          setEditingTeacher({ ...editingTeacher, assignedDays: nextDays });
+                        }}
+                        className={`py-1.5 px-3 rounded-xl font-black text-xs transition-all flex items-center gap-1 ${
+                          isSelected
+                            ? 'bg-slate-950 text-amber-300 ring-2 ring-amber-400 shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3 text-amber-400" />}
+                        <span>{day === 'Sábado' ? '⭐ Sábado' : day}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* FRANJA DE HORAS LABORALES (PRESETS + INPUT) */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                <label className="font-black text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Franja de Horas Laborales:</span>
+                </label>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: 'Mañanas (08:00 - 13:00)', val: '08:00 - 13:00' },
+                    { label: 'Tardes (14:00 - 19:00)', val: '14:00 - 19:00' },
+                    { label: 'Tardes/Noches (15:00 - 21:00)', val: '15:00 - 21:00' },
+                    { label: 'Sábados (09:00 - 14:00)', val: '09:00 - 14:00' },
+                    { label: 'Jornada Completa (08:00 - 18:00)', val: '08:00 - 18:00' }
+                  ].map(shift => (
+                    <button
+                      key={shift.val}
+                      type="button"
+                      onClick={() => setEditingTeacher({ ...editingTeacher, workingHours: shift.val })}
+                      className={`text-[11px] py-1 px-2.5 rounded-lg border font-bold transition-all ${
+                        editingTeacher.workingHours === shift.val
+                          ? 'bg-amber-400 text-slate-950 border-amber-500 ring-1 ring-amber-400'
+                          : 'bg-white text-slate-700 hover:bg-amber-50 border-slate-200'
+                      }`}
+                    >
+                      {shift.label}
+                    </button>
+                  ))}
+                </div>
+
                 <input
                   type="text"
                   value={editingTeacher.workingHours}
                   onChange={e => setEditingTeacher({ ...editingTeacher, workingHours: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-black text-slate-900"
+                  placeholder="Ej. 08:00 - 14:00 o Sábados 09:00 - 14:00"
                   required
                 />
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Días Asignados (Separados por coma):</label>
-                <input
-                  type="text"
-                  value={editingTeacher.assignedDays.join(', ')}
-                  onChange={e => setEditingTeacher({ 
-                    ...editingTeacher, 
-                    assignedDays: e.target.value.split(',').map(d => d.trim() as any) 
+              {/* NIVELES QUE IMPARTE (BADGES INTERACTIVOS) */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <label className="font-black text-slate-900 uppercase tracking-wider text-[11px] block">
+                  Niveles del Pensum Habilitados:
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { id: 'level_1', name: 'SuperGoal 1 (A1)' },
+                    { id: 'level_2', name: 'SuperGoal 2 (A2)' },
+                    { id: 'level_3', name: 'SuperGoal 3 (B1)' },
+                    { id: 'level_4', name: 'MegaGoal 1 (B2)' },
+                    { id: 'level_5', name: 'MegaGoal 2 (C1)' },
+                    { id: 'conversacion', name: 'Conversación Adultos' },
+                    { id: 'kids', name: 'Kids & Teens' }
+                  ].map(lvl => {
+                    const isAssigned = editingTeacher.levelsAssigned.includes(lvl.id);
+                    return (
+                      <button
+                        key={lvl.id}
+                        type="button"
+                        onClick={() => {
+                          const nextLevels = isAssigned
+                            ? editingTeacher.levelsAssigned.filter(l => l !== lvl.id)
+                            : [...editingTeacher.levelsAssigned, lvl.id];
+                          setEditingTeacher({ ...editingTeacher, levelsAssigned: nextLevels });
+                        }}
+                        className={`text-[11px] py-1 px-2.5 rounded-lg border font-bold transition-all ${
+                          isAssigned
+                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
+                            : 'bg-white text-slate-600 hover:bg-slate-200 border-slate-200'
+                        }`}
+                      >
+                        {isAssigned && '✓ '}
+                        {lvl.name}
+                      </button>
+                    );
                   })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl"
-                  placeholder="Lunes, Miércoles, Viernes"
-                  required
-                />
+                </div>
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Niveles que Imparte (Separados por coma):</label>
-                <input
-                  type="text"
-                  value={editingTeacher.levelsAssigned.join(', ')}
-                  onChange={e => setEditingTeacher({ 
-                    ...editingTeacher, 
-                    levelsAssigned: e.target.value.split(',').map(l => l.trim().toLowerCase()) 
-                  })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                  placeholder="level_1, level_2, level_3"
-                  required
-                />
-              </div>
+              {/* ESTADO DEL PROFESOR & HONORARIOS */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Estado en Plantilla:</label>
+                  <select
+                    value={editingTeacher.status}
+                    onChange={e => setEditingTeacher({ ...editingTeacher, status: e.target.value as any })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                  >
+                    <option value="active">Activo en Clases 🟢</option>
+                    <option value="leave">De Permiso / Vacaciones 🟡</option>
+                    <option value="inactive">Inactivo 🔴</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Teacher Status:</label>
-                <select
-                  value={editingTeacher.status}
-                  onChange={e => setEditingTeacher({ ...editingTeacher, status: e.target.value as any })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold"
-                >
-                  <option value="active">Activo en Clases</option>
-                  <option value="leave">De Permiso / Vacaciones</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Tarifa Honorarios (USD/h):</label>
+                  <input
+                    type="number"
+                    value={editingTeacher.hourlyRate || 10}
+                    onChange={e => setEditingTeacher({ ...editingTeacher, hourlyRate: Number(e.target.value) })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                    min="0"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
               <button
                 type="button"
                 onClick={() => setEditingTeacher(null)}
-                className="px-4 py-2 text-slate-500 hover:text-slate-800 font-bold text-xs"
+                className="px-4 py-2.5 text-slate-500 hover:text-slate-800 font-bold text-xs"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-md transition-colors"
+                className="px-5 py-2.5 bg-slate-950 hover:bg-slate-800 text-amber-300 font-black rounded-xl text-xs shadow-md transition-colors flex items-center gap-1.5"
               >
-                Guardar Horarios del Teacher
+                <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                <span>Guardar Horarios del Teacher</span>
               </button>
             </div>
           </form>
@@ -2513,7 +2894,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                   rows={2}
                   value={newCouponData.description}
                   onChange={e => setNewCouponData({ ...newCouponData, description: e.target.value })}
-                  placeholder="Ej. Acceso completo y becado por rendimiento académico en Gûakytopia."
+                  placeholder="Ej. Acceso completo y becado por rendimiento académico en Güakytopia."
                   className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800"
                 />
               </div>
@@ -2735,6 +3116,491 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: ASIGNAR CLASES & NOTIFICAR ALUMNO (DIRECTORA WAKY - CALENDARIO DINÁMICO) */}
+      {/* ========================================================================= */}
+      {assigningClassesStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <form
+            onSubmit={handleConfirmClassAssignment}
+            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 my-auto animate-scaleUp max-h-[92vh] flex flex-col"
+          >
+            {/* Header */}
+            <div className="p-5 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-md text-xl">
+                  📅
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/30">
+                      Rectoría Güakytopia • Asignación Dinámica
+                    </span>
+                    <span className="text-xs text-slate-300 font-bold">
+                      {assigningClassesStudent.phone || 'Contacto Telefónico'}
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
+                    Planificador de Clases: {assigningClassesStudent.name} {assigningClassesStudent.lastName || ''}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAssigningClassesStudent(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Form Body */}
+            <div className="p-5 sm:p-6 space-y-5 text-xs overflow-y-auto flex-1">
+              
+              {/* Directora Authority Banner */}
+              <div className="bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-transparent p-3.5 rounded-2xl border border-amber-300/80 flex items-start gap-3">
+                <Crown className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5 text-amber-950">
+                  <span className="font-black text-xs block">Control Total de Rectoría: Horario Acordado</span>
+                  <p className="leading-relaxed text-[11px] text-amber-900">
+                    Define con total libertad los días y horas que acordaste por llamada con <strong>{assigningClassesStudent.name}</strong>. Al confirmar, sus clases quedarán programadas y recibirá de inmediato su notificación con acceso al aula.
+                  </p>
+                </div>
+              </div>
+
+              {/* 1. SELECCIÓN RÁPIDA DE PLANTILLAS DE HORARIO */}
+              <div>
+                <label className="font-black text-slate-800 uppercase tracking-wider text-[11px] block mb-2">
+                  ⚡ Plantillas Rápidas de Horario:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetSlot({
+                      days: ['Sábado'],
+                      start: '10:00 AM',
+                      end: '12:00 PM',
+                      frequency: 'Todos los Sábados',
+                      label: 'Sábados de 10:00 am a 12:00 pm (Todos los Sábados)'
+                    })}
+                    className={`p-3 rounded-2xl border text-left transition-all ${
+                      assignDays.includes('Sábado') && assignStartTime === '10:00 AM' && assignEndTime === '12:00 PM'
+                        ? 'bg-amber-400/20 border-amber-500 ring-2 ring-amber-400/60 shadow-xs'
+                        : 'bg-slate-50 hover:bg-amber-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-xs">⭐ Todos los Sábados (10am - 12m)</span>
+                      <span className="text-[10px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full font-black">2 Horas</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 mt-1 block">Ideal para alumnos de fin de semana (Génesis, intensivo laboral).</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetSlot({
+                      days: ['Sábado'],
+                      start: '09:00 AM',
+                      end: '11:00 AM',
+                      frequency: 'Todos los Sábados',
+                      label: 'Sábados de 09:00 am a 11:00 am (Todos los Sábados)'
+                    })}
+                    className={`p-3 rounded-2xl border text-left transition-all ${
+                      assignDays.includes('Sábado') && assignStartTime === '09:00 AM' && assignEndTime === '11:00 AM'
+                        ? 'bg-amber-400/20 border-amber-500 ring-2 ring-amber-400/60 shadow-xs'
+                        : 'bg-slate-50 hover:bg-amber-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-xs">Sábados Mañana (9am - 11am)</span>
+                      <span className="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">2 Horas</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 mt-1 block">Franja matutina de fin de semana.</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetSlot({
+                      days: ['Lunes', 'Miércoles'],
+                      start: '05:00 PM',
+                      end: '06:00 PM',
+                      frequency: '2 veces por semana',
+                      label: 'Lunes y Miércoles 05:00 pm - 06:00 pm (2 veces por semana)'
+                    })}
+                    className={`p-3 rounded-2xl border text-left transition-all ${
+                      assignDays.includes('Lunes') && assignDays.includes('Miércoles') && assignStartTime === '05:00 PM'
+                        ? 'bg-amber-400/20 border-amber-500 ring-2 ring-amber-400/60 shadow-xs'
+                        : 'bg-slate-50 hover:bg-amber-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-xs">Lunes y Miércoles (5pm - 6pm)</span>
+                      <span className="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">2 h/sem</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 mt-1 block">Frecuencia entre semana vespertina.</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetSlot({
+                      days: ['Martes', 'Jueves'],
+                      start: '04:00 PM',
+                      end: '05:00 PM',
+                      frequency: '2 veces por semana',
+                      label: 'Martes y Jueves 04:00 pm - 05:00 pm (2 veces por semana)'
+                    })}
+                    className={`p-3 rounded-2xl border text-left transition-all ${
+                      assignDays.includes('Martes') && assignDays.includes('Jueves')
+                        ? 'bg-amber-400/20 border-amber-500 ring-2 ring-amber-400/60 shadow-xs'
+                        : 'bg-slate-50 hover:bg-amber-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-xs">Martes y Jueves (4pm - 5pm)</span>
+                      <span className="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">2 h/sem</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 mt-1 block">Frecuencia dúo entre semana.</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. SELECTOR DINÁMICO DE DÍAS (PILLS CLICKEABLES) */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-black text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Paso 1: Días de Clase (Haz clic para activar/desactivar)</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                    {assignDays.join(', ') || 'Ninguno'}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
+                    const isSelected = assignDays.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => handleToggleAssignDay(day)}
+                        className={`py-2 px-3.5 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-slate-950 text-amber-300 shadow-md ring-2 ring-amber-400'
+                            : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                        <span>{day === 'Sábado' ? '⭐ Sábado' : day}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. SELECTOR DINÁMICO DE HORAS Y DURACIÓN */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <label className="font-black text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Paso 2: Rango Horario de la Clase</span>
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-600 block mb-1">Hora de Inicio:</span>
+                    <select
+                      value={assignStartTime}
+                      onChange={e => {
+                        setAssignStartTime(e.target.value);
+                        const dayLabel = assignDays.length === 1 ? `Todos los ${assignDays[0]}s` : assignDays.join(' y ');
+                        setCustomScheduleText(`${dayLabel} de ${e.target.value} a ${assignEndTime} (${assignFrequency})`);
+                      }}
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-black text-slate-900"
+                    >
+                      {[
+                        '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+                        '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM',
+                        '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'
+                      ].map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-600 block mb-1">Hora de Fin:</span>
+                    <select
+                      value={assignEndTime}
+                      onChange={e => {
+                        setAssignEndTime(e.target.value);
+                        const dayLabel = assignDays.length === 1 ? `Todos los ${assignDays[0]}s` : assignDays.join(' y ');
+                        setCustomScheduleText(`${dayLabel} de ${assignStartTime} a ${e.target.value} (${assignFrequency})`);
+                      }}
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-black text-slate-900"
+                    >
+                      {[
+                        '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+                        '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
+                        '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM'
+                      ].map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-600 block mb-1">Frecuencia / Tipo:</span>
+                    <select
+                      value={assignFrequency}
+                      onChange={e => {
+                        setAssignFrequency(e.target.value);
+                        const dayLabel = assignDays.length === 1 ? `Todos los ${assignDays[0]}s` : assignDays.join(' y ');
+                        setCustomScheduleText(`${dayLabel} de ${assignStartTime} a ${assignEndTime} (${e.target.value})`);
+                      }}
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900"
+                    >
+                      <option value="Todos los Sábados">Todos los Sábados (Fijo)</option>
+                      <option value="Semanal Recurrente">Semanal Recurrente</option>
+                      <option value="2 veces por semana">2 veces por semana</option>
+                      <option value="Intensivo Fin de Semana">Intensivo Fin de Semana</option>
+                      <option value="Sesión Quincenal">Sesión Quincenal</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-slate-200">
+                  <div className="text-[11px] font-bold text-emerald-800 bg-emerald-100/70 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Bloque: {assignDays.join(' / ')} {assignStartTime} a {assignEndTime}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddCurrentBlockToList}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Agregar este bloque</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 4. LISTA DE BLOQUES ASIGNADOS AL ALUMNO */}
+              <div>
+                <label className="font-black text-slate-900 uppercase tracking-wider text-[11px] block mb-1.5">
+                  📅 Bloques de Clase que Tendrá {assigningClassesStudent.name}:
+                </label>
+                <div className="space-y-1.5">
+                  {assignSlotsList.map((slot, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-indigo-50/80 rounded-2xl border border-indigo-200 text-xs"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-lg bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <strong className="text-indigo-950 font-black">{slot}</strong>
+                      </div>
+                      {assignSlotsList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSlotFromList(slot)}
+                          className="p-1 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                          title="Eliminar este bloque"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. PROFESOR, NIVEL & UNIDAD ACORDADA */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Profesor */}
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">
+                    Profesor Asignado:
+                  </label>
+                  <select
+                    value={assignTeacherId}
+                    onChange={e => setAssignTeacherId(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900"
+                  >
+                    {teachers.map(t => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} ({t.role || 'Teacher'})
+                      </option>
+                    ))}
+                    {teachers.length === 0 && (
+                      <option value="teacher_cokito">Teacher Cokitö (Head Teacher)</option>
+                    )}
+                  </select>
+                </div>
+
+                {/* Nivel Oficial */}
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">
+                    Nivel de Pensum:
+                  </label>
+                  <select
+                    value={assignLevelId}
+                    onChange={e => setAssignLevelId(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-indigo-900"
+                  >
+                    {ENGLISH_LEVELS.map(lvl => (
+                      <option key={lvl.id} value={lvl.id}>
+                        {lvl.levelName} ({lvl.book})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Unidad de Inicio */}
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">
+                    Unidad de Arranque:
+                  </label>
+                  <select
+                    value={assignUnit}
+                    onChange={e => setAssignUnit(Number(e.target.value))}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(u => (
+                      <option key={u} value={u}>Unidad {u}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 6. AULA VIRTUAL (GOOGLE MEET) */}
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">
+                  Enlace del Aula Virtual (Google Meet):
+                </label>
+                <div className="relative">
+                  <input
+                    type="url"
+                    required
+                    value={assignMeetLink}
+                    onChange={e => setAssignMeetLink(e.target.value)}
+                    placeholder="https://meet.google.com/cok-waky-cls"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-800 text-[11px]"
+                  />
+                  <Video className="w-4 h-4 text-indigo-500 absolute right-3 top-3" />
+                </div>
+              </div>
+
+              {/* 7. ACUERDO TELEFÓNICO / NOTAS DE RECTORÍA */}
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">
+                  Acuerdo Telefónico / Notas Oficiales de Rectoría:
+                </label>
+                <textarea
+                  rows={2}
+                  value={assignPhoneNotes}
+                  onChange={e => setAssignPhoneNotes(e.target.value)}
+                  placeholder="Ej. Acordado por llamada con Génesis: clases de 2 horas todos los sábados de 10:00 am a 12:00 pm con Teacher Cokitö."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-xs"
+                />
+              </div>
+
+              {/* 8. MENSAJE PARA LA ALUMNA (INBOX & NOTIFICACIÓN) */}
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">
+                  Mensaje Institucional para {assigningClassesStudent.name}:
+                </label>
+                <textarea
+                  rows={2}
+                  value={assignMessage}
+                  onChange={e => setAssignMessage(e.target.value)}
+                  placeholder="Mensaje de bienvenida y confirmación de inicio de clases..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2.5 shrink-0">
+              <span className="text-[11px] font-bold text-slate-500 hidden sm:inline">
+                Firma oficial de Waky - The Principal
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAssigningClassesStudent(null)}
+                  className="px-4 py-2.5 text-slate-500 hover:text-slate-800 font-bold text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                  <span>🎓 Confirmar Horario & Activar Alumna</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL DE CONFIRMACIÓN & DESPACHO WHATSAPP / CORREO                        */}
+      {/* ========================================================================= */}
+      {assignedNotificationSummary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 my-auto text-center p-6 space-y-4 animate-scaleUp">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-md">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ¡Clases Asignadas con Éxito!
+              </span>
+              <h3 className="text-xl font-black text-slate-900 mt-1.5">
+                {assignedNotificationSummary.studentName} ha sido notificada
+              </h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Su matrícula está activa con <strong>{assignedNotificationSummary.teacherName}</strong> en el horario <strong>{assignedNotificationSummary.schedule}</strong>.
+              </p>
+            </div>
+
+            {/* Quick dispatch actions */}
+            <div className="space-y-2 pt-2">
+              <a
+                href={assignedNotificationSummary.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs shadow-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>Enviar Notificación por WhatsApp 📲</span>
+              </a>
+
+              <a
+                href={`mailto:${assignedNotificationSummary.studentEmail}?subject=${encodeURIComponent('Tus Clases en Güakytopia han sido Asignadas')}&body=${encodeURIComponent(`Hola ${assignedNotificationSummary.studentName}!\n\nTus clases en Güakytopia han sido agendadas con éxito con ${assignedNotificationSummary.teacherName}.\nHorario: ${assignedNotificationSummary.schedule}\nAula: ${assignedNotificationSummary.meetLink}`)}`}
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs border border-slate-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <Mail className="w-4 h-4 text-slate-600" />
+                <span>Enviar Resumen por Correo Electrónico</span>
+              </a>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setAssignedNotificationSummary(null)}
+              className="w-full py-2 text-slate-400 hover:text-slate-700 font-bold text-xs"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       )}
 

@@ -384,7 +384,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       const dbCoupon = findCouponByCode(clean);
       if (dbCoupon) {
         if (!dbCoupon.isActive) {
-          setCouponError('Este cupón o beca se encuentra temporalmente inactivo en Gûakytopia.');
+          setCouponError('Este cupón o beca se encuentra temporalmente inactivo en Güakytopia.');
           return;
         }
         const discountPct = dbCoupon.benefitType === 'scholar_100' || dbCoupon.benefitType === 'free_webapp_3m' ? 100
@@ -399,7 +399,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         });
         try { confetti({ particleCount: 75, spread: 65, origin: { y: 0.6 } }); } catch {}
       } else {
-        setCouponError('Código no válido o expirado. Consulta con la Rectoría de Gûakytopia.');
+        setCouponError('Código no válido o expirado. Consulta con la Rectoría de Güakytopia.');
       }
     }
   };

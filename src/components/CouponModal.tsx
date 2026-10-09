@@ -59,7 +59,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
     const matchedCoupon = findCouponByCode(cleanCode);
 
     if (matchedCoupon && matchedCoupon.isActive === false) {
-      setErrorMsg('Este código o beca se encuentra temporalmente inactivo. Por favor consulta con la Rectoría de Gûakytopia.');
+      setErrorMsg('Este código o beca se encuentra temporalmente inactivo. Por favor consulta con la Rectoría de Güakytopia.');
       return;
     }
 
@@ -86,7 +86,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
         phone: '',
         age: 26,
         isKid: false,
-        schoolOrProfession: isCSB ? 'Comunidad CSB' : 'Estudiante Gûakytopia',
+        schoolOrProfession: isCSB ? 'Comunidad CSB' : 'Estudiante Güakytopia',
         learningGoal: 'Aprender y certificar inglés bilingüe',
         avatar: `https://api.dicebear.com/7.x/micah/svg?seed=${cleanUser}`,
         plan: isScholar ? 'intensive' : isFriends ? 'regular' : 'basic',
@@ -111,7 +111,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
 
       setSuccessInfo({
         title: '¡Pase & Beca Activada con Éxito! 🎁',
-        desc: `Tu cuenta ha sido creada como @${cleanUser}. Tienes acceso completo e inmediato al Hub y al aula de la Unidad 1 de Gûakytopia.`
+        desc: `Tu cuenta ha sido creada como @${cleanUser}. Tienes acceso completo e inmediato al Hub y al aula de la Unidad 1 de Güakytopia.`
       });
 
       try {
@@ -124,7 +124,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
       }, 1800);
 
     } else {
-      setErrorMsg('El código ingresado no es válido o ha expirado. Verifica que esté bien escrito o solicita uno a la administración de Gûakytopia.');
+      setErrorMsg('El código ingresado no es válido o ha expirado. Verifica que esté bien escrito o solicita uno a la administración de Güakytopia.');
     }
   };
 
@@ -143,7 +143,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
                 Pases de Cortesía & Becas Institucionales
               </span>
               <h3 className="font-black text-base text-white">
-                Canjear Código en Gûakytopia
+                Canjear Código en Güakytopia
               </h3>
             </div>
           </div>
@@ -170,7 +170,7 @@ export const CouponModal: React.FC<CouponModalProps> = ({
         ) : (
           <form onSubmit={handleRedeem} className="p-5 sm:p-6 space-y-3.5">
             <p className="text-xs text-slate-600 leading-relaxed bg-amber-50/70 p-3 rounded-2xl border border-amber-200/60">
-              Si recibiste una cortesía especial, beca institucional o pase de invitación de <strong>Gûakytopia</strong> (Coquitos Academy), completa tus datos para crear tu usuario y contraseña de acceso.
+              Si recibiste una cortesía especial, beca institucional o pase de invitación de <strong>Güakytopia</strong> (Coquitos Academy), completa tus datos para crear tu usuario y contraseña de acceso.
             </p>
 
             <div className="space-y-3">

@@ -1,4 +1,4 @@
-// Notification and Student Class Request Service for Gûakytopia / Coquitos Academy
+// Notification and Student Class Request Service for Güakytopia / Coquitos Academy
 
 export interface StudentNotification {
   id: string;
@@ -36,7 +36,7 @@ const INITIAL_NOTIFICATIONS: StudentNotification[] = [
     id: 'notif_genesis_welcome',
     studentId: 'student_genesis',
     type: 'rectoria',
-    title: '¡Bienvenida a Gûakytopia, Génesis! 🌴🎓',
+    title: '¡Bienvenida a Güakytopia, Génesis! 🌴🎓',
     message: 'Tu matrícula institucional ha sido procesada con éxito por Rectoría. Directora Waky revisará tu perfil para asignarte profesor y horarios de clase.',
     date: '2026-10-06T14:30:00Z',
     read: false
