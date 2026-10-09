@@ -1235,6 +1235,7 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
                     <th className="py-3 px-4">Alumno</th>
                     <th className="py-3 px-4">Nivel Actual</th>
                     <th className="py-3 px-4">Unidad</th>
+                    <th className="py-3 px-4">Código utilizado</th>
                     <th className="py-3 px-4">Teacher & Horarios</th>
                     <th className="py-3 px-4">Estado</th>
                     <th className="py-3 px-4 text-right">Acciones de Directora</th>
@@ -1266,6 +1267,23 @@ export const PrincipalDashboard: React.FC<PrincipalDashboardProps> = ({
 
                         <td className="py-3 px-4 font-mono font-bold text-slate-700">
                           Unidad {student.currentUnit || 1}
+                        </td>
+
+                        <td className="py-3 px-4">
+                          {(() => {
+                            // Older registrations stored the entered coupon in notes.
+                            // Show only the code the student actually entered; do not infer a benefit.
+                            const match = (student.notes || '').match(/Cup[oó]n:\s*([^.|\n]+)/i);
+                            const couponCode = match?.[1]?.trim();
+                            const noCoupon = /Sin cup[oó]n/i.test(student.notes || '');
+                            return couponCode && !noCoupon ? (
+                              <span className="inline-flex whitespace-nowrap rounded-lg border border-violet-200 bg-violet-50 px-2 py-1 font-mono text-[10px] font-bold text-violet-800">
+                                {couponCode}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-medium text-slate-400">Sin código</span>
+                            );
+                          })()}
                         </td>
 
                         <td className="py-3 px-4 text-slate-700">
